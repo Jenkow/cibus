@@ -1,6 +1,7 @@
 package com.jll.cibus.table;
 
 import com.jll.cibus.branch.BranchEntity;
+import com.jll.cibus.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,9 +25,9 @@ public class TableEntity {
     @Column (name = "available", nullable = false)
     private Boolean available;
 
-   //@ManyToOne(fetch = FetchType.LAZY)
-   //@JoinColumn(name = "waiter_id")
-   //private UserEntity waiter;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "waiter_id")
+   private UserEntity waiter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
