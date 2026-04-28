@@ -34,10 +34,10 @@ public class UserEntity {
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id")
+    @JoinColumn(name = "branch_id", nullable = false)
     private BranchEntity branch;
 
-    @ManyToOne
-    @JoinColumn(name = "role", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
     private UserRoleEntity role;
 }
