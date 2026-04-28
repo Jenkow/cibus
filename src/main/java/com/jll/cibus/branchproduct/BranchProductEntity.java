@@ -21,7 +21,7 @@ public class BranchProductEntity {
     @Column(name = "available", nullable = false)
     private Boolean available;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price", nullable = false)               // Si usamos BigDecimal podemos poner precision=10, scale=2
     private Double price;
 
     @ManyToOne(fetch = FetchType.LAZY)
