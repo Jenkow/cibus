@@ -1,5 +1,6 @@
 package com.jll.cibus.table;
 
+import com.jll.cibus.branch.BranchEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,14 +19,19 @@ public class TableEntity {
     private Long id;
 
     @Column (name = "capacity", nullable = false)
-    private int capacity;
+    private Integer capacity;
 
-    @Column (name = "isAvailable", nullable = false)
-    private boolean isAvailable;
+    @Column (name = "available", nullable = false)
+    private Boolean available;
 
-    @Column (name = "idWaiter")
-    private Long idWaiter;
+   //@ManyToOne(fetch = FetchType.LAZY)
+   //@JoinColumn(name = "waiter_id")
+   //private UserEntity waiter;
 
-    @Column (name= "idBranch", nullable = false)
-    private Long idBranch;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private BranchEntity branch;
+
+
+    //CREATE METHODS TO VERIFY THAT EVERY TIME THAT THE TABLE IS NOT AVALIABLE THERE IS A WAITER, AND IF ITS AVALIABLE, THE WAITER IS NULL
 }
