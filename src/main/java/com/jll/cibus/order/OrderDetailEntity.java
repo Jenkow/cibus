@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import jdk.jfr.Enabled;
 import lombok.*;
 
-@Enabled
+@Entity
 @Table(name = "order_details")
 @AllArgsConstructor
 @NoArgsConstructor
