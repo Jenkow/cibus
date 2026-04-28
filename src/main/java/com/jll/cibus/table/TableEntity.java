@@ -18,22 +18,19 @@ public class TableEntity {
     private Long id;
 
     @Column (name = "capacity", nullable = false)
-    private int capacity;
+    private Integer capacity;
 
-    @Column (name = "isAvailable", nullable = false)
-    private boolean isAvailable;
+    @Column (name = "available", nullable = false)
+    private Boolean available;
 
-    @ManyToOne
-    @Column (name = "id_waiter")
-    private Long id_waiter;
+   //@ManyToOne(fetch = FetchType.LAZY)
+   //@JoinColumn(name = "waiter_id")
+   //private UserEntity waiter;
 
-    //    @ManyToOne(fetch = FetchType.LAZY)
-    //    @JoinColumn(name = "id_waiter")
-    //    private UserEntity waiter;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn (name= "id_branch", nullable = false)
-    private Long idBranch; //esto no va
+    //@ManyToOne(fetch = FetchType.LAZY)
+    //@JoinColumn(name = "branch_id", nullable = false)
     //private BranchEntity branch;
+
+
     //CREATE METHODS TO VERIFY THAT EVERY TIME THAT THE TABLE IS NOT AVALIABLE THERE IS A WAITER, AND IF ITS AVALIABLE, THE WAITER IS NULL
 }
