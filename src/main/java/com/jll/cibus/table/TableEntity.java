@@ -23,9 +23,17 @@ public class TableEntity {
     @Column (name = "isAvailable", nullable = false)
     private boolean isAvailable;
 
-    @Column (name = "idWaiter")
-    private Long idWaiter;
+    @ManyToOne
+    @Column (name = "id_waiter")
+    private Long id_waiter;
 
-    @Column (name= "idBranch", nullable = false)
-    private Long idBranch;
+    //    @ManyToOne(fetch = FetchType.LAZY)
+    //    @JoinColumn(name = "id_waiter")
+    //    private UserEntity waiter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn (name= "id_branch", nullable = false)
+    private Long idBranch; //esto no va
+    //private BranchEntity branch;
+    //CREATE METHODS TO VERIFY THAT EVERY TIME THAT THE TABLE IS NOT AVALIABLE THERE IS A WAITER, AND IF ITS AVALIABLE, THE WAITER IS NULL
 }
