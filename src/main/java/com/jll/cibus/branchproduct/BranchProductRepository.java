@@ -13,7 +13,7 @@ public interface BranchProductRepository extends JpaRepository<BranchProductEnti
 
     List<BranchProductEntity> findAllByAvailableFalse();
 
-    List<BranchProductEntity> findAllByBranch(BranchEntity branch);
+    List<BranchProductEntity> findAllByBranch_Name(String name);
 
     List<BranchProductEntity> findAllByBranch_Id(Long branchId);
 }
