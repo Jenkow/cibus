@@ -1,8 +1,8 @@
-package com.jll.cibus.order;
+package com.jll.cibus.orderdetail;
 
+import com.jll.cibus.order.OrderEntity;
 import com.jll.cibus.product.ProductEntity;
 import jakarta.persistence.*;
-import jdk.jfr.Enabled;
 import lombok.*;
 
 @Entity
@@ -12,7 +12,7 @@ import lombok.*;
 @Builder
 @Getter
 @Setter
-public class OrderDetails {
+public class OrderDetailEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
