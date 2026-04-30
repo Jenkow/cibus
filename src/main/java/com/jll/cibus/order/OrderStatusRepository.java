@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface OrderStatusRepository extends JpaRepository<OrderStatusEntity, Long> {
 
-    List<OrderEntity> findByStatusName(String name);
+    List<OrderEntity> findByName(String name);
 
 }

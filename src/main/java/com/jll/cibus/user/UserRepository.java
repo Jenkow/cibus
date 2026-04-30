@@ -10,15 +10,25 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity,Long>
 {
+
     List<UserEntity> findByFirstName (String firstName);
-    List<UserEntity> findyByLastName (String lastName);
+
+    List<UserEntity> findByLastName (String lastName);
+
     List<UserEntity> findByFirstNameAndLastName (String firstName, String lastName);
-    List<UserEntity> findByPhoneNumber (String phoneNumber);
+
+    Optional<UserEntity> findByPhoneNumber (String phoneNumber);
+
     Optional<UserEntity> findByEmail (String email);
+
     Optional<UserEntity> findByDni (Long dni);
+
     List<UserEntity> findByBranch (BranchEntity branch);
+
     List<UserEntity> findByBranchId (Long branchId);
-    List<UserEntity> findByUserRole (UserRoleEntity userRole);
-    List<UserEntity> finByUserRoleId (Long userRoleId);
+
+    List<UserEntity> findByRole (UserRoleEntity role);
+
+    List<UserEntity> findByUserRole_Id (Long userRoleId);
 
 }
