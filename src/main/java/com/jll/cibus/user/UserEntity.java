@@ -28,7 +28,7 @@ public class UserEntity {
     private String lastName;
 
     @Column(name = "phone_number", nullable = false)
-    private Long phoneNumber;
+    private String phoneNumber;
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;

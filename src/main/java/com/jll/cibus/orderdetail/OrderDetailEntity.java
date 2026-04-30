@@ -3,7 +3,11 @@ package com.jll.cibus.orderdetail;
 import com.jll.cibus.order.OrderEntity;
 import com.jll.cibus.product.ProductEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_details")
@@ -18,14 +22,16 @@ public class OrderDetailEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "observation",  nullable = true)
+    @Column(name = "observation")
     private String observation;
 
-    @Column(name = "amount") // no es nullable porque por defecto siempre va a tener valor 1 a menos que se indique lo contrario
-    private Integer amount = 1;
+    @Min(1)
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity = 1;
 
-    @Column(name = "unit_price", nullable = false)
-    private Double unitPrice;
+    @DecimalMin("0.0")
+    @Column(name = "unit_price", nullable = false, precision=10, scale=2)
+    private BigDecimal unitPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id",  nullable = false)
