@@ -6,6 +6,8 @@ import com.jll.cibus.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -44,6 +46,6 @@ public class OrderEntity {
     @Column(name = "date_time", nullable = false, updatable = false)
     private LocalDateTime dateTime;
 
-    @Column(name="total", nullable = false)            //Si usamos BigDecimal podemos poner precision=10, scale=2
-    private Double total;
+    @Column(name="total", nullable = false, precision=10, scale=2)
+    private BigDecimal total;
 }

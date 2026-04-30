@@ -5,6 +5,8 @@ import com.jll.cibus.product.ProductEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "branch_products")
 @Getter
@@ -21,8 +23,8 @@ public class BranchProductEntity {
     @Column(name = "available", nullable = false)
     private Boolean available;
 
-    @Column(name = "price", nullable = false)               // Si usamos BigDecimal podemos poner precision=10, scale=2
-    private Double price;
+    @Column(name = "price", nullable = false, precision=10, scale=2)
+    private BigDecimal price;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
