@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class orderDetailResponseDTO
+public class OrderDetailResponseDTO
 {
     private Long id;
     private Long orderId;
