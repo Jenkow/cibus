@@ -1,6 +1,9 @@
 package com.jll.cibus.order;
 
 import com.jll.cibus.orderdetail.OrderDetailRequestDTO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,13 +17,13 @@ import java.util.List;
 @Setter
 public class OrderRequestDTO {
 
+    @NotNull(message = "Branch is required")
     private Long branchId;
 
+    @NotNull(message = "Table is required")
     private Long tableId;
 
-    private Long waiterId;
-
-    private Long orderStatusId;
-
-    private List<OrderDetailRequestDTO> orders;
+    @Valid
+    @NotEmpty(message = "At least one item required")
+    private List<OrderDetailRequestDTO> items;
 }
