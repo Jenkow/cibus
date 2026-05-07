@@ -19,6 +19,6 @@ public class OrderDetailRequestDTO
 
     @Min(value = 1)
     @NotNull
-    private Integer quantity=1;
+    private Integer quantity;
 
 }

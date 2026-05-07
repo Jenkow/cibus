@@ -1,6 +1,7 @@
 package com.jll.cibus.order;
 
 import com.jll.cibus.common.model.IMapper;
+import com.jll.cibus.orderdetail.OrderDetailMapper;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OrderMapper implements IMapper<OrderEntity, OrderRequestDTO, OrderResponseDTO> {
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     @Override
     public OrderResponseDTO toDTO(OrderEntity entity){
