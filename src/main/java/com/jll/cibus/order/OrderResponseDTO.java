@@ -19,7 +19,8 @@ public class OrderResponseDTO {
     private Long id;
     private Long tableId;
     private Long waiterId;
-    private String waiterName;
+    private String waiterFirstName;
+    private String waiterLastName;
     private Long branchId;
     private String branchName;
     private Boolean paid;
