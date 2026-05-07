@@ -9,9 +9,9 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
 
-    Optional<ProductEntity> findByName(String name);
+    Optional<ProductEntity> findByNameIgnoreCase(String name);
 
-    List<ProductEntity> findAllByName(String name); //Return all of the products that haves a coincidence in his name
+    List<ProductEntity> findAllByNameContainingIgnoreCase(String name); //Return all of the products that haves a coincidence in his name
 
     List<ProductEntity> findAllByCategory_Id(Long category_id);
 
