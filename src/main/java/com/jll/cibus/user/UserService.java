@@ -1,0 +1,129 @@
+package com.jll.cibus.user;
+
+import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
+import org.apache.catalina.LifecycleState;
+import org.apache.catalina.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.lang.classfile.instruction.NewMultiArrayInstruction;
+import java.util.List;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+
+    @Autowired
+    public UserService(UserRepository userRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+    }
+
+    public UserResponseDTO create (UserRequestDTO requestDTO) {
+        if (userRepository.findByDni(requestDTO.getDni()).isPresent()) throw new ResourceAlreadyExistsException("DNI", requestDTO.getDni());
+
+        UserEntity toCreate = userRepository.save(userMapper.toEntity(requestDTO));
+        return userMapper.toResponse(toCreate);
+    }
+
+    public UserResponseDTO update (UserRequestDTO requestDTO) {
+        if (userRepository.findByDni(requestDTO.getDni()).isEmpty()) throw new ResourceNotFoundException("DNI", requestDTO.getDni());
+
+        UserEntity toUpdate = userRepository.save(userMapper.toEntity(requestDTO));
+        return userMapper.toResponse(toUpdate);
+    }
+
+    public void deleteByDni(Long dni){
+        UserEntity toDelete = userRepository
+                .findByDni(dni)
+                .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
+
+        userRepository.delete(toDelete);
+    }
+
+    public List<UserResponseDTO> findAll(){
+        List<UserEntity> users = userRepository.findAll();
+
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    public UserResponseDTO findByDni(Long dni) {
+        UserEntity user = userRepository.findByDni(dni)
+                .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
+
+        return userMapper.toResponse(user);
+    }
+
+    public List<UserResponseDTO> findByFirstName (String firstName){
+        List<UserEntity> users = userRepository.findByFirstName(firstName);
+
+        if (users.isEmpty()) throw new ResourceNotFoundException("First Name", firstName);
+
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    public List<UserResponseDTO> findByLastName (String lastName){
+        List<UserEntity> users = userRepository.findByLastName(lastName);
+
+        if(users.isEmpty()) throw new ResourceNotFoundException("Last name", lastName);
+
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    public UserResponseDTO findByEmail (String email){
+        UserEntity user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Email", email));
+
+        return userMapper.toResponse(user);
+    }
+
+    public UserResponseDTO findByPhoneNumber (String phoneNumber){
+        UserEntity user = userRepository
+                .findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Phone number", phoneNumber));
+
+        return userMapper.toResponse(user);
+    }
+
+    public List<UserResponseDTO> findByFirstNameAndLastName (String firstName, String lastName){
+        List<UserEntity> users = userRepository.findByFirstNameAndLastName(firstName, lastName);
+
+        if(users.isEmpty()){
+            throw new ResourceNotFoundException("First and/or Last Name", firstName + " and " + lastName);
+        }
+
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    public List<UserResponseDTO> findByBranchId (Long branchId) {
+        List<UserEntity> users = userRepository.findByBranchId(branchId);
+
+        if(users.isEmpty()) throw new ResourceNotFoundException("Branch", branchId);
+
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    public List<UserResponseDTO> findByRoleId (Long roleId) {
+        List<UserEntity> users = userRepository.findByRoleId(roleId);
+
+        if(users.isEmpty()) throw new ResourceNotFoundException("Role", roleId);
+
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+}
