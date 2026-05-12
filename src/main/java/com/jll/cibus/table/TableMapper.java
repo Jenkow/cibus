@@ -19,19 +19,14 @@ public class TableMapper
     private BranchRepository branchRepository;
 
 
-    public TableEntity toEntity (TableRequestDTO dto, Long branchId)
+    public TableEntity toEntity (TableRequestDTO dto, BranchEntity branch)
     {
         TableEntity entity = modelMapper.map(dto, TableEntity.class);
-        BranchEntity branch = branchRepository.findById(branchId)
-                .orElseThrow(()->new RuntimeException("Branch not found"));
-        entity.setBranch(branch);
 
-        if (dto.getWaiterId()!=null)
-        {
-            UserEntity waiter = userRepository.findById(dto.getWaiterId())
-                    .orElseThrow(() -> new RuntimeException("Waiter not found"));
-            entity.setWaiter(waiter);
-        }
+        entity.setBranch(branch);
+        entity.setAvailable(true);
+        entity.setWaiter(null);
+
         return entity;
     }
 
