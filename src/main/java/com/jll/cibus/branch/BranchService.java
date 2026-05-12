@@ -1,5 +1,8 @@
 package com.jll.cibus.branch;
 
+import com.jll.cibus.common.exception.BusinessException;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.branch.BranchResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,53 +13,29 @@ public class BranchService
 {
     @Autowired
     private BranchRepository branchRepository;
+    @Autowired
+    private BranchMapper branchMapper;
 
-    public boolean existsByName(String name) {
-        return branchRepository.existsByName(name);
-    }
-    public BranchEntity findByName(String name) {
-        if (!existsByName(name))
-        {
-            throw new RuntimeException("Branch not found with name: "+ name);
-        }
-        return branchRepository.findByName(name).get();
-    }
-    public void nameVerification (String name)
-    {
-        if (branchRepository.existsByName(name))
-        {
-            throw new RuntimeException("FAILED TO REGISTER: theres another branch with the name "+ name);
-        }
-    }
-    public boolean existsByAdress (String street, Integer number)
-    {
-        return branchRepository.existsByStreetAndNumber(street, number);
-    }
-    public BranchEntity findByStreetAndNumber (String street, Integer number)
-    {
-        if (!existsByAdress(street, number))
-        {
-            throw new RuntimeException("Branch not found with adress "+ street+" "+number);
-        }
-        return branchRepository.findByStreetAndNumber(street, number).get();
-    }
-    public void adressVerification (String street, Integer number)
-    {
-        if (branchRepository.existsByStreetAndNumber(street, number))
-        {
-            throw new RuntimeException("FAILED TO REGISTER: theres another branch in "+ street+" "+number);
-        }
-    }
-    public BranchEntity registerBranch(BranchEntity newBranch)
-    {
-        nameVerification(newBranch.getName());
-        adressVerification(newBranch.getStreet(), newBranch.getNumber());
-
-        return branchRepository.save(newBranch);
-    }
     public List<BranchEntity> getAllBranches ()
     {
         return branchRepository.findAll();
+    }
+
+    private BranchEntity getBranchById(Long id)
+    {
+        return branchRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("branch", id));
+    }
+
+    private BranchEntity getBranchByName(String name)
+    {
+        return branchRepository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("branch", name));
+    }
+    private BranchEntity getBranchByAdress (String street, Integer number)
+    {
+        return branchRepository.findByStreetAndNumber(street,number)
+                .orElseThrow(() ->new ResourceNotFoundException("Branchs Address", street + " " + number));
     }
     public void idVerification (Long id)
     {
@@ -65,25 +44,58 @@ public class BranchService
             throw new RuntimeException("THERES NO BRANCH WITH ID "+ id);
         }
     }
+    private void nameVerification (String name)
+    {
+        if (branchRepository.existsByName(name))
+        {
+            throw new BusinessException("FAILED TO REGISTER: theres another branch with the name "+ name);
+        }
+    }
+    private void addressVerification (String street, Integer number)
+    {
+        if (branchRepository.existsByStreetAndNumber(street, number))
+        {
+            throw new BusinessException("FAILED TO REGISTER: theres another branch in "+ street+" "+number);
+        }
+    }
+    public BranchResponseDTO createBranch(BranchRequestDTO requestDTO)
+    {
+        nameVerification(requestDTO.getName());
+        addressVerification(requestDTO.getStreet(), requestDTO.getNumber());
 
-    public BranchEntity updateBranch (Long id, BranchEntity updatedBranch)
+        BranchEntity entity = branchMapper.toEntity(requestDTO);
+        BranchEntity saved = branchRepository.save(entity);
+
+        return branchMapper.toResponseDTO(saved);
+    }
+
+    public BranchResponseDTO findByStreetAndNumber (String street, Integer number)
+    {
+        BranchEntity branch =getBranchByAdress(street,number);
+        return branchMapper.toResponseDTO(branch);
+    }
+
+
+    public BranchResponseDTO updateBranch (Long id, BranchRequestDTO dto)
     {
         idVerification(id);
-        BranchEntity branchBase = branchRepository.findById(id).get();
+        BranchEntity branchBase = getBranchById(id);
 
-        if (!branchBase.getName().equalsIgnoreCase(updatedBranch.getName()))
+        if (!branchBase.getName().equalsIgnoreCase(dto.getName()))
         {
-            nameVerification(updatedBranch.getName());
-            branchBase.setName(updatedBranch.getName());
+            nameVerification(dto.getName());
+            branchBase.setName(dto.getName());
         }
-        if (!branchBase.getStreet().equals(updatedBranch.getStreet()) || !branchBase.getNumber().equals(updatedBranch.getNumber()))
+        if (!branchBase.getStreet().equals(dto.getStreet()) || !branchBase.getNumber().equals(dto.getNumber()))
         {
-            adressVerification(updatedBranch.getStreet(), updatedBranch.getNumber());
-            branchBase.setStreet(updatedBranch.getStreet());
-            branchBase.setNumber(updatedBranch.getNumber());
+            addressVerification(dto.getStreet(), dto.getNumber());
+            branchBase.setStreet(dto.getStreet());
+            branchBase.setNumber(dto.getNumber());
         }
-        return branchRepository.save(branchBase);
+        BranchEntity saved = branchRepository.save(branchBase);
+        return branchMapper.toResponseDTO(saved);
     }
+
     public void deleteBranch (Long id)
     {
         idVerification(id);
