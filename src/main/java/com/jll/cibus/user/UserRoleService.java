@@ -24,9 +24,4 @@ public class UserRoleService
         }
     }
 
-    public void deleteUserRole(Long id)
-    {
-        idVerification(id);
-        userRoleRepository.deleteById(id);
-    }
 }
