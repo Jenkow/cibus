@@ -1,6 +1,7 @@
 package com.jll.cibus.product;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class ProductService {
         this.productMapper = productMapper;
     }
 
+    @Transactional
     public ProductResponseDTO create(ProductRequestDTO dto){
         if(productRepository.findByNameIgnoreCase(dto.getName()).isPresent()){
             throw new RuntimeException("Product already exists");
@@ -61,6 +63,7 @@ public class ProductService {
                 .toList();
     }
 
+    @Transactional
     public ProductResponseDTO update(Long id, ProductRequestDTO dto){
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow( () -> new RuntimeException("Product not found"));
@@ -72,6 +75,7 @@ public class ProductService {
         return productMapper.toResponseDTO(updated);
     }
 
+    @Transactional
     public void delete(Long id) {
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
