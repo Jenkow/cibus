@@ -1,7 +1,6 @@
 package com.jll.cibus.branchproduct;
 
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Getter

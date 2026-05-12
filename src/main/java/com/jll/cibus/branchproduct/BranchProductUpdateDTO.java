@@ -2,7 +2,6 @@ package com.jll.cibus.branchproduct;
 
 import jakarta.validation.constraints.Positive;
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Getter
