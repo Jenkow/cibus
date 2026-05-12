@@ -1,5 +1,6 @@
 package com.jll.cibus.branchproduct;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
@@ -10,10 +11,19 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BranchProductUpdateDTO {
+public class BranchProductRequestDTO {
 
+    @NotNull
+    private Long branchId;
+
+    @NotNull
+    private Long productId;
+
+    @NotNull
     @Positive
     private BigDecimal price;
 
+    @NotNull
     private Boolean available;
+
 }
