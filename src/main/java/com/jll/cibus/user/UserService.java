@@ -36,7 +36,7 @@ public class UserService {
         return userMapper.toResponse(toUpdate);
     }
 
-    public void deleteByDNI(Long dni){
+    public void deleteByDni(Long dni){
         UserEntity toDelete = userRepository
                 .findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
