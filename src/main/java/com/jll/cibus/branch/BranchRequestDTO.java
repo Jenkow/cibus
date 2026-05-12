@@ -1,5 +1,6 @@
 package com.jll.cibus.branch;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +22,8 @@ public class BranchRequestDTO
     private String street;
 
     @NotNull(message = "Number is mandatory")
-    @Length(min =2, max= 4, message = "Number must have between 2 and 4 digits")
+    @Min(value = 10, message = "Number must have at least 2 digits")
+    @Max(value = 9999, message = "Number must have at most 4 digits")
     private Integer number;
 
 }
