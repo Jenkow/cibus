@@ -1,5 +1,8 @@
 package com.jll.cibus.product;
 
+import com.jll.cibus.common.exception.BusinessException;
+import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +23,7 @@ public class ProductCategoryService {
     @Transactional
     public ProductCategoryResponseDTO create (ProductCategoryRequestDTO dto){
         if(productCategoryRepository.findByNameIgnoreCase(dto.getName()).isPresent()){
-            throw new RuntimeException("Product category already exists");
+            throw new ResourceAlreadyExistsException("Category", dto.getName());
         }
         ProductCategoryEntity entity = productCategoryMapper.toEntity(dto);
         ProductCategoryEntity saved = productCategoryRepository.save(entity);
@@ -29,6 +32,9 @@ public class ProductCategoryService {
 
     public List<ProductCategoryResponseDTO> findAll (){
         List<ProductCategoryEntity> categories = productCategoryRepository.findAll();
+
+        if(categories.isEmpty()) throw new BusinessException("Can't show category products if there is no categories yet");
+
         return categories.stream()
                 .map(productCategoryMapper::toDTO)
                 .toList();
@@ -36,33 +42,39 @@ public class ProductCategoryService {
 
     public ProductCategoryResponseDTO findById(Long id){
         ProductCategoryEntity category = productCategoryRepository.findById(id)
-                .orElseThrow( () -> new RuntimeException("Product category not found"));//Despues vemos excepciones personalizadas
+                .orElseThrow( () -> new ResourceNotFoundException("Category", id));
+
         return productCategoryMapper.toDTO(category);
     }
 
     public ProductCategoryResponseDTO findByName(String name){
         ProductCategoryEntity category = productCategoryRepository.findByNameIgnoreCase(name)
-                .orElseThrow( () -> new RuntimeException("Product category not found"));
+                .orElseThrow( () -> new ResourceNotFoundException("Name", name));
+
         return productCategoryMapper.toDTO(category);
     }
 
     @Transactional
     public ProductCategoryResponseDTO update(Long id, ProductCategoryRequestDTO dto){
         ProductCategoryEntity category = productCategoryRepository.findById(id)
-                .orElseThrow( () -> new RuntimeException("Product category not found"));
+                .orElseThrow( () -> new ResourceNotFoundException("Category", id));
+
         Optional<ProductCategoryEntity> existing = productCategoryRepository.findByNameIgnoreCase(dto.getName());
         if(existing.isPresent() && !existing.get().getId().equals(id)){
-            throw new RuntimeException("Product category already exists");
+            throw new ResourceAlreadyExistsException("Category", dto.getName());
         }
+
         category.setName(dto.getName());
         ProductCategoryEntity saved = productCategoryRepository.save(category);
+
         return productCategoryMapper.toDTO(saved);
     }
 
     @Transactional
     public void delete(Long id){
         ProductCategoryEntity category = productCategoryRepository.findById(id)
-                .orElseThrow( () -> new RuntimeException("Product category not found"));
+                .orElseThrow( () -> new ResourceNotFoundException("Category", id));
+
         productCategoryRepository.delete(category);
     }
 }

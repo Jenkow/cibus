@@ -1,5 +1,6 @@
 package com.jll.cibus.user;
 
+import com.jll.cibus.common.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +17,9 @@ public class UserRoleService
         return userRoleRepository.findAll();
     }
 
-    private void  idVerification (Long id)
-    {
-        if (!userRoleRepository.existsById(id))
-        {
-            throw new RuntimeException("THERES NO USER ROLE WITH ID "+id);
+    private void  idVerification (Long id) {
+        if (!userRoleRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Role", id);
         }
     }
 
