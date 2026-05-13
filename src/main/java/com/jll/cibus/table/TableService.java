@@ -26,6 +26,8 @@ public class TableService
     private BranchRepository branchRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private BranchService branchService;
 
     //WHEN USER SERVICE IS DONE AND BRANCH SERVICE IS FIXES WE HAVE TO USE THEM INSTEAD OF REPOSITORIES
 
@@ -41,25 +43,23 @@ public class TableService
 
     public List<TableResponseDTO> findByBranchId (Long branchId)
     {
-        BranchEntity branch = branchRepository.findById(branchId)
-                .orElseThrow(() -> new RuntimeException("There is no branch with that ID"));
+        BranchEntity branch = branchService.getBranchById(branchId);
+
         List<TableEntity> tables = findByBranch(branch);
 
         return  tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
     }
-    // WE HAVE TO ADD FIND BY ID IN BRANCH SERVICE
+
 
     private List<TableEntity> findByBranchAndAvailable( BranchEntity branch, boolean available)
     {
-        List<TableEntity> tablesList = tableRepository.findByBranchAndAvailable(branch, available);
         return tableRepository.findByBranchAndAvailable(branch, available);
     }
     public List<TableResponseDTO> findByBranchIdAndAvailable (Long branchId, boolean available)
     {
-        BranchEntity branch = branchRepository.findById(branchId)
-                .orElseThrow(() -> new RuntimeException("There is no branch with that ID"));
+        BranchEntity branch= branchService.getBranchById(branchId);
         List<TableEntity> tables = findByBranchAndAvailable(branch, available);
         return tables.stream()
                 .map(tableMapper::toResponse)
@@ -71,8 +71,7 @@ public class TableService
     }
     public List<TableResponseDTO> findByBranchIdAndWaiterId (Long branchId, Long waiterId)
     {
-        BranchEntity branch = branchRepository.findById(branchId)
-                .orElseThrow(() -> new RuntimeException("There is no branch with that ID"));
+        BranchEntity branch = branchService.getBranchById(branchId);
         UserEntity waiter = userRepository.findById(waiterId)
                 .orElseThrow(() -> new RuntimeException("There is no waiter with that ID"));
         List<TableEntity> tables= findByBranchAndWaiter(branch,waiter);
