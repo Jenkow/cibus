@@ -8,14 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserMapper
-{
-    @Autowired
+public class UserMapper {
+
     private ModelMapper modelMapper;
-    @Autowired
     private BranchRepository branchRepository;
-    @Autowired
     private UserRoleRepository userRoleRepository;
+
+    public UserMapper(ModelMapper modelMapper, BranchRepository branchRepository, UserRoleRepository userRoleRepository) {
+        this.modelMapper = modelMapper;
+        this.branchRepository = branchRepository;
+        this.userRoleRepository = userRoleRepository;
+    }
 
     public UserEntity toEntity (UserRequestDTO dto)
     {
@@ -33,6 +36,7 @@ public class UserMapper
         }
         return entity;
     }
+
     public UserResponseDTO toResponse (UserEntity entity)
     {
         return modelMapper.map(entity, UserResponseDTO.class);
