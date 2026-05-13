@@ -21,9 +21,7 @@ public class TableService
     @Autowired
     private TableRepository tableRepository;
     @Autowired
-    private TableMapper tableMapper;
-    @Autowired
-    private BranchRepository branchRepository;
+    private TableMapper tableMapper;;
     @Autowired
     private UserRepository userRepository;
     @Autowired
