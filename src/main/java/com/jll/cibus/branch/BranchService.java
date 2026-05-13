@@ -24,7 +24,7 @@ public class BranchService
                 .toList();
     }
 
-    private BranchEntity getBranchById(Long id)
+    public BranchEntity getBranchById(Long id)
     {
         return branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("branch", id));
