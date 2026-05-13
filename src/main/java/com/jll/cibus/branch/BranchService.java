@@ -16,9 +16,12 @@ public class BranchService
     @Autowired
     private BranchMapper branchMapper;
 
-    public List<BranchEntity> getAllBranches ()
+    public List<BranchResponseDTO> getAllBranches ()
     {
-        return branchRepository.findAll();
+        return branchRepository.findAll()
+                .stream()
+                .map(branchMapper::toResponseDTO)
+                .toList();
     }
 
     private BranchEntity getBranchById(Long id)
@@ -27,23 +30,12 @@ public class BranchService
                 .orElseThrow(() -> new ResourceNotFoundException("branch", id));
     }
 
-    private BranchEntity getBranchByName(String name)
-    {
-        return branchRepository.findByName(name)
-                .orElseThrow(() -> new ResourceNotFoundException("branch", name));
-    }
-    private BranchEntity getBranchByAdress (String street, Integer number)
+    private BranchEntity getBranchByAddress (String street, Integer number)
     {
         return branchRepository.findByStreetAndNumber(street,number)
-                .orElseThrow(() ->new ResourceNotFoundException("Branchs Address", street + " " + number));
+                .orElseThrow(() ->new ResourceNotFoundException("Branch Address", street + " " + number));
     }
-    public void idVerification (Long id)
-    {
-        if (!branchRepository.existsById(id))
-        {
-            throw new RuntimeException("THERES NO BRANCH WITH ID "+ id);
-        }
-    }
+
     private void nameVerification (String name)
     {
         if (branchRepository.existsByName(name))
@@ -71,14 +63,13 @@ public class BranchService
 
     public BranchResponseDTO findByStreetAndNumber (String street, Integer number)
     {
-        BranchEntity branch =getBranchByAdress(street,number);
+        BranchEntity branch =getBranchByAddress(street,number);
         return branchMapper.toResponseDTO(branch);
     }
 
 
     public BranchResponseDTO updateBranch (Long id, BranchRequestDTO dto)
     {
-        idVerification(id);
         BranchEntity branchBase = getBranchById(id);
 
         if (!branchBase.getName().equalsIgnoreCase(dto.getName()))
@@ -98,8 +89,8 @@ public class BranchService
 
     public void deleteBranch (Long id)
     {
-        idVerification(id);
-        branchRepository.deleteById(id);
+        BranchEntity branch =getBranchById(id);
+        branchRepository.delete(branch);
     }
 
 }
