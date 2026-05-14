@@ -24,22 +24,13 @@ import java.util.zip.ZipEntry;
 
 @Service
 public class OrderService {
-    @Autowired
+
     OrderMapper orderMapper;
 
-    @Autowired
     private OrderRepository orderRepository;
-
-    @Autowired
     private OrderStatusRepository orderStatusRepository;
-
-    @Autowired
     private UserService userService;
-
-    @Autowired
     private TableService tableService;
-
-    @Autowired
     private BranchService branchService;
 
     public OrderService(OrderMapper orderMapper, OrderRepository orderRepository, OrderStatusRepository orderStatusRepository, UserService userService, TableService tableService, BranchService branchService) {
