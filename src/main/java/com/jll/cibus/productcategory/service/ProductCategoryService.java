@@ -79,7 +79,12 @@ public class ProductCategoryService {
     public void delete(Long id){
         ProductCategoryEntity category = productCategoryRepository.findById(id)
                 .orElseThrow( () -> new ResourceNotFoundException("Category", id));
-
         productCategoryRepository.delete(category);
     }
+
+    public ProductCategoryEntity getEntity(Long id){
+        return productCategoryRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("Category", id));
+    }
+
 }

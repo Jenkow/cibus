@@ -3,37 +3,34 @@ package com.jll.cibus.product.service;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.product.repository.ProductRepository;
 import com.jll.cibus.product.dto.ProductRequestDTO;
 import com.jll.cibus.product.dto.ProductResponseDTO;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.mapper.ProductMapper;
+import com.jll.cibus.productcategory.service.ProductCategoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductCategoryRepository productCategoryRepository;
+    private final ProductCategoryService productCategoryService;
     private final ProductMapper productMapper;
 
-    public ProductService(ProductRepository productRepository, ProductCategoryRepository productCategoryRepository, ProductMapper productMapper){
+    public ProductService(ProductRepository productRepository, ProductCategoryService productCategoryService, ProductMapper productMapper){
         this.productRepository = productRepository;
-        this.productCategoryRepository = productCategoryRepository;
+        this.productCategoryService = productCategoryService;
         this.productMapper = productMapper;
     }
 
     @Transactional
     public ProductResponseDTO create(ProductRequestDTO dto){
         if(productRepository.findByNameIgnoreCase(dto.getName()).isPresent()) throw new ResourceAlreadyExistsException("Product", dto.getName());
-
         ProductEntity entity = productMapper.toEntity(dto);
-        entity.setCategory(productCategoryRepository.findById(dto.getCategoryId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Category", dto.getCategoryId())));
+        entity.setCategory(productCategoryService.getEntity(dto.getCategoryId()));
         ProductEntity saved = productRepository.save(entity);
         return productMapper.toResponseDTO(saved);
     }
@@ -86,15 +83,10 @@ public class ProductService {
     public ProductResponseDTO update(Long id, ProductRequestDTO dto){
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow( () -> new  ResourceNotFoundException("Product", id));
-
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
-
-        product.setCategory(productCategoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category", dto.getCategoryId())));
-
+        product.setCategory(productCategoryService.getEntity(dto.getCategoryId()));
         ProductEntity updated = productRepository.save(product);
-
         return productMapper.toResponseDTO(updated);
     }
 
