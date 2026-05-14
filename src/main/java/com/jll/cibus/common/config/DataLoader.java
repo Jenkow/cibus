@@ -1,9 +1,9 @@
 package com.jll.cibus.common.config;
 
-import com.jll.cibus.product.ProductCategory;
-import com.jll.cibus.product.ProductCategoryRepository;
-import com.jll.cibus.product.ProductEntity;
-import com.jll.cibus.product.ProductRepository;
+import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
+import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
+import com.jll.cibus.product.entity.ProductEntity;
+import com.jll.cibus.product.repository.ProductRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,10 +21,10 @@ public class DataLoader {
 
             if (categoryRepository.count() == 0) {
 
-                ProductCategory catPlatos = ProductCategory.builder().name("Platos Principales").build();
-                ProductCategory catBebidas = ProductCategory.builder().name("Bebidas").build();
-                ProductCategory catPostres = ProductCategory.builder().name("Postres").build();
-                ProductCategory catEntradas = ProductCategory.builder().name("Entradas").build();
+                ProductCategoryEntity catPlatos = ProductCategoryEntity.builder().name("Platos Principales").build();
+                ProductCategoryEntity catBebidas = ProductCategoryEntity.builder().name("Bebidas").build();
+                ProductCategoryEntity catPostres = ProductCategoryEntity.builder().name("Postres").build();
+                ProductCategoryEntity catEntradas = ProductCategoryEntity.builder().name("Entradas").build();
 
 
                 categoryRepository.saveAll(List.of(catPlatos, catBebidas, catPostres, catEntradas));
