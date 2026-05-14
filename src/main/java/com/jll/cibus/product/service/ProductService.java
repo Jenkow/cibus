@@ -45,10 +45,17 @@ public class ProductService {
                 .toList();
     }
 
-    public ProductResponseDTO findById(Long id){
-        ProductEntity product = productRepository.findById(id)
-                .orElseThrow( () -> new ResourceNotFoundException("Product", id));
+    public Boolean existsById(Long id){
+        return productRepository.existsById(id);
+    }
 
+    public ProductEntity getEntity (Long id){
+        return productRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("Product", id));
+    }
+
+    public ProductResponseDTO findById(Long id){
+        ProductEntity product = getEntity(id);
         return productMapper.toResponseDTO(product);
     }
 
@@ -81,8 +88,7 @@ public class ProductService {
 
     @Transactional
     public ProductResponseDTO update(Long id, ProductRequestDTO dto){
-        ProductEntity product = productRepository.findById(id)
-                .orElseThrow( () -> new  ResourceNotFoundException("Product", id));
+        ProductEntity product = getEntity(id);
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(productCategoryService.getEntity(dto.getCategoryId()));
@@ -92,8 +98,7 @@ public class ProductService {
 
     @Transactional
     public void delete(Long id) {
-        ProductEntity product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product", id));
+        ProductEntity product = getEntity(id);
         productRepository.delete(product);
     }
 
