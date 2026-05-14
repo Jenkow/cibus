@@ -10,6 +10,6 @@ public interface BranchRepository extends JpaRepository<BranchEntity, Long>
 {
     Optional<BranchEntity> findByName(String name);
     Optional<BranchEntity> findByStreetAndNumber (String street, Integer number);
-    boolean existsByName(String name);
-    boolean existsByStreetAndNumber (String street, Integer number);
+    Boolean existsByName(String name);
+    Boolean existsByStreetAndNumber (String street, Integer number);
 }
