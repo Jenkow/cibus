@@ -27,10 +27,7 @@ public class TableMapper
         TableEntity entity = modelMapper.map(dto, TableEntity.class);
         BranchEntity branch = branchRepository.findById(branchId)
                 .orElseThrow(()->new RuntimeException("Branch not found"));
-        entity.setBranch(branch);
-
-        if (dto.getWaiterId()!=null)
-        {
+        entity.setBranch(branch); if (dto.getWaiterId()!=null) {
             UserEntity waiter = userRepository.findById(dto.getWaiterId())
                     .orElseThrow(() -> new RuntimeException("Waiter not found"));
             entity.setWaiter(waiter);
