@@ -32,7 +32,7 @@ public class TableService
     private UserService userService;
 
 
-    private TableEntity getTableById(Long id)
+    public TableEntity getTableById(Long id)
     {
         return tableRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
