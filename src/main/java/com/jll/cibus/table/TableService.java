@@ -44,7 +44,7 @@ public class TableService
 
     public List<TableResponseDTO> findByBranchId (Long branchId)
     {
-        BranchEntity branch = branchService.getBranchById(branchId);
+        BranchEntity branch = branchService.getEntity(branchId);
 
         List<TableEntity> tables = findByBranch(branch);
 
@@ -59,7 +59,7 @@ public class TableService
     }
     public List<TableResponseDTO> findByBranchIdAndAvailable (Long branchId, boolean available)
     {
-        BranchEntity branch= branchService.getBranchById(branchId);
+        BranchEntity branch= branchService.getEntity(branchId);
         List<TableEntity> tables = findByBranchAndAvailable(branch, available);
         return tables.stream()
                 .map(tableMapper::toResponse)
@@ -71,7 +71,7 @@ public class TableService
     }
     public List<TableResponseDTO> findByBranchIdAndWaiterId (Long branchId, Long waiterId)
     {
-        BranchEntity branch = branchService.getBranchById(branchId);
+        BranchEntity branch = branchService.getEntity(branchId);
 
         if (!roleValidatorService.isWaiter(waiterId))
             throw new BusinessException("The user is not a waiter");
