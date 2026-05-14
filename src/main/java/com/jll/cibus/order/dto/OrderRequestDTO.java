@@ -23,6 +23,9 @@ public class OrderRequestDTO {
     @NotNull(message = "Table is required")
     private Long tableId;
 
+    @NotNull(message = "Waiter is required")
+    private Long UserDni;
+
     @Valid
     @NotEmpty(message = "At least one item required")
     private List<OrderDetailRequestDTO> items;
