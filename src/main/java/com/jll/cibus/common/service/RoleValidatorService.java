@@ -1,10 +1,8 @@
 package com.jll.cibus.common.service;
 
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.user.UserEntity;
-import com.jll.cibus.user.UserRepository;
-import com.jll.cibus.user.UserRoleRepository;
-import com.jll.cibus.user.UserService;
+import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
