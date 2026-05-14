@@ -1,5 +1,6 @@
 package com.jll.cibus.user;
 
+import com.jll.cibus.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
