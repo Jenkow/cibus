@@ -1,15 +1,17 @@
 package com.jll.cibus.table;
 
-import com.jll.cibus.branch.BranchEntity;
-import com.jll.cibus.branch.BranchRepository;
-import com.jll.cibus.branch.BranchService;
+import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.product.ProductEntity;
-import com.jll.cibus.user.UserEntity;
-import com.jll.cibus.user.UserRepository;
-import com.jll.cibus.user.UserRoleEntity;
-import jakarta.persistence.Table;
+import com.jll.cibus.common.service.RoleValidatorService;
+import com.jll.cibus.table.dto.TableRequestDTO;
+import com.jll.cibus.table.dto.TableResponseDTO;
+import com.jll.cibus.table.entity.TableEntity;
+import com.jll.cibus.table.mapper.TableMapper;
+import com.jll.cibus.table.repository.TableRepository;
+import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +23,14 @@ public class TableService
     @Autowired
     private TableRepository tableRepository;
     @Autowired
-    private TableMapper tableMapper;;
-    @Autowired
-    private UserRepository userRepository;
+    private TableMapper tableMapper;
     @Autowired
     private BranchService branchService;
+    @Autowired
+    private RoleValidatorService roleValidatorService;
+    @Autowired
+    private UserService userService;
 
-    //WHEN USER SERVICE IS DONE AND BRANCH SERVICE IS FIXES WE HAVE TO USE THEM INSTEAD OF REPOSITORIES
 
     private TableEntity getTableById(Long id)
     {
@@ -50,7 +53,6 @@ public class TableService
                 .toList();
     }
 
-
     private List<TableEntity> findByBranchAndAvailable( BranchEntity branch, boolean available)
     {
         return tableRepository.findByBranchAndAvailable(branch, available);
@@ -70,15 +72,17 @@ public class TableService
     public List<TableResponseDTO> findByBranchIdAndWaiterId (Long branchId, Long waiterId)
     {
         BranchEntity branch = branchService.getBranchById(branchId);
-        UserEntity waiter = userRepository.findById(waiterId)
-                .orElseThrow(() -> new RuntimeException("There is no waiter with that ID"));
+
+        if (!roleValidatorService.isWaiter(waiterId))
+            throw new BusinessException("The user is not a waiter");
+        UserEntity waiter= userService.getEntityById(waiterId);
+
         List<TableEntity> tables= findByBranchAndWaiter(branch,waiter);
 
         return tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
     }
-    // WE MUST VERIFY HAVING THE NECESARY VERIFICATIONS: USER HAS TO BE A WAITER
     public TableResponseDTO createTable(TableRequestDTO dto, Long branchId)
     {
         TableEntity tableEntity = tableMapper.toEntity(dto, branchId);
@@ -103,16 +107,17 @@ public class TableService
         TableEntity table = getTableById(tableId);
 
         if (!table.getAvailable())
-        {
             throw new BusinessException("The table is already occupied");
-        }
-        UserEntity waiter= userRepository.findById(waiterId)
-                .orElseThrow(()-> new ResourceNotFoundException("waiter",waiterId));
+        if (!roleValidatorService.isWaiter(waiterId))
+            throw new BusinessException("The user is not a waiter");
+
+        UserEntity waiter= userService.getEntityById(waiterId);
 
         table.setAvailable(false);
         table.setWaiter(waiter);
 
         TableEntity updatedTable= tableRepository.save(table);
+
         return tableMapper.toResponse(updatedTable);
     }
 
