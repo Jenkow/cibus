@@ -128,4 +128,10 @@ public class UserService {
                 .map(userMapper::toResponse)
                 .toList();
     }
+
+    // Private method meant to be used only in other services.
+    public UserEntity getEntityById(Long dni) {
+        return userRepository.findByDni(dni)
+                .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
+    }
 }
