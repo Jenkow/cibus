@@ -1,7 +1,12 @@
 package com.jll.cibus.product;
 
+import com.jll.cibus.common.exception.BusinessException;
+import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -17,19 +22,22 @@ public class ProductService {
         this.productMapper = productMapper;
     }
 
+    @Transactional
     public ProductResponseDTO create(ProductRequestDTO dto){
-        if(productRepository.findByNameIgnoreCase(dto.getName()).isPresent()){
-            throw new RuntimeException("Product already exists");
-        }
+        if(productRepository.findByNameIgnoreCase(dto.getName()).isPresent()) throw new ResourceAlreadyExistsException("Product", dto.getName());
+
         ProductEntity entity = productMapper.toEntity(dto);
         entity.setCategory(productCategoryRepository.findById(dto.getCategoryId())
-                        .orElseThrow(() -> new RuntimeException("Category not found")));
+                        .orElseThrow(() -> new ResourceNotFoundException("Category", dto.getCategoryId())));
         ProductEntity saved = productRepository.save(entity);
         return productMapper.toResponseDTO(saved);
     }
 
     public List<ProductResponseDTO> findAll(){
         List<ProductEntity> products = productRepository.findAll();
+
+        if(products.isEmpty()) throw new BusinessException("No products can be listed if there are no products");
+
         return products.stream()
                 .map(productMapper::toResponseDTO)
                 .toList();
@@ -37,18 +45,23 @@ public class ProductService {
 
     public ProductResponseDTO findById(Long id){
         ProductEntity product = productRepository.findById(id)
-                .orElseThrow( () -> new RuntimeException("Product not found"));//Despues vemos excepciones personalizadas
+                .orElseThrow( () -> new ResourceNotFoundException("Product", id));
+
         return productMapper.toResponseDTO(product);
     }
 
     public ProductResponseDTO findByName(String name){
         ProductEntity product = productRepository.findByNameIgnoreCase(name)
-                .orElseThrow( () -> new RuntimeException("Product not found"));
+                .orElseThrow( () -> new ResourceNotFoundException("Product", name));
+
         return productMapper.toResponseDTO(product);
     }
 
     public List<ProductResponseDTO> searchByName(String name){
         List<ProductEntity> products = productRepository.findAllByNameContainingIgnoreCase(name);
+
+        if(products.isEmpty()) throw new ResourceNotFoundException("Product", name);
+
         return products.stream()
                 .map(productMapper::toResponseDTO)
                 .toList();
@@ -56,25 +69,34 @@ public class ProductService {
 
     public List<ProductResponseDTO> findByCategory(Long categoryId){
         List<ProductEntity> products = productRepository.findAllByCategory_Id(categoryId);
+
+        if(products.isEmpty()) throw new ResourceNotFoundException("Product", categoryId);
+
         return products.stream()
                 .map(productMapper::toResponseDTO)
                 .toList();
     }
 
+    @Transactional
     public ProductResponseDTO update(Long id, ProductRequestDTO dto){
         ProductEntity product = productRepository.findById(id)
-                .orElseThrow( () -> new RuntimeException("Product not found"));
+                .orElseThrow( () -> new  ResourceNotFoundException("Product", id));
+
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
+
         product.setCategory(productCategoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", dto.getCategoryId())));
+
         ProductEntity updated = productRepository.save(product);
+
         return productMapper.toResponseDTO(updated);
     }
 
+    @Transactional
     public void delete(Long id) {
         ProductEntity product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product", id));
         productRepository.delete(product);
     }
 

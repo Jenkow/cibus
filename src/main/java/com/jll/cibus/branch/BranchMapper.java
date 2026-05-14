@@ -1,6 +1,6 @@
 package com.jll.cibus.branch;
 
-import com.jll.cibus.orderdetail.BranchResponseDTO;
+import com.jll.cibus.branch.BranchResponseDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
