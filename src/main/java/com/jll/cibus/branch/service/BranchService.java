@@ -42,7 +42,7 @@ public class BranchService {
                 .orElseThrow(() -> new ResourceNotFoundException("Branch Address", street + " " + number));
     }
 
-    public BranchResponseDTO findByStreetAndNumber(String street, Integer number) {
+    public BranchResponseDTO getBranchByAddress(String street, Integer number) {
         BranchEntity entity = getEntityByAddress(street, number);
         return branchMapper.toResponseDTO(entity);
     }
