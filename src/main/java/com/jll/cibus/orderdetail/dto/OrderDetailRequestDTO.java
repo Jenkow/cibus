@@ -14,9 +14,6 @@ public class OrderDetailRequestDTO {
     @NotNull(message = "Product is mandatory")
     private Long productId;
 
-    @NotNull(message = "Order is mandatory")
-    private Long orderId;
-
     private String observation;
 
     @Min(value = 1)
