@@ -62,7 +62,7 @@ public class BranchService {
     }
 
     @Transactional
-    public BranchResponseDTO createBranch(BranchRequestDTO requestDTO) {
+    public BranchResponseDTO create(BranchRequestDTO requestDTO) {
         if(existsByName(requestDTO.getName())){
             throw new BusinessException("FAILED TO REGISTER: theres another branch with the name " + requestDTO.getName());
         }
@@ -75,7 +75,7 @@ public class BranchService {
     }
 
     @Transactional
-    public BranchResponseDTO updateBranch(Long id, BranchRequestDTO dto) {
+    public BranchResponseDTO update(Long id, BranchRequestDTO dto) {
         BranchEntity branchBase = getEntity(id);
         if (!branchBase.getName().equalsIgnoreCase(dto.getName())) {
             if (existsByName(dto.getName())) throw new BusinessException("FAILED TO REGISTER: there is another branch with the name: "+ dto.getName());
@@ -91,7 +91,7 @@ public class BranchService {
     }
 
     @Transactional
-    public void deleteBranch(Long id) {
+    public void delete(Long id) {
         BranchEntity branch = getEntity(id);
         branchRepository.delete(branch);
     }
