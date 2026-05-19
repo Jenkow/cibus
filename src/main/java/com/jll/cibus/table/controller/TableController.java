@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/branches")
+@RequestMapping("/api/branches/{branch_id}/tables")
 public class TableController
 {
     private final TableService tableService;
@@ -25,33 +25,33 @@ public class TableController
     {
         return ResponseEntity.ok(tableService.findByBranchId(branchId));
     }
-    @GetMapping("/{branchId}/tables/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<TableResponseDTO> getById (@PathVariable Long branchId,@PathVariable Long id)
     {
       return ResponseEntity.ok(tableService.findById(id));
     }
-    @PostMapping ("/{branchId}/tables")
+    @PostMapping
     public ResponseEntity<TableResponseDTO> createTable (@PathVariable Long branchId, @Valid @RequestBody TableRequestDTO dto)
     {
         TableResponseDTO response = tableService.createTable(dto, branchId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    @PutMapping ("/{branchId}/tables/{tableId}/occupy")
+    @PutMapping ("/{tableId}/occupy")
     public ResponseEntity<TableResponseDTO> occupyTable (@PathVariable Long branchId,@RequestParam Long waiterId,@PathVariable Long tableId)
     {
         return ResponseEntity.ok(tableService.occupyTable(tableId,waiterId));
     }
-    @PutMapping("/{branchId}/tables/{tableId}/free")
+    @PutMapping("/{tableId}/free")
     public ResponseEntity<TableResponseDTO> freeTable (@PathVariable Long branchId,@PathVariable Long tableId)
     {
         return ResponseEntity.ok(tableService.freeTable(tableId));
     }
-    @PutMapping ("/{branchId}/tables/{tableId}/capacity")
+    @PutMapping ("/{tableId}/capacity")
     public ResponseEntity<TableResponseDTO> updateCapacity (@PathVariable Long branchId, @PathVariable Long tableId, @RequestParam Integer capacity)
     {
         return ResponseEntity.ok(tableService.updateCapacity(tableId,capacity));
     }
-    @DeleteMapping ("/{branchId}/tables/{id}")
+    @DeleteMapping ("/{id}")
     public ResponseEntity<Void> deleteTable (@PathVariable Long branchId, @PathVariable Long id)
     {
         tableService.delete(id);
