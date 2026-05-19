@@ -42,21 +42,7 @@ public class OrderDetailService {
         }
     }
 
-    @Transactional
-    public OrderDetailResponseDTO create(OrderDetailRequestDTO dto) {
-        OrderDetailEntity entity = orderDetailMapper.toEntity(dto);
-        ProductEntity product = productService.getEntity(dto.getProductId());
-        OrderEntity order = orderService.getEntity(dto.getOrderId());
-        BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(order.getBranch().getId(), product.getId());
-        validateAvailability(productInBranch);
-        entity.setUnitPrice(productInBranch.getPrice());
-        entity.setProduct(product);
-        entity.setOrder(order);
-        OrderDetailEntity saved = orderDetailRepository.save(entity);
-        return orderDetailMapper.toDTO(saved);
-    }
-
-    public List<OrderDetailResponseDTO> findAll() {
+    public List<OrderDetailResponseDTO> findAll() {                   //probablemente va a quedar sin uso
         List<OrderDetailEntity> orderDetails = orderDetailRepository.findAll();
         return orderDetails.stream()
                 .map(orderDetailMapper::toDTO)
@@ -68,12 +54,18 @@ public class OrderDetailService {
                 .orElseThrow(() -> new ResourceNotFoundException("order detail", id));
     }
 
-    public OrderDetailResponseDTO findById(Long id) {
+    public OrderDetailResponseDTO getById(Long orderId, Long id) {
         OrderDetailEntity entity = getEntity(id);
+       /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
+            throw new BusinessException("No existe la orden " + orderId);
+        }*/
+        if(entity.getOrder().getId()!=orderId){
+            throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
+        }
         return orderDetailMapper.toDTO(entity);
     }
 
-    public List<OrderDetailResponseDTO> findByOrderId (Long orderId){
+    public List<OrderDetailResponseDTO> getByOrderId (Long orderId){
         orderService.getEntity(orderId);
         List<OrderDetailEntity> entities = orderDetailRepository.findByOrderId(orderId);
         return entities.stream()
@@ -81,14 +73,30 @@ public class OrderDetailService {
                 .toList();
     }
 
-    public OrderDetailEntity findByOrderIdAndProductId (Long orderId, Long productId){
+    public OrderDetailEntity getByOrderIdAndProductId (Long orderId, Long productId){
         return orderDetailRepository.findByOrderIdAndProductId(orderId, productId)
                 .orElseThrow(() -> new BusinessException("No existe un detalle para la orden " + orderId + " y el producto " + productId));
     }
 
     @Transactional
-    public OrderDetailResponseDTO update (Long id, OrderDetailRequestDTO dto){
+    public OrderDetailResponseDTO create(Long orderId, OrderDetailRequestDTO dto) {
+        OrderDetailEntity entity = orderDetailMapper.toEntity(dto);
+        ProductEntity product = productService.getEntity(dto.getProductId());
+        OrderEntity order = orderService.getEntity(orderId);
+        BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(order.getBranch().getId(), product.getId());
+        validateAvailability(productInBranch);
+        entity.setUnitPrice(productInBranch.getPrice());
+        entity.setProduct(product);
+        entity.setOrder(order);
+        OrderDetailEntity saved = orderDetailRepository.save(entity);
+        return orderDetailMapper.toDTO(saved);
+    }
+
+    @Transactional
+    public OrderDetailResponseDTO update (Long orderId, Long id, OrderDetailRequestDTO dto){
         OrderDetailEntity entity = getEntity(id);
+        OrderEntity order = orderService.getEntity(orderId);
+        entity.setOrder(order);
         if(dto.getProductId() != null){
             ProductEntity product = productService.getEntity(dto.getProductId());
             BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(
@@ -109,8 +117,14 @@ public class OrderDetailService {
     }
 
     @Transactional
-    public void delete(Long id){
+    public void delete(Long orderId, Long id){
         OrderDetailEntity entity = getEntity(id);
+        /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
+            throw new BusinessException("No existe la orden " + orderId);
+        }*/
+        if(entity.getOrder().getId()!=orderId){
+            throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
+        }
         orderDetailRepository.delete(entity);
     }
 
