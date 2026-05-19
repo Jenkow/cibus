@@ -41,7 +41,7 @@ public class BranchService {
                 .orElseThrow(() -> new ResourceNotFoundException("Branch Address", street + " " + number));
     }
 
-    private BranchResponseDTO getBranchByAddress(String street, Integer number) {
+    public BranchResponseDTO getBranchByAddress(String street, Integer number) {
         BranchEntity entity = getEntityByAddress(street, number);
         return branchMapper.toResponseDTO(entity);
     }
@@ -60,7 +60,7 @@ public class BranchService {
         }
     }
 
-    public BranchResponseDTO createBranch(BranchRequestDTO requestDTO) {
+    public BranchResponseDTO create(BranchRequestDTO requestDTO) {
         if(existsByName(requestDTO.getName())){
             throw new BusinessException("FAILED TO REGISTER: theres another branch with the name " + requestDTO.getName());
         }
@@ -72,13 +72,7 @@ public class BranchService {
         return branchMapper.toResponseDTO(saved);
     }
 
-    public BranchResponseDTO findByStreetAndNumber(String street, Integer number) {
-        BranchEntity branch = getEntityByAddress(street, number);
-        return branchMapper.toResponseDTO(branch);
-    }
-
-
-    public BranchResponseDTO updateBranch(Long id, BranchRequestDTO dto) {
+    public BranchResponseDTO update(Long id, BranchRequestDTO dto) {
         BranchEntity branchBase = getEntity(id);
         if (!branchBase.getName().equalsIgnoreCase(dto.getName()) && !existsByName(dto.getName())) {
             branchBase.setName(dto.getName());
@@ -92,7 +86,7 @@ public class BranchService {
         return branchMapper.toResponseDTO(saved);
     }
 
-    public void deleteBranch(Long id) {
+    public void delete(Long id) {
         BranchEntity branch = getEntity(id);
         branchRepository.delete(branch);
     }
