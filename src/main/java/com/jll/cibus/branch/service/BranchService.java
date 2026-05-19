@@ -7,6 +7,7 @@ import com.jll.cibus.branch.mapper.BranchMapper;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +42,7 @@ public class BranchService {
                 .orElseThrow(() -> new ResourceNotFoundException("Branch Address", street + " " + number));
     }
 
-    private BranchResponseDTO getBranchByAddress(String street, Integer number) {
+    public BranchResponseDTO findByStreetAndNumber(String street, Integer number) {
         BranchEntity entity = getEntityByAddress(street, number);
         return branchMapper.toResponseDTO(entity);
     }
@@ -60,6 +61,7 @@ public class BranchService {
         }
     }
 
+    @Transactional
     public BranchResponseDTO createBranch(BranchRequestDTO requestDTO) {
         if(existsByName(requestDTO.getName())){
             throw new BusinessException("FAILED TO REGISTER: theres another branch with the name " + requestDTO.getName());
@@ -72,15 +74,11 @@ public class BranchService {
         return branchMapper.toResponseDTO(saved);
     }
 
-    public BranchResponseDTO findByStreetAndNumber(String street, Integer number) {
-        BranchEntity branch = getEntityByAddress(street, number);
-        return branchMapper.toResponseDTO(branch);
-    }
-
-
+    @Transactional
     public BranchResponseDTO updateBranch(Long id, BranchRequestDTO dto) {
         BranchEntity branchBase = getEntity(id);
-        if (!branchBase.getName().equalsIgnoreCase(dto.getName()) && !existsByName(dto.getName())) {
+        if (!branchBase.getName().equalsIgnoreCase(dto.getName())) {
+            if (existsByName(dto.getName())) throw new BusinessException("FAILED TO REGISTER: there is another branch with the name: "+ dto.getName());
             branchBase.setName(dto.getName());
         }
         if (!branchBase.getStreet().equals(dto.getStreet()) || !branchBase.getNumber().equals(dto.getNumber())) {
@@ -92,6 +90,7 @@ public class BranchService {
         return branchMapper.toResponseDTO(saved);
     }
 
+    @Transactional
     public void deleteBranch(Long id) {
         BranchEntity branch = getEntity(id);
         branchRepository.delete(branch);
