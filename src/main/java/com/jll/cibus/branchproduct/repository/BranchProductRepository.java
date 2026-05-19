@@ -16,6 +16,8 @@ public interface BranchProductRepository extends JpaRepository<BranchProductEnti
 
     List<BranchProductEntity> findAllByBranch_IdAndAvailableTrue(Long branchId);
 
+    List<BranchProductEntity> findAllByBranch_NameAndAvailableTrue(String branchName);
+
     Optional<BranchProductEntity> findByBranch_IdAndProduct_Id(Long branchId, Long productId);
 
     boolean existsByBranch_IdAndProduct_Id(Long branchId, Long productId);

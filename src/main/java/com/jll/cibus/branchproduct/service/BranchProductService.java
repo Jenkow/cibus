@@ -32,20 +32,7 @@ public class BranchProductService {
         this.productService = productService;
     }
 
-    public BranchProductResponseDTO create (BranchProductRequestDTO dto){
-        BranchEntity branch = branchService.getEntity(dto.getBranchId());
-        ProductEntity product = productService.getEntity(dto.getProductId());
-        if(branchProductRepository.existsByBranch_IdAndProduct_Id(dto.getBranchId(), dto.getProductId())){
-            throw new RuntimeException("El producto ya existe en la sucursal");
-        }
-        BranchProductEntity entity = branchProductMapper.toEntity(dto);
-        entity.setBranch(branch);
-        entity.setProduct(product);
-        BranchProductEntity saved = branchProductRepository.save(entity);
-        return branchProductMapper.toDTO(saved);
-    }
-
-    public List<BranchProductResponseDTO> findAllByBranchId(Long branchId){
+    public List<BranchProductResponseDTO> getByBranchId(Long branchId){
         if(!branchService.existsById(branchId)){
             throw new RuntimeException("No existe la sucursal");
         }
@@ -55,7 +42,7 @@ public class BranchProductService {
                 .toList();
     }
 
-    public List<BranchProductResponseDTO> findAllByBranchName(String branchName){
+    public List<BranchProductResponseDTO> getByBranchName(String branchName){
         if(!branchService.existsByName(branchName)){
             throw new RuntimeException("No existe la sucursal");
         }
@@ -65,7 +52,7 @@ public class BranchProductService {
                 .toList();
     }
 
-    public List<BranchProductResponseDTO> findAvailableByBranch(Long branchId){
+    public List<BranchProductResponseDTO> findAvailableByBranchId(Long branchId){
         if(!branchService.existsById(branchId)){
             throw new RuntimeException("No existe la sucursal");
         }
@@ -73,6 +60,22 @@ public class BranchProductService {
         return products.stream()
                 .map(branchProductMapper::toDTO)
                 .toList();
+    }
+
+    public List<BranchProductResponseDTO> findAvailableByBranchName(String branchName){
+        if(!branchService.existsByName(branchName)){
+            throw new RuntimeException("No existe la sucursal");
+        }
+        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_NameAndAvailableTrue(branchName);
+        return products.stream()
+                .map(branchProductMapper::toDTO)
+                .toList();
+    }
+
+    public BranchProductResponseDTO getById(Long id){
+        BranchProductEntity product = branchProductRepository.findById(id).
+                orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
+        return branchProductMapper.toDTO(product);
     }
 
     public BranchProductEntity getEntity(Long id){
@@ -87,11 +90,24 @@ public class BranchProductService {
                 orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
     }
 
-    public BranchProductResponseDTO findByBranchAndProduct(Long branchId, Long productId){
+    public BranchProductResponseDTO getByBranchAndProduct(Long branchId, Long productId){
         branchService.getEntity(branchId);
         productService.getEntity(productId);
         BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         return branchProductMapper.toDTO(entity);
+    }
+
+    public BranchProductResponseDTO create (BranchProductRequestDTO dto){
+        BranchEntity branch = branchService.getEntity(dto.getBranchId());
+        ProductEntity product = productService.getEntity(dto.getProductId());
+        if(branchProductRepository.existsByBranch_IdAndProduct_Id(dto.getBranchId(), dto.getProductId())){
+            throw new RuntimeException("El producto ya existe en la sucursal");
+        }
+        BranchProductEntity entity = branchProductMapper.toEntity(dto);
+        entity.setBranch(branch);
+        entity.setProduct(product);
+        BranchProductEntity saved = branchProductRepository.save(entity);
+        return branchProductMapper.toDTO(saved);
     }
 
     public BranchProductResponseDTO update(Long id, BranchProductUpdateDTO dto){
@@ -106,7 +122,7 @@ public class BranchProductService {
         return branchProductMapper.toDTO(saved);
     }
 
-    public void changeAvailability(Long id, Boolean available){
+    private void changeAvailability(Long id, Boolean available){
         BranchProductEntity entity = getEntity(id);
         entity.setAvailable(available);
         branchProductRepository.save(entity);
