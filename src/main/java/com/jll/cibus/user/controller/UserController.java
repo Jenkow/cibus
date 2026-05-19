@@ -1,0 +1,87 @@
+package com.jll.cibus.user.controller;
+
+import com.jll.cibus.user.dto.UserRequestDTO;
+import com.jll.cibus.user.dto.UserResponseDTO;
+import com.jll.cibus.user.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController
+{
+    private final UserService userService;
+
+    public UserController(UserService userService)
+    {
+        this.userService = userService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserResponseDTO>> getAll ()
+    {
+        return ResponseEntity.ok(userService.findAll());
+    }
+
+    @GetMapping("dni/{dni}")
+    public ResponseEntity<UserResponseDTO> getById (@PathVariable Long dni)
+    {
+        return ResponseEntity.ok(userService.findByDni(dni));
+    }
+    @GetMapping("firstName/{firstName}")
+    public ResponseEntity<List<UserResponseDTO>> getByFirstName (@PathVariable String name)
+    {
+        return  ResponseEntity.ok(userService.findByFirstName(name));
+    }
+    @GetMapping("lastName/{lastName}")
+    public ResponseEntity<List<UserResponseDTO>> getByLastName (@PathVariable String lastName)
+    {
+        return ResponseEntity.ok(userService.findByLastName(lastName));
+    }
+    @GetMapping ("firstName/{firstName}/lastName/{lastName}")
+    public ResponseEntity<List<UserResponseDTO>> getByFirstNameAndLastName (@PathVariable String firstName, @PathVariable String lastName)
+    {
+        return ResponseEntity.ok(userService.findByFirstNameAndLastName(firstName,lastName));
+    }
+    @GetMapping ("email/{email}")
+    public ResponseEntity<UserResponseDTO> getByEmail (@PathVariable String email)
+    {
+        return ResponseEntity.ok(userService.findByEmail(email));
+    }
+    @GetMapping("phoneNumber/{phoneNumber}")
+    public ResponseEntity<UserResponseDTO> getByPhoneNumber (@PathVariable String phoneNumber)
+    {
+        return ResponseEntity.ok(userService.findByPhoneNumber(phoneNumber));
+    }
+    @GetMapping ("branchId/{branchId}")
+    public ResponseEntity<List<UserResponseDTO>> getByBranchId (@PathVariable Long branchId)
+    {
+        return ResponseEntity.ok(userService.findByBranchId(branchId));
+    }
+    @GetMapping("roleId/{roleId}")
+    public ResponseEntity<List<UserResponseDTO>> getByRoleId (@PathVariable Long roleId)
+    {
+        return ResponseEntity.ok(userService.findByRoleId(roleId));
+    }
+    @PostMapping ()
+    public ResponseEntity<UserResponseDTO> createUser (@PathVariable Long branchId, @PathVariable Long userRoleId, @Valid @RequestBody UserRequestDTO dto)
+    {
+        UserResponseDTO response = userService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    @PutMapping ("/{dni}")
+    public ResponseEntity<UserResponseDTO> updateUser (@PathVariable Long userDni, @Valid @RequestBody UserRequestDTO dto)
+    {
+        return ResponseEntity.ok(userService.update(dto));
+    }
+    @DeleteMapping("/{dni}")
+    public ResponseEntity<Void> deleteUser (@PathVariable Long dni)
+    {
+        userService.deleteByDni(dni);
+        return ResponseEntity.noContent().build();
+    }
+}
