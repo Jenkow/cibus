@@ -75,7 +75,7 @@ public class TableService
 
         if (!roleValidatorService.isWaiter(waiterId))
             throw new BusinessException("The user is not a waiter");
-        UserEntity waiter= userService.getEntityById(waiterId);
+        UserEntity waiter= userService.getEntityByDni(waiterId);
 
         List<TableEntity> tables= findByBranchAndWaiter(branch,waiter);
 
@@ -111,7 +111,7 @@ public class TableService
         if (!roleValidatorService.isWaiter(waiterId))
             throw new BusinessException("The user is not a waiter");
 
-        UserEntity waiter= userService.getEntityById(waiterId);
+        UserEntity waiter= userService.getEntityByDni(waiterId);
 
         table.setAvailable(false);
         table.setWaiter(waiter);

@@ -35,4 +35,8 @@ public class BranchProductEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
+
+    public Boolean isAvailable(){
+        return getAvailable();
+    }
 }

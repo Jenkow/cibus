@@ -80,11 +80,17 @@ public class BranchProductService {
                 orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
     }
 
+    public BranchProductEntity getEntityByBranchAndProduct(Long branchId, Long productId){
+        branchService.getEntity(branchId);
+        productService.getEntity(productId);
+        return branchProductRepository.findByBranch_IdAndProduct_Id(branchId, productId).
+                orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
+    }
+
     public BranchProductResponseDTO findByBranchAndProduct(Long branchId, Long productId){
         branchService.getEntity(branchId);
         productService.getEntity(productId);
-        BranchProductEntity entity = branchProductRepository.findByBranch_IdAndProduct_Id(branchId, productId).
-                orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
+        BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         return branchProductMapper.toDTO(entity);
     }
 
