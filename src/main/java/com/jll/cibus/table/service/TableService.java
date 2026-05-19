@@ -1,4 +1,4 @@
-package com.jll.cibus.table;
+package com.jll.cibus.table.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
@@ -12,6 +12,7 @@ import com.jll.cibus.table.mapper.TableMapper;
 import com.jll.cibus.table.repository.TableRepository;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.service.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +84,7 @@ public class TableService
                 .map(tableMapper::toResponse)
                 .toList();
     }
+    @Transactional
     public TableResponseDTO createTable(TableRequestDTO dto, Long branchId)
     {
         TableEntity tableEntity = tableMapper.toEntity(dto, branchId);
@@ -102,6 +104,7 @@ public class TableService
         TableEntity table = getTableById(tableId);
         return tableMapper.toResponse(table);
     }
+    @Transactional
     public TableResponseDTO occupyTable (Long tableId,Long waiterId)
     {
         TableEntity table = getTableById(tableId);
@@ -120,7 +123,7 @@ public class TableService
 
         return tableMapper.toResponse(updatedTable);
     }
-
+    @Transactional
     public TableResponseDTO freeTable(Long tableId)
     {
         TableEntity table = getTableById(tableId);
@@ -135,6 +138,7 @@ public class TableService
         TableEntity updatedTable = tableRepository.save(table);
         return tableMapper.toResponse(updatedTable);
     }
+    @Transactional
     public TableResponseDTO updateCapacity (Long tableId, Integer capacity )
     {
         TableEntity table = getTableById(tableId);
@@ -146,6 +150,7 @@ public class TableService
         TableEntity updatedTable = tableRepository.save(table);
         return tableMapper.toResponse(updatedTable);
     }
+    @Transactional
     public void delete (Long tableId)
     {
         TableEntity table = getTableById(tableId);
