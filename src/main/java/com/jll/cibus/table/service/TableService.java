@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class TableService
-{
+public class TableService {
     @Autowired
     private TableRepository tableRepository;
     @Autowired
@@ -33,80 +32,76 @@ public class TableService
     private UserService userService;
 
 
-    public TableEntity getTableById(Long id)
-    {
+    public TableEntity getTableById(Long id) {
         return tableRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
     }
-    private List<TableEntity> findByBranch (BranchEntity branch)
-    {
-       return tableRepository.findByBranch(branch);
+
+    private List<TableEntity> findByBranch(BranchEntity branch) {
+        return tableRepository.findByBranch(branch);
     }
 
-    public List<TableResponseDTO> findByBranchId (Long branchId)
-    {
+    public List<TableResponseDTO> findByBranchId(Long branchId) {
         BranchEntity branch = branchService.getEntity(branchId);
 
         List<TableEntity> tables = findByBranch(branch);
 
-        return  tables.stream()
+        return tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
     }
 
-    private List<TableEntity> findByBranchAndAvailable( BranchEntity branch, boolean available)
-    {
+    private List<TableEntity> findByBranchAndAvailable(BranchEntity branch, boolean available) {
         return tableRepository.findByBranchAndAvailable(branch, available);
     }
-    public List<TableResponseDTO> findByBranchIdAndAvailable (Long branchId, boolean available)
-    {
-        BranchEntity branch= branchService.getEntity(branchId);
+
+    public List<TableResponseDTO> findByBranchIdAndAvailable(Long branchId, boolean available) {
+        BranchEntity branch = branchService.getEntity(branchId);
         List<TableEntity> tables = findByBranchAndAvailable(branch, available);
         return tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
     }
-    private List<TableEntity> findByBranchAndWaiter (BranchEntity branch, UserEntity waiter)
-    {
-        return tableRepository.findByBranchAndWaiter(branch,waiter);
+
+    private List<TableEntity> findByBranchAndWaiter(BranchEntity branch, UserEntity waiter) {
+        return tableRepository.findByBranchAndWaiter(branch, waiter);
     }
-    public List<TableResponseDTO> findByBranchIdAndWaiterId (Long branchId, Long waiterId)
-    {
+
+    public List<TableResponseDTO> findByBranchIdAndWaiterId(Long branchId, Long waiterId) {
         BranchEntity branch = branchService.getEntity(branchId);
 
         if (!roleValidatorService.isWaiter(waiterId))
             throw new BusinessException("The user is not a waiter");
-        UserEntity waiter= userService.getEntityByDni(waiterId);
+        UserEntity waiter = userService.getEntityByDni(waiterId);
 
-        List<TableEntity> tables= findByBranchAndWaiter(branch,waiter);
+        List<TableEntity> tables = findByBranchAndWaiter(branch, waiter);
 
         return tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
     }
+
     @Transactional
-    public TableResponseDTO createTable(TableRequestDTO dto, Long branchId)
-    {
+    public TableResponseDTO createTable(TableRequestDTO dto, Long branchId) {
         TableEntity tableEntity = tableMapper.toEntity(dto, branchId);
         TableEntity savedTable = tableRepository.save(tableEntity);
         return tableMapper.toResponse(savedTable);
     }
 
-    public List<TableResponseDTO> findAll ()
-    {
+    public List<TableResponseDTO> findAll() {
         List<TableEntity> tables = tableRepository.findAll();
         return tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
     }
-    public TableResponseDTO findById(Long tableId)
-    {
+
+    public TableResponseDTO findById(Long tableId) {
         TableEntity table = getTableById(tableId);
         return tableMapper.toResponse(table);
     }
+
     @Transactional
-    public TableResponseDTO occupyTable (Long tableId,Long waiterId)
-    {
+    public TableResponseDTO occupyTable(Long tableId, Long waiterId) {
         TableEntity table = getTableById(tableId);
 
         if (!table.getAvailable())
@@ -114,22 +109,21 @@ public class TableService
         if (!roleValidatorService.isWaiter(waiterId))
             throw new BusinessException("The user is not a waiter");
 
-        UserEntity waiter= userService.getEntityByDni(waiterId);
+        UserEntity waiter = userService.getEntityByDni(waiterId);
 
         table.setAvailable(false);
         table.setWaiter(waiter);
 
-        TableEntity updatedTable= tableRepository.save(table);
+        TableEntity updatedTable = tableRepository.save(table);
 
         return tableMapper.toResponse(updatedTable);
     }
+
     @Transactional
-    public TableResponseDTO freeTable(Long tableId)
-    {
+    public TableResponseDTO freeTable(Long tableId) {
         TableEntity table = getTableById(tableId);
 
-        if (table.getAvailable())
-        {
+        if (table.getAvailable()) {
             throw new BusinessException("The table is already free");
         }
         table.setAvailable(true);
@@ -138,21 +132,20 @@ public class TableService
         TableEntity updatedTable = tableRepository.save(table);
         return tableMapper.toResponse(updatedTable);
     }
+
     @Transactional
-    public TableResponseDTO updateCapacity (Long tableId, Integer capacity )
-    {
+    public TableResponseDTO updateCapacity(Long tableId, Integer capacity) {
         TableEntity table = getTableById(tableId);
-        if (capacity<1)
-        {
+        if (capacity < 1) {
             throw new BusinessException("The capacity can not be less than 1");
         }
         table.setCapacity(capacity);
         TableEntity updatedTable = tableRepository.save(table);
         return tableMapper.toResponse(updatedTable);
     }
+
     @Transactional
-    public void delete (Long tableId)
-    {
+    public void delete(Long tableId) {
         TableEntity table = getTableById(tableId);
         tableRepository.delete(table);
     }

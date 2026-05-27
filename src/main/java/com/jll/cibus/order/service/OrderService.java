@@ -1,9 +1,10 @@
-package com.jll.cibus.order;
+package com.jll.cibus.order.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.order.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
 import com.jll.cibus.order.entity.OrderEntity;
@@ -86,7 +87,7 @@ public class OrderService {
     public List<OrderResponseDTO> getAll() {
         List<OrderEntity> orders = orderRepository.findAll();
 
-        if(orders.isEmpty()) throw new BusinessException("No order can be find if there is no orders");
+        if(orders.isEmpty()) throw new BusinessException("No order can be found if there is no orders");
 
         return orders.stream()
                 .map(orderMapper::toDTO)

@@ -1,11 +1,9 @@
 package com.jll.cibus.order.controller;
 
-import com.jll.cibus.order.OrderService;
+import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
-import com.jll.cibus.order.entity.OrderEntity;
 import jakarta.validation.Valid;
-import org.hibernate.query.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

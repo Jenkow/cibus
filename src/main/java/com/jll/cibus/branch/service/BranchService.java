@@ -6,6 +6,7 @@ import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.mapper.BranchMapper;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
+import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,14 +58,14 @@ public class BranchService {
 
     private void addressVerification(String street, Integer number) {
         if (branchRepository.existsByStreetAndNumber(street, number)) {
-            throw new BusinessException("FAILED TO REGISTER: theres another branch in " + street + " " + number);
+            throw new ResourceAlreadyExistsException("FAILED TO REGISTER: theres another branch in " + street + " " + number);
         }
     }
 
     @Transactional
     public BranchResponseDTO create(BranchRequestDTO requestDTO) {
         if(existsByName(requestDTO.getName())){
-            throw new BusinessException("FAILED TO REGISTER: theres another branch with the name " + requestDTO.getName());
+            throw new ResourceAlreadyExistsException("FAILED TO REGISTER: theres another branch with the name " + requestDTO.getName());
         }
         addressVerification(requestDTO.getStreet(), requestDTO.getNumber());
 
@@ -78,7 +79,7 @@ public class BranchService {
     public BranchResponseDTO update(Long id, BranchRequestDTO dto) {
         BranchEntity branchBase = getEntity(id);
         if (!branchBase.getName().equalsIgnoreCase(dto.getName())) {
-            if (existsByName(dto.getName())) throw new BusinessException("FAILED TO REGISTER: there is another branch with the name: "+ dto.getName());
+            if (existsByName(dto.getName())) throw new ResourceAlreadyExistsException("FAILED TO REGISTER: there is another branch with the name: "+ dto.getName());
             branchBase.setName(dto.getName());
         }
         if (!branchBase.getStreet().equals(dto.getStreet()) || !branchBase.getNumber().equals(dto.getNumber())) {

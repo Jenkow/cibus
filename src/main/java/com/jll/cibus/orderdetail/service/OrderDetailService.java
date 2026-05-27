@@ -4,7 +4,7 @@ import com.jll.cibus.branchproduct.entity.BranchProductEntity;
 import com.jll.cibus.branchproduct.service.BranchProductService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.order.OrderService;
+import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.entity.OrderEntity;
 import com.jll.cibus.orderdetail.dto.OrderDetailRequestDTO;
 import com.jll.cibus.orderdetail.dto.OrderDetailResponseDTO;
@@ -13,7 +13,6 @@ import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +74,7 @@ public class OrderDetailService {
 
     public OrderDetailEntity getByOrderIdAndProductId (Long orderId, Long productId){
         return orderDetailRepository.findByOrderIdAndProductId(orderId, productId)
-                .orElseThrow(() -> new BusinessException("No existe un detalle para la orden " + orderId + " y el producto " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("No existe un detalle para la orden " + orderId + " y el producto " + productId));
     }
 
     @Transactional

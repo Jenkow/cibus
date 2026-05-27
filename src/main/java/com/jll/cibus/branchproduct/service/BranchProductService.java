@@ -9,6 +9,8 @@ import com.jll.cibus.branchproduct.dto.BranchProductUpdateDTO;
 import com.jll.cibus.branchproduct.entity.BranchProductEntity;
 import com.jll.cibus.branchproduct.mapper.BranchProductMapper;
 import com.jll.cibus.branchproduct.repository.BranchProductRepository;
+import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.repository.ProductRepository;
 import com.jll.cibus.product.service.ProductService;
@@ -34,7 +36,7 @@ public class BranchProductService {
 
     public List<BranchProductResponseDTO> getByBranchId(Long branchId){
         if(!branchService.existsById(branchId)){
-            throw new RuntimeException("No existe la sucursal");
+            throw new ResourceNotFoundException("branch", branchId);
         }
         List<BranchProductEntity> products = branchProductRepository.findAllByBranch_Id(branchId);
         return products.stream()
@@ -44,7 +46,7 @@ public class BranchProductService {
 
     public List<BranchProductResponseDTO> getByBranchName(String branchName){
         if(!branchService.existsByName(branchName)){
-            throw new RuntimeException("No existe la sucursal");
+            throw new ResourceNotFoundException("branch", branchName);
         }
         List<BranchProductEntity> products = branchProductRepository.findAllByBranch_Name(branchName);
         return products.stream()
@@ -54,7 +56,7 @@ public class BranchProductService {
 
     public List<BranchProductResponseDTO> findAvailableByBranchId(Long branchId){
         if(!branchService.existsById(branchId)){
-            throw new RuntimeException("No existe la sucursal");
+            throw new ResourceNotFoundException("branch", branchId);
         }
         List<BranchProductEntity> products = branchProductRepository.findAllByBranch_IdAndAvailableTrue(branchId);
         return products.stream()
@@ -64,7 +66,7 @@ public class BranchProductService {
 
     public List<BranchProductResponseDTO> findAvailableByBranchName(String branchName){
         if(!branchService.existsByName(branchName)){
-            throw new RuntimeException("No existe la sucursal");
+            throw new ResourceNotFoundException("branch", branchName);
         }
         List<BranchProductEntity> products = branchProductRepository.findAllByBranch_NameAndAvailableTrue(branchName);
         return products.stream()
@@ -74,20 +76,20 @@ public class BranchProductService {
 
     public BranchProductResponseDTO getById(Long id){
         BranchProductEntity product = branchProductRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
+                orElseThrow(() -> new ResourceNotFoundException("Menu Item", id));
         return branchProductMapper.toDTO(product);
     }
 
     public BranchProductEntity getEntity(Long id){
         return branchProductRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
+                orElseThrow(() -> new ResourceNotFoundException("Menu Item", id));
     }
 
     public BranchProductEntity getEntityByBranchAndProduct(Long branchId, Long productId){
         branchService.getEntity(branchId);
         productService.getEntity(productId);
         return branchProductRepository.findByBranch_IdAndProduct_Id(branchId, productId).
-                orElseThrow(() -> new RuntimeException("No se marco el producto en el menu de la sucursal"));
+                orElseThrow(() -> new ResourceNotFoundException("Menu Item", productId));
     }
 
     public BranchProductResponseDTO getByBranchAndProduct(Long branchId, Long productId){
@@ -101,7 +103,7 @@ public class BranchProductService {
         BranchEntity branch = branchService.getEntity(dto.getBranchId());
         ProductEntity product = productService.getEntity(dto.getProductId());
         if(branchProductRepository.existsByBranch_IdAndProduct_Id(dto.getBranchId(), dto.getProductId())){
-            throw new RuntimeException("El producto ya existe en la sucursal");
+            throw new ResourceAlreadyExistsException("El producto con id"+dto.getProductId()+" ya existe en la sucursal con id"+dto.getBranchId());
         }
         BranchProductEntity entity = branchProductMapper.toEntity(dto);
         entity.setBranch(branch);
