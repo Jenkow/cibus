@@ -21,6 +21,8 @@ public class ProductMapper
     }
     public ProductResponseDTO toResponseDTO  (ProductEntity entity)
     {
-        return modelMapper.map(entity, ProductResponseDTO.class);
+        ProductResponseDTO dto = modelMapper.map(entity, ProductResponseDTO.class);
+        dto.setCategoryName(entity.getCategory().getName());
+        return dto;
     }
 }
