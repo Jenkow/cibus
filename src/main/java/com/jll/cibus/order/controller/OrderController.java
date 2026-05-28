@@ -53,16 +53,16 @@ public class OrderController
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @PutMapping ("/{orderId}")
-    public ResponseEntity<OrderResponseDTO> updateOrder (@PathVariable Long id, @Valid @RequestBody OrderRequestDTO dto)
+    public ResponseEntity<OrderResponseDTO> updateOrder (@PathVariable Long orderId, @Valid @RequestBody OrderRequestDTO dto)
     {
         return ResponseEntity.ok(orderService.update(dto));
     }
 
     //PROBABLEMENTE SEA MEJOR EL CAMBIAR A ESTADO CANCELADO ASI QUEDA GUARDADO
     @DeleteMapping ("/{orderId}")
-    public ResponseEntity<Void> deleteOrder (@PathVariable Long id)
+    public ResponseEntity<Void> deleteOrder (@PathVariable Long orderId)
     {
-        orderService.delete(id);
+        orderService.delete(orderId);
         return  ResponseEntity.noContent().build();
     }
 
