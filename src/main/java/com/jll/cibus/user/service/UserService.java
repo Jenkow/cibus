@@ -1,5 +1,6 @@
 package com.jll.cibus.user.service;
 
+import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.user.dto.UserRequestDTO;
@@ -7,34 +8,32 @@ import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.mapper.UserMapper;
 import com.jll.cibus.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final BranchService branchService;
 
-    @Autowired
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
-
-    public UserResponseDTO create (UserRequestDTO requestDTO) {
-        if (userRepository.findByDni(requestDTO.getDni()).isPresent()) throw new ResourceAlreadyExistsException("DNI", requestDTO.getDni());
+    public UserResponseDTO create(UserRequestDTO requestDTO) {
+        if (userRepository.existsById(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
+        if (!branchService.existsById(requestDTO.getBranchId())) throw new ResourceNotFoundException("Branch", requestDTO.getBranchId());
 
         UserEntity toCreate = userRepository.save(userMapper.toEntity(requestDTO));
         return userMapper.toResponse(toCreate);
     }
 
-    public UserResponseDTO update (UserRequestDTO requestDTO) {
+    public UserResponseDTO update(UserRequestDTO requestDTO) {
         if (userRepository.findByDni(requestDTO.getDni()).isEmpty()) throw new ResourceNotFoundException("DNI", requestDTO.getDni());
-
         UserEntity toUpdate = userRepository.save(userMapper.toEntity(requestDTO));
+
         return userMapper.toResponse(toUpdate);
     }
 
@@ -129,8 +128,16 @@ public class UserService {
                 .toList();
     }
 
+    public boolean existsByDni(Long dni){
+        return userRepository.existsByDni(dni);
+    }
+
+    public boolean existsByDniAndBranch(Long dni, Long branchId){
+        return userRepository.existsByDniAndBranchId(dni, branchId);
+    }
+
     // Private method meant to be used only in other services.
-    public UserEntity getEntityByDni(Long dni) {
+    private UserEntity getEntityByDni(Long dni) {
         return userRepository.findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
     }
