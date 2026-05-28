@@ -53,6 +53,13 @@ public class UserService {
                 .toList();
     }
 
+    public UserResponseDTO findById(Long id) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
+
+        return userMapper.toResponse(user);
+    }
+
     public UserResponseDTO findByDni(Long dni) {
         UserEntity user = userRepository.findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("User DNI", dni));
