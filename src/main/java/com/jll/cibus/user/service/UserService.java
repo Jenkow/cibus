@@ -137,7 +137,7 @@ public class UserService {
     }
 
     // Private method meant to be used only in other services.
-    private UserEntity getEntityByDni(Long dni) {
+    public UserEntity getEntityByDni(Long dni) {
         return userRepository.findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
     }

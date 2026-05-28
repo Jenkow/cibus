@@ -3,7 +3,6 @@ package com.jll.cibus.order.service;
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
-import com.jll.cibus.common.exception.InvalidCredentialsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
 import com.jll.cibus.order.OrderStatusRepository;
@@ -17,8 +16,10 @@ import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
+import org.hibernate.query.Order;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -26,12 +27,12 @@ public class OrderService {
 
     OrderMapper orderMapper;
 
-    private OrderRepository orderRepository;
-    private OrderStatusRepository orderStatusRepository;
-    private UserService userService;
-    private TableService tableService;
-    private BranchService branchService;
-    private RoleValidatorService roleValidatorService;
+    private final OrderRepository orderRepository;
+    private final OrderStatusRepository orderStatusRepository;
+    private final UserService userService;
+    private final TableService tableService;
+    private final BranchService branchService;
+    private final RoleValidatorService roleValidatorService;
 
     public OrderService(OrderMapper orderMapper, OrderRepository orderRepository, OrderStatusRepository orderStatusRepository, UserService userService, TableService tableService, BranchService branchService, RoleValidatorService roleValidatorService) {
         this.orderMapper = orderMapper;
@@ -45,21 +46,22 @@ public class OrderService {
 @Transactional
     public OrderResponseDTO create (OrderRequestDTO dto) {
 
-        //        if (!userService.existsByDNI (dto.getUserDni()))
-//            throw new ResourceNotFoundException()
-//        if (branchService.existsById(dto.getBranchId()))
-//            throw new ResourceNotFoundException("Branch id",dto.getBranchId());
-//      PARA LA VALIDACION DE TABLE PRIMERO VAMOS A TENER QUE RE CHEQUEAR EL TEMA DE LOS ID DE TABLES, Y VER SI HAY QUE CHEQUEAR QUE LA MESA CORRESPONDA EN ESE MOMENTO AL USUARIO ASIGNADO
+    validateOrderRequest(dto);
+    //VERIFICAR QUE MESA EXISTA
+    // VERIFICAR QUE EL WAITER TRABAJE EN ESA BRANCH
+    //VERIFICAR QUE MESA SEA DE ESA BRANCH
+    //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
 
-        UserEntity user = userService.getEntityByDni(dto.getUserDni());
+
+        OrderEntity toCreate = orderMapper.toEntity(dto);
+        UserEntity waiter = userService.getEntityByDni(dto.getUserDni());
+        toCreate.setWaiter(waiter);
+        toCreate.setPaid(false);
+        toCreate.setTotal(BigDecimal.ZERO);
         BranchEntity branch = branchService.getEntity(dto.getBranchId());
-        TableEntity table = tableService.getTableById(dto.getTableId());
-
-        OrderEntity toCreate = new OrderEntity();
-
-        toCreate.setWaiter(user);
         toCreate.setBranch(branch);
-        toCreate.setTable(table);
+        toCreate.setPaid(false);
+        //HABRIA QUE INICIALIZAR EL ESTADO TAMBIEN
 
         OrderEntity createdOrder = orderRepository.save(toCreate);
         return orderMapper.toDTO(createdOrder);
@@ -68,20 +70,32 @@ public class OrderService {
     {
         return orderRepository.existsById(orderId);
     }
+    private void validateOrderRequest (OrderRequestDTO dto)
+    {
+        if (!userService.existsByDni(dto.getUserDni()))
+            throw new ResourceNotFoundException("User dni"+ dto.getUserDni());
+        if (!roleValidatorService.isWaiter(dto.getUserDni()))
+            throw new BusinessException("The user with id "+ dto.getUserDni() +" is not a waiter");
+        if (!branchService.existsById(dto.getBranchId()))
+            throw new ResourceNotFoundException("Branch id ", dto.getBranchId());
+    }
 @Transactional
     public OrderResponseDTO update ( Long orderId, OrderRequestDTO dto) {
-
-        //        if (!userService.existsByDNI (dto.getUserDni()))
-//            throw new ResourceNotFoundException()
-//        if (branchService.existsById(dto.getBranchId()))
-//            throw new ResourceNotFoundException("Branch id",dto.getBranchId());
-//      PARA LA VALIDACION DE TABLE PRIMERO VAMOS A TENER QUE RE CHEQUEAR EL TEMA DE LOS ID DE TABLES, Y VER SI HAY QUE CHEQUEAR QUE LA MESA CORRESPONDA EN ESE MOMENTO AL USUARIO ASIGNADO
-
         if (!existsById(orderId))
-            throw new ResourceNotFoundException("order id", orderId);
+             throw new ResourceNotFoundException("order id", orderId);
+
+        validateOrderRequest(dto);
+        // NO SE DEBERIA PODER CAMBIAR LA BRANCH
+        // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
+        // INFORMACION DEL USUARIO HAY QUE SACARLA DE LA TABLE EN REALIDAD
+        //VERIFICAR QUE MESA EXISTA
+        // VERIFICAR QUE EL WAITER TRABAJE EN ESA BRANCH
+        //VERIFICAR QUE MESA SEA DE ESA BRANCH
+        //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
+
         OrderEntity toUpdate = getEntity(orderId);
 
-        //me genera dudas que se use entity
+
         UserEntity user = userService.getEntityByDni(dto.getUserDni());
         BranchEntity branch = branchService.getEntity(dto.getBranchId());
         TableEntity table = tableService.getTableById(dto.getTableId());
@@ -90,17 +104,21 @@ public class OrderService {
         toUpdate.setBranch(branch);
         toUpdate.setTable(table);
 
+        //CREO QUE HAY QUE CAMBIAR O EL MAPPER O EL REQUEST
+
         OrderEntity updatedOrder = orderRepository.save(toUpdate);
         return orderMapper.toDTO(updatedOrder);
     }
 
     @Transactional
-    public OrderResponseDTO delete(Long orderId) {
+    public void delete(Long orderId) {
+
+        //cambiar a baja logica
+
         OrderEntity order = orderRepository.findById(orderId)
                         .orElseThrow( () -> new ResourceNotFoundException("ID", orderId));
 
         orderRepository.delete(order);
-        return  orderMapper.toDTO(order);
     }
 
     public OrderEntity getEntity(Long orderId) {
@@ -113,17 +131,16 @@ public class OrderService {
     public List<OrderResponseDTO> getAll() {
         List<OrderEntity> orders = orderRepository.findAll();
 
-        if(orders.isEmpty()) throw new BusinessException("No order can be found if there is no orders");
-
         return orders.stream()
                 .map(orderMapper::toDTO)
                 .toList();
     }
 
     public List<OrderResponseDTO> findByBranchId(Long branchId) {
-        List<OrderEntity> orders = orderRepository.findByBranchId(branchId);
+        if (!branchService.existsById(branchId))
+            throw new ResourceNotFoundException("Branch id "+ branchId);
 
-        if (orders.isEmpty()) throw new ResourceNotFoundException("ID", branchId);
+        List<OrderEntity> orders = orderRepository.findByBranchId(branchId);
 
         return orders.stream()
                 .map(orderMapper::toDTO)
@@ -133,7 +150,6 @@ public class OrderService {
     public List<OrderResponseDTO> findByTableId(Long tableId) {
         List<OrderEntity> orders = orderRepository.findByTableId(tableId);
 
-        if (orders.isEmpty()) throw new ResourceNotFoundException("ID", tableId);
 
         return orders.stream()
                 .map(orderMapper::toDTO)
@@ -141,14 +157,13 @@ public class OrderService {
     }
 
     public List<OrderResponseDTO> findByWaiterId(Long waiterId) {
-//        if (!userService.existsByDni (waiterId))
-//        ......
+
+        if (!userService.existsByDni(waiterId))
+            throw new ResourceNotFoundException("User id "+ waiterId);
         if (!roleValidatorService.isWaiter(waiterId))
             throw new BusinessException("The user with id "+ waiterId+ "is not a waiter");
 
         List<OrderEntity> orders = orderRepository.findByWaiterId(waiterId);
-
-        if (orders.isEmpty()) throw new ResourceNotFoundException("ID", waiterId); // acá, no deberia mostrar la lista vacia?
 
         return orders.stream()
                 .map(orderMapper::toDTO)
@@ -160,9 +175,6 @@ public class OrderService {
             throw new ResourceNotFoundException("BRANCH ID", branchId);
 
         List<OrderEntity> orders = orderRepository.findByBranch_IdAndStatus_Name(branchId, status);
-
-        if (orders.isEmpty()) throw new ResourceNotFoundException("ID or Status", branchId); // acá, no deberia mostrar la lista vacia?
-
         return orders.stream()
                 .map(orderMapper::toDTO)
                 .toList();
@@ -170,8 +182,6 @@ public class OrderService {
 
     public List<OrderResponseDTO> findByPaid(Boolean paid) {
         List<OrderEntity> orders = orderRepository.findByPaid(paid);
-
-        if (orders.isEmpty()) throw new ResourceNotFoundException("Pay", paid); // acá, no deberia mostrar la lista vacia?
 
         return orders.stream()
                 .map(orderMapper::toDTO)
