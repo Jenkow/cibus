@@ -16,6 +16,8 @@ import com.jll.cibus.product.repository.ProductRepository;
 import com.jll.cibus.product.service.ProductService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import java.util.List;
 
 @Service
@@ -108,6 +110,7 @@ public class BranchProductService {
         BranchProductEntity entity = branchProductMapper.toEntity(dto);
         entity.setBranch(branch);
         entity.setProduct(product);
+        entity.setAvailable(Boolean.TRUE);
         BranchProductEntity saved = branchProductRepository.save(entity);
         return branchProductMapper.toDTO(saved);
     }
