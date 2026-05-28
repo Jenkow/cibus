@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/branchproducts")
+@RequestMapping("/api/menu")
 public class BranchProductController {
 
     private final BranchProductService branchProductService;
@@ -59,7 +59,7 @@ public class BranchProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BranchProductResponseDTO> update(Long id, @Valid @RequestBody BranchProductUpdateDTO dto){
+    public ResponseEntity<BranchProductResponseDTO> update(@PathVariable Long id, @Valid @RequestBody BranchProductUpdateDTO dto){
         return ResponseEntity.ok(branchProductService.update(id, dto));
     }
 
