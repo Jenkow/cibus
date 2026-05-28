@@ -22,7 +22,4 @@ public class BranchProductRequestDTO {
     @Positive
     private BigDecimal price;
 
-    @NotNull
-    private Boolean available;
-
 }
