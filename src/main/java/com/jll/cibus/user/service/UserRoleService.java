@@ -1,6 +1,8 @@
-package com.jll.cibus.user;
+package com.jll.cibus.user.service;
 
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.user.entity.UserRoleEntity;
+import com.jll.cibus.user.repository.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

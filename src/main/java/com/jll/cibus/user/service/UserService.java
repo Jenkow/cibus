@@ -32,6 +32,7 @@ public class UserService {
 
     public UserResponseDTO update(UserRequestDTO requestDTO) {
         if (userRepository.findByDni(requestDTO.getDni()).isEmpty()) throw new ResourceNotFoundException("DNI", requestDTO.getDni());
+        if (!branchService.existsById(requestDTO.getBranchId())) throw new ResourceNotFoundException("Branch", requestDTO.getBranchId());
         UserEntity toUpdate = userRepository.save(userMapper.toEntity(requestDTO));
 
         return userMapper.toResponse(toUpdate);
