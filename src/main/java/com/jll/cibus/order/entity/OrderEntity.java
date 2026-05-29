@@ -49,4 +49,14 @@ public class OrderEntity {
 
     @Column(name="total", nullable = false, precision=10, scale=2)
     private BigDecimal total;
+
+    /*
+    created_at
+    closed_at
+    subtotal
+    discount
+    final_total
+    payment_method
+     */
+
 }
