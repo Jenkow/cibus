@@ -8,18 +8,18 @@ import com.jll.cibus.table.dto.TableResponseDTO;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class TableMapper {
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private BranchRepository branchRepository;
+
+    private final ModelMapper modelMapper;
+    private final UserRepository userRepository;
+    private final BranchRepository branchRepository;
 
 
     public TableEntity toEntity(TableUpdateDTO dto, Long branchId) {
@@ -31,6 +31,11 @@ public class TableMapper {
     }
 
     public TableResponseDTO toResponse(TableEntity entity) {
-        return modelMapper.map(entity, TableResponseDTO.class);
+        TableResponseDTO dto = modelMapper.map(entity, TableResponseDTO.class);
+        dto.setBranchId(entity.getBranch().getId());
+        if(entity.getWaiter()!= null){
+            dto.setWaiterId(entity.getWaiter().getId());
+        }
+        return dto;
     }
 }

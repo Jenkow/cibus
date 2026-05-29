@@ -36,11 +36,12 @@ public class TableService {
         return tableRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
     }
-    public Boolean isAvailableById(Long id){
+
+    public Boolean existsById(Long id) {
         return tableRepository.existsById(id);
     }
 
-    public Boolean existsByTableIdAndBranchId(Long tableId, Long branchId){
+    public Boolean existsByTableIdAndBranchId(Long tableId, Long branchId) {
         return tableRepository.existsByIdAndBranchId(tableId, branchId);
     }
 
@@ -53,6 +54,89 @@ public class TableService {
 
         List<TableEntity> tables = findByBranch(branch);
 
+        return tables.stream()
+                .map(tableMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public TableResponseDTO create(TableCreateDTO dto, Long branchId) {
+        TableEntity table = tableMapper.toEntity(dto, branchId);
+        table.setBranch(branchService.getEntity(dto.getBranchId()));
+        table.setAvailable(Boolean.TRUE);
+        table.setWaiter(null);
+        TableEntity saved = tableRepository.save(table);
+        return tableMapper.toResponse(saved);
+    }
+
+    public TableResponseDTO findById(Long tableId) {
+        TableEntity table = getTableById(tableId);
+        return tableMapper.toResponse(table);
+    }
+
+    @Transactional
+    public TableResponseDTO occupy(Long tableId, Long waiterId) {
+        TableEntity table = getTableById(tableId);
+
+        if (!table.getAvailable())
+            throw new BusinessException("The table is already occupied");
+        if (!roleValidatorService.isWaiter(waiterId))
+            throw new BusinessException("The user is not a waiter");
+
+        UserEntity waiter = userService.getEntityByDni(waiterId);
+
+        table.setAvailable(false);
+        table.setWaiter(waiter);
+
+        TableEntity updatedTable = tableRepository.save(table);
+
+        return tableMapper.toResponse(updatedTable);
+    }
+
+    @Transactional
+    public TableResponseDTO free(Long tableId) {
+        TableEntity table = getTableById(tableId);
+
+        if (table.getAvailable()) {
+            throw new BusinessException("The table is already free");
+        }
+        table.setAvailable(true);
+        table.setWaiter(null);
+
+        TableEntity updatedTable = tableRepository.save(table);
+        return tableMapper.toResponse(updatedTable);
+    }
+
+    @Transactional
+    public TableResponseDTO update(Long id, TableUpdateDTO newTable) {
+        TableEntity table = getTableById(id);
+        if (newTable.getCapacity() != null) {
+            if (newTable.getCapacity() < 1) {
+                throw new BusinessException("The capacity can not be less than 1");
+            }
+            table.setCapacity(newTable.getCapacity());
+        }
+        if (newTable.getWaiterId() != null) {
+            UserEntity waiter = userService.getEntityByDni(newTable.getWaiterId());           //   FALTA getEntityById en UserService
+            table.setWaiter(waiter);
+        }
+
+        TableEntity updatedTable = tableRepository.save(table);
+        return tableMapper.toResponse(updatedTable);
+    }
+
+    @Transactional
+    public void delete(Long tableId) {
+        TableEntity table = getTableById(tableId);
+        tableRepository.delete(table);
+    }
+
+
+    //------------------------------------------------------------- TODOS ESTOS METODOS ESTABAN HECHOS PERO NO PENSAMOS NINGUN ENDPOINT PARA ELLOS, BORRARLOS O APLICAR ENDPONTS   ---------------------------------------------------------------------------------------
+
+/*
+    public List<TableResponseDTO> findAll() {
+        List<TableEntity> tables = tableRepository.findAll();
         return tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
@@ -87,77 +171,6 @@ public class TableService {
                 .map(tableMapper::toResponse)
                 .toList();
     }
-
-    @Transactional
-    public TableResponseDTO create(TableCreateDTO dto, Long branchId) {
-        TableEntity table = tableMapper.toEntity(dto, branchId);
-        table.setBranch(branchService.getEntity(dto.getBranchId()));
-        table.setAvailable(Boolean.TRUE);
-        table.setWaiter(null);
-        TableEntity saved = tableRepository.save(table);
-        return tableMapper.toResponse(saved);
-    }
-
-    public List<TableResponseDTO> findAll() {
-        List<TableEntity> tables = tableRepository.findAll();
-        return tables.stream()
-                .map(tableMapper::toResponse)
-                .toList();
-    }
-
-    public TableResponseDTO findById(Long tableId) {
-        TableEntity table = getTableById(tableId);
-        return tableMapper.toResponse(table);
-    }
-
-    @Transactional
-    public TableResponseDTO occupyTable(Long tableId, Long waiterId) {
-        TableEntity table = getTableById(tableId);
-
-        if (!table.getAvailable())
-            throw new BusinessException("The table is already occupied");
-        if (!roleValidatorService.isWaiter(waiterId))
-            throw new BusinessException("The user is not a waiter");
-
-        UserEntity waiter = userService.getEntityByDni(waiterId);
-
-        table.setAvailable(false);
-        table.setWaiter(waiter);
-
-        TableEntity updatedTable = tableRepository.save(table);
-
-        return tableMapper.toResponse(updatedTable);
-    }
-
-    @Transactional
-    public TableResponseDTO freeTable(Long tableId) {
-        TableEntity table = getTableById(tableId);
-
-        if (table.getAvailable()) {
-            throw new BusinessException("The table is already free");
-        }
-        table.setAvailable(true);
-        table.setWaiter(null);
-
-        TableEntity updatedTable = tableRepository.save(table);
-        return tableMapper.toResponse(updatedTable);
-    }
-
-    @Transactional
-    public TableResponseDTO updateCapacity(Long tableId, Integer capacity) {
-        TableEntity table = getTableById(tableId);
-        if (capacity < 1) {
-            throw new BusinessException("The capacity can not be less than 1");
-        }
-        table.setCapacity(capacity);
-        TableEntity updatedTable = tableRepository.save(table);
-        return tableMapper.toResponse(updatedTable);
-    }
-
-    @Transactional
-    public void delete(Long tableId) {
-        TableEntity table = getTableById(tableId);
-        tableRepository.delete(table);
-    }
+*/
 
 }

@@ -1,6 +1,7 @@
 package com.jll.cibus.table.controller;
 
 
+import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.table.dto.TableCreateDTO;
 import com.jll.cibus.table.dto.TableUpdateDTO;
 import com.jll.cibus.table.dto.TableResponseDTO;
@@ -32,28 +33,31 @@ public class TableController {
     }
 
     @PostMapping
-    public ResponseEntity<TableResponseDTO> createTable(@PathVariable Long branchId, @Valid @RequestBody TableCreateDTO dto) {
+    public ResponseEntity<TableResponseDTO> create(@PathVariable Long branchId, @Valid @RequestBody TableCreateDTO dto) {
         TableResponseDTO response = tableService.create(dto, branchId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{tableId}/occupy")
-    public ResponseEntity<TableResponseDTO> occupyTable(@PathVariable Long branchId, @RequestParam Long waiterId, @PathVariable Long tableId) {
-        return ResponseEntity.ok(tableService.occupyTable(tableId, waiterId));
+    @PatchMapping("/{tableId}/occupy")
+    public ResponseEntity<TableResponseDTO> occupy(@PathVariable Long branchId, @PathVariable Long tableId, @RequestBody TableUpdateDTO table) {
+        if(table.getWaiterId() == null){
+            throw new BusinessException("Waiter ID is needed to ocuppy a table");
+        }
+        return ResponseEntity.ok(tableService.occupy(tableId, table.getWaiterId()));
     }
 
-    @PutMapping("/{tableId}/free")
-    public ResponseEntity<TableResponseDTO> freeTable(@PathVariable Long branchId, @PathVariable Long tableId) {
-        return ResponseEntity.ok(tableService.freeTable(tableId));
+    @PatchMapping("/{tableId}/free")
+    public ResponseEntity<TableResponseDTO> free(@PathVariable Long branchId, @PathVariable Long tableId) {
+        return ResponseEntity.ok(tableService.free(tableId));
     }
 
-    @PutMapping("/{tableId}/capacity")
-    public ResponseEntity<TableResponseDTO> updateCapacity(@PathVariable Long branchId, @PathVariable Long tableId, @RequestParam Integer capacity) {
-        return ResponseEntity.ok(tableService.updateCapacity(tableId, capacity));
+    @PutMapping("/{tableId}")
+    public ResponseEntity<TableResponseDTO> update(@PathVariable Long branchId, @PathVariable Long tableId, @RequestBody TableUpdateDTO table) {
+        return ResponseEntity.ok(tableService.update(tableId, table));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTable(@PathVariable Long branchId, @PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long branchId, @PathVariable Long id) {
         tableService.delete(id);
         return ResponseEntity.noContent().build();
     }
