@@ -1,7 +1,6 @@
 package com.jll.cibus.user.entity;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.user.UserRoleEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -32,6 +32,7 @@ public class UserService {
 
     public UserResponseDTO update(UserRequestDTO requestDTO) {
         if (userRepository.findByDni(requestDTO.getDni()).isEmpty()) throw new ResourceNotFoundException("DNI", requestDTO.getDni());
+        if (!branchService.existsById(requestDTO.getBranchId())) throw new ResourceNotFoundException("Branch", requestDTO.getBranchId());
         UserEntity toUpdate = userRepository.save(userMapper.toEntity(requestDTO));
 
         return userMapper.toResponse(toUpdate);
@@ -40,7 +41,7 @@ public class UserService {
     public void deleteByDni(Long dni){
         UserEntity toDelete = userRepository
                 .findByDni(dni)
-                .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
+                .orElseThrow(() -> new ResourceNotFoundException("User DNI", dni));
 
         userRepository.delete(toDelete);
     }
@@ -53,9 +54,16 @@ public class UserService {
                 .toList();
     }
 
+    public UserResponseDTO findById(Long id) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
+
+        return userMapper.toResponse(user);
+    }
+
     public UserResponseDTO findByDni(Long dni) {
         UserEntity user = userRepository.findByDni(dni)
-                .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
+                .orElseThrow(() -> new ResourceNotFoundException("User DNI", dni));
 
         return userMapper.toResponse(user);
     }
@@ -63,7 +71,7 @@ public class UserService {
     public List<UserResponseDTO> findByFirstName (String firstName){
         List<UserEntity> users = userRepository.findByFirstName(firstName);
 
-        if (users.isEmpty()) throw new ResourceNotFoundException("First Name", firstName);
+        if (users.isEmpty()) throw new ResourceNotFoundException("User First Name", firstName);
 
         return users.stream()
                 .map(userMapper::toResponse)
@@ -73,7 +81,7 @@ public class UserService {
     public List<UserResponseDTO> findByLastName (String lastName){
         List<UserEntity> users = userRepository.findByLastName(lastName);
 
-        if(users.isEmpty()) throw new ResourceNotFoundException("Last name", lastName);
+        if(users.isEmpty()) throw new ResourceNotFoundException("User Last name", lastName);
 
         return users.stream()
                 .map(userMapper::toResponse)
@@ -83,7 +91,7 @@ public class UserService {
     public UserResponseDTO findByEmail (String email){
         UserEntity user = userRepository
                 .findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Email", email));
+                .orElseThrow(() -> new ResourceNotFoundException("User email", email));
 
         return userMapper.toResponse(user);
     }
@@ -91,7 +99,7 @@ public class UserService {
     public UserResponseDTO findByPhoneNumber (String phoneNumber){
         UserEntity user = userRepository
                 .findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Phone number", phoneNumber));
+                .orElseThrow(() -> new ResourceNotFoundException("User phone number", phoneNumber));
 
         return userMapper.toResponse(user);
     }
@@ -100,7 +108,7 @@ public class UserService {
         List<UserEntity> users = userRepository.findByFirstNameAndLastName(firstName, lastName);
 
         if(users.isEmpty()){
-            throw new ResourceNotFoundException("First and/or Last Name", firstName + " and " + lastName);
+            throw new ResourceNotFoundException("User first  last name", firstName + " and/or last name " + lastName);
         }
 
         return users.stream()
@@ -136,8 +144,7 @@ public class UserService {
         return userRepository.existsByDniAndBranchId(dni, branchId);
     }
 
-    // Private method meant to be used only in other services.
-    private UserEntity getEntityByDni(Long dni) {
+    public UserEntity getEntityByDni(Long dni) {
         return userRepository.findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
     }
