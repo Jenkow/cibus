@@ -16,7 +16,6 @@ import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
-import org.hibernate.query.Order;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -43,24 +42,42 @@ public class OrderService {
         this.branchService = branchService;
         this.roleValidatorService =  roleValidatorService;
     }
+    private void validateOrderRequest (OrderRequestDTO dto)
+    {
+        if (!userService.existsByDni(dto.getUserDni()))
+            throw new ResourceNotFoundException("User dni"+ dto.getUserDni());
+        if (!roleValidatorService.isWaiter(dto.getUserDni()))
+            throw new BusinessException("The user with id "+ dto.getUserDni() +" is not a waiter");
+//        if (!tableService.existsById (dto.getTableId()))
+//            throw new ResourceNotFoundException("Table id ", dto.getTableId());
+    }
 @Transactional
     public OrderResponseDTO create (OrderRequestDTO dto) {
 
     validateOrderRequest(dto);
-    //VERIFICAR QUE MESA EXISTA
-    // VERIFICAR QUE EL WAITER TRABAJE EN ESA BRANCH
-    //VERIFICAR QUE MESA SEA DE ESA BRANCH
-    //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
+    UserEntity waiter = userService.getEntityByDni(dto.getUserDni());
 
+    //SACAR DEL REQUEST BRANCH ID
+    BranchEntity branch = branchService.getEntity(waiter.getBranch().getId());
+    TableEntity table = tableService.getTableById(dto.getTableId());
+
+        //VERIFICO QUE EL USUARIO EXISTA, QUE SEA WAITER,  QUE LA TABLE EXISTA
+        validateOrderRequest(dto);
+
+        //VERIFICAR QUE MESA SEA DE ESA BRANCH
+        if (!table.getBranch().getId().equals(branch.getId()))
+            throw new BusinessException("The table n " + table.getId() + "is not from "+ branch.getName());
+
+        //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
+        if (!table.getWaiter().getId().equals(waiter.getDni()))
+            throw new BusinessException(waiter.getFirstName()+ "is not working with table n "+ table.getId());
 
         OrderEntity toCreate = orderMapper.toEntity(dto);
-        UserEntity waiter = userService.getEntityByDni(dto.getUserDni());
         toCreate.setWaiter(waiter);
-        toCreate.setPaid(false);
         toCreate.setTotal(BigDecimal.ZERO);
-        BranchEntity branch = branchService.getEntity(dto.getBranchId());
         toCreate.setBranch(branch);
         toCreate.setPaid(false);
+
         //HABRIA QUE INICIALIZAR EL ESTADO TAMBIEN
 
         OrderEntity createdOrder = orderRepository.save(toCreate);
@@ -70,48 +87,39 @@ public class OrderService {
     {
         return orderRepository.existsById(orderId);
     }
-    private void validateOrderRequest (OrderRequestDTO dto)
-    {
-        if (!userService.existsByDni(dto.getUserDni()))
-            throw new ResourceNotFoundException("User dni"+ dto.getUserDni());
-        if (!roleValidatorService.isWaiter(dto.getUserDni()))
-            throw new BusinessException("The user with id "+ dto.getUserDni() +" is not a waiter");
-        if (!branchService.existsById(dto.getBranchId()))
-            throw new ResourceNotFoundException("Branch id ", dto.getBranchId());
-    }
+
 @Transactional
     public OrderResponseDTO update ( Long orderId, OrderRequestDTO dto) {
-        if (!existsById(orderId))
-             throw new ResourceNotFoundException("order id", orderId);
-
-        validateOrderRequest(dto);
-        // NO SE DEBERIA PODER CAMBIAR LA BRANCH
-        // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
-        // INFORMACION DEL USUARIO HAY QUE SACARLA DE LA TABLE EN REALIDAD
-        //VERIFICAR QUE MESA EXISTA
-        // VERIFICAR QUE EL WAITER TRABAJE EN ESA BRANCH
-        //VERIFICAR QUE MESA SEA DE ESA BRANCH
-        //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
-
         OrderEntity toUpdate = getEntity(orderId);
+        validateOrderRequest(dto);
+    TableEntity newTable = tableService.getTableById(dto.getTableId());
+    UserEntity waiter = userService.getEntityByDni(dto.getUserDni());
 
+        // NO SE DEBERIA PODER CAMBIAR EL USER
+        if (!toUpdate.getWaiter().getId().equals(dto.getUserDni()))
+            throw new BusinessException("It is not possible to update the waiter");
 
-        UserEntity user = userService.getEntityByDni(dto.getUserDni());
-        BranchEntity branch = branchService.getEntity(dto.getBranchId());
-        TableEntity table = tableService.getTableById(dto.getTableId());
+        //VERIFICO QUE LA MESA CORRESPONDA A LA BRANCH
+        if (!newTable.getBranch().getId().equals(dto.getBranchId()))
+             throw new BusinessException("That table is not from branch" + toUpdate.getBranch().getName());
 
-        toUpdate.setWaiter(user);
-        toUpdate.setBranch(branch);
-        toUpdate.setTable(table);
+        // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
+        if (newTable.getAvailable())
+            throw new BusinessException("");
 
-        //CREO QUE HAY QUE CAMBIAR O EL MAPPER O EL REQUEST
+        //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
+        if (!newTable.getWaiter().getId().equals(waiter.getDni()))
+            throw new BusinessException(waiter.getFirstName()+ "is not asigned to table" +newTable.getId());
+
+        toUpdate.setTable(newTable);
 
         OrderEntity updatedOrder = orderRepository.save(toUpdate);
         return orderMapper.toDTO(updatedOrder);
     }
 
     @Transactional
-    public void delete(Long orderId) {
+    public void delete(Long orderId)
+    {
 
         //cambiar a baja logica
 
@@ -122,10 +130,8 @@ public class OrderService {
     }
 
     public OrderEntity getEntity(Long orderId) {
-        OrderEntity order = orderRepository.findById(orderId)
+        return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
-
-        return order;
     }
 
     public List<OrderResponseDTO> getAll() {

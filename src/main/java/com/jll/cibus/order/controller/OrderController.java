@@ -55,7 +55,7 @@ public class OrderController
     @PutMapping ("/{orderId}")
     public ResponseEntity<OrderResponseDTO> updateOrder (@PathVariable Long orderId, @Valid @RequestBody OrderRequestDTO dto)
     {
-        return ResponseEntity.ok(orderService.update(dto));
+        return ResponseEntity.ok(orderService.update(orderId,dto));
     }
 
     //PROBABLEMENTE SEA MEJOR EL CAMBIAR A ESTADO CANCELADO ASI QUEDA GUARDADO
