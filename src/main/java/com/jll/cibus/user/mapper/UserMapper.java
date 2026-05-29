@@ -1,49 +1,26 @@
 package com.jll.cibus.user.mapper;
-
-import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
-import com.jll.cibus.user.entity.UserRoleEntity;
-import com.jll.cibus.user.repository.UserRoleRepository;
 import com.jll.cibus.user.entity.UserEntity;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
 
-    private ModelMapper modelMapper;
-    private BranchRepository branchRepository;
-    private UserRoleRepository userRoleRepository;
+    private final ModelMapper modelMapper;
 
-    public UserMapper(ModelMapper modelMapper, BranchRepository branchRepository, UserRoleRepository userRoleRepository) {
-        this.modelMapper = modelMapper;
-        this.branchRepository = branchRepository;
-        this.userRoleRepository = userRoleRepository;
+    public UserEntity toEntity (UserRequestDTO dto) {
+        return modelMapper.map(dto, UserEntity.class);
     }
 
-    public UserEntity toEntity (UserRequestDTO dto)
-    {
-        UserEntity entity = modelMapper.map(dto, UserEntity.class);
+    public UserResponseDTO toResponse (UserEntity entity) {
+        UserResponseDTO dto =  modelMapper.map(entity, UserResponseDTO.class);
+        dto.setBranchId(entity.getBranch().getId());
+        dto.setUserRoleId(entity.getRole().getId());
 
-        UserRoleEntity role = userRoleRepository.findById(dto.getUserRoleId())
-                .orElseThrow(() -> new RuntimeException("Role not found"));
-        entity.setRole(role);
-
-        if (dto.getBranchId()!= null)
-        {
-            BranchEntity branch = branchRepository.findById(dto.getBranchId())
-                    .orElseThrow(() -> new RuntimeException("Branch not found"));
-            entity.setBranch(branch);
-        }
-        return entity;
+        return dto;
     }
-
-    public UserResponseDTO toResponse (UserEntity entity)
-    {
-        return modelMapper.map(entity, UserResponseDTO.class);
-    }
-
-
 }
