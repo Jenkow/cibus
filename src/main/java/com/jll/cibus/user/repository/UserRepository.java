@@ -1,7 +1,7 @@
 package com.jll.cibus.user.repository;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.user.UserRoleEntity;
+import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
