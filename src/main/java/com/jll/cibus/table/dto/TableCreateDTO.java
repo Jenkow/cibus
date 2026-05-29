@@ -9,14 +9,13 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+public class TableCreateDTO {
 
-public class TableRequestDTO
-{
-    @NotNull (message ="The capacity is mandatory")
+    @NotNull(message ="The branch ID is mandatory")
+    private Long branchId;
+
+    @NotNull(message ="The capacity is mandatory")
     @Min(value=1, message = "The minimun capacity is 1")
     private Integer capacity;
-    @NotNull (message = "The availability status is mandatory")
-    private Boolean available;
-    private Long waiterId;
 
 }
