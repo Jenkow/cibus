@@ -1,18 +1,20 @@
-package com.jll.cibus.user;
+package com.jll.cibus.user.service;
 
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.jll.cibus.user.entity.UserRoleEntity;
+import com.jll.cibus.user.repository.UserRoleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class UserRoleService
-{
-    @Autowired
-    private UserRoleRepository userRoleRepository;
+@RequiredArgsConstructor
+public class UserRoleService {
 
-    public List<UserRoleEntity> getAllUserRol ()
+    private final UserRoleRepository userRoleRepository;
+
+    public List<UserRoleEntity> getAll()
     {
         return userRoleRepository.findAll();
     }

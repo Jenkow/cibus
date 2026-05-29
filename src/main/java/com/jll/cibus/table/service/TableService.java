@@ -5,7 +5,8 @@ import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
-import com.jll.cibus.table.dto.TableRequestDTO;
+import com.jll.cibus.table.dto.TableCreateDTO;
+import com.jll.cibus.table.dto.TableUpdateDTO;
 import com.jll.cibus.table.dto.TableResponseDTO;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.table.mapper.TableMapper;
@@ -13,28 +14,34 @@ import com.jll.cibus.table.repository.TableRepository;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class TableService {
-    @Autowired
-    private TableRepository tableRepository;
-    @Autowired
-    private TableMapper tableMapper;
-    @Autowired
-    private BranchService branchService;
-    @Autowired
-    private RoleValidatorService roleValidatorService;
-    @Autowired
-    private UserService userService;
+
+    private final TableRepository tableRepository;
+    private final TableMapper tableMapper;
+    private final BranchService branchService;
+    private final RoleValidatorService roleValidatorService;
+    private final UserService userService;
 
 
     public TableEntity getTableById(Long id) {
         return tableRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
+    }
+    public Boolean isAvailableById(Long id){
+        return tableRepository.existsById(id);
+    }
+
+    public Boolean existsByTableIdAndBranchId(Long tableId, Long branchId){
+        return tableRepository.existsByIdAndBranchId(tableId, branchId);
     }
 
     private List<TableEntity> findByBranch(BranchEntity branch) {
@@ -82,10 +89,13 @@ public class TableService {
     }
 
     @Transactional
-    public TableResponseDTO createTable(TableRequestDTO dto, Long branchId) {
-        TableEntity tableEntity = tableMapper.toEntity(dto, branchId);
-        TableEntity savedTable = tableRepository.save(tableEntity);
-        return tableMapper.toResponse(savedTable);
+    public TableResponseDTO create(TableCreateDTO dto, Long branchId) {
+        TableEntity table = tableMapper.toEntity(dto, branchId);
+        table.setBranch(branchService.getEntity(dto.getBranchId()));
+        table.setAvailable(Boolean.TRUE);
+        table.setWaiter(null);
+        TableEntity saved = tableRepository.save(table);
+        return tableMapper.toResponse(saved);
     }
 
     public List<TableResponseDTO> findAll() {
