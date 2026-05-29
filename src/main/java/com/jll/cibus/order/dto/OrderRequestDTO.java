@@ -17,8 +17,6 @@ import java.util.List;
 @Setter
 public class OrderRequestDTO {
 
-    @NotNull(message = "Branch is required")
-    private Long branchId;
 
     @NotNull(message = "Table is required")
     private Long tableId;
