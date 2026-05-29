@@ -25,4 +25,8 @@ public class UserRoleService
         }
     }
 
+    public UserRoleEntity getEntity (Long id) {
+        return userRoleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", id));
+    }
 }
