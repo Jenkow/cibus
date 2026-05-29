@@ -100,7 +100,7 @@ public class OrderService {
             throw new BusinessException("It is not possible to update the waiter");
 
         //VERIFICO QUE LA MESA CORRESPONDA A LA BRANCH
-        if (!newTable.getBranch().getId().equals(dto.getBranchId()))
+        if (!newTable.getBranch().getId().equals(toUpdate.getBranch().getId()))
              throw new BusinessException("That table is not from branch" + toUpdate.getBranch().getName());
 
         // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
