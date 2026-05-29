@@ -1,16 +1,19 @@
 package com.jll.cibus.user.service;
 
+import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.mapper.UserMapper;
 import com.jll.cibus.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,21 +24,39 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final BranchService branchService;
+    private final UserRoleService userRoleService;
 
+    @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
-        if (userRepository.existsById(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
-        if (!branchService.existsById(requestDTO.getBranchId())) throw new ResourceNotFoundException("Branch", requestDTO.getBranchId());
+        if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
 
-        UserEntity toCreate = userRepository.save(userMapper.toEntity(requestDTO));
-        return userMapper.toResponse(toCreate);
+        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
+        UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());
+
+        UserEntity user = userMapper.toEntity(requestDTO);
+        user.setBranch(branch);
+        user.setRole(userRole);
+
+        UserEntity created = userRepository.save(user);
+        return userMapper.toResponse(created);
     }
 
+    @Transactional
     public UserResponseDTO update(UserRequestDTO requestDTO) {
-        if (userRepository.findByDni(requestDTO.getDni()).isEmpty()) throw new ResourceNotFoundException("DNI", requestDTO.getDni());
-        if (!branchService.existsById(requestDTO.getBranchId())) throw new ResourceNotFoundException("Branch", requestDTO.getBranchId());
-        UserEntity toUpdate = userRepository.save(userMapper.toEntity(requestDTO));
+        UserEntity toUpdate = userRepository.findByDni(requestDTO.getDni())
+                .orElseThrow(() -> new ResourceNotFoundException("User", requestDTO.getDni()));
 
-        return userMapper.toResponse(toUpdate);
+        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
+        UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());
+
+        toUpdate.setBranch(branch);
+        toUpdate.setRole(userRole);
+        toUpdate.setEmail(requestDTO.getEmail());
+        toUpdate.setFirstName(requestDTO.getFirstName());
+        toUpdate.setLastName(requestDTO.getLastName());
+
+        UserEntity updated = userRepository.save(toUpdate);
+        return userMapper.toResponse(updated);
     }
 
     public void deleteByDni(Long dni){
@@ -141,4 +162,6 @@ public class UserService {
         return userRepository.findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
     }
+
+
 }
