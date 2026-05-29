@@ -15,7 +15,6 @@ import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +36,13 @@ public class TableService {
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
     }
 
+    public List<TableResponseDTO> findByBranchId(Long branchId) {
+        List<TableEntity> tables = tableRepository.findByBranchId(branchId);
+        return tables.stream()
+                .map(tableMapper::toResponse)
+                .toList();
+    }
+
     public Boolean existsById(Long id) {
         return tableRepository.existsById(id);
     }
@@ -45,24 +51,13 @@ public class TableService {
         return tableRepository.existsByIdAndBranchId(tableId, branchId);
     }
 
-    private List<TableEntity> findByBranch(BranchEntity branch) {
-        return tableRepository.findByBranch(branch);
-    }
-
-    public List<TableResponseDTO> findByBranchId(Long branchId) {
-        BranchEntity branch = branchService.getEntity(branchId);
-
-        List<TableEntity> tables = findByBranch(branch);
-
-        return tables.stream()
-                .map(tableMapper::toResponse)
-                .toList();
-    }
-
     @Transactional
     public TableResponseDTO create(TableCreateDTO dto, Long branchId) {
-        TableEntity table = tableMapper.toEntity(dto, branchId);
-        table.setBranch(branchService.getEntity(dto.getBranchId()));
+        if(tableRepository.existsByBranchIdAndNumber(branchId, dto.getNumber())){
+            throw new BusinessException("A table with number "+ dto.getNumber() +" already exists in the branch.");
+        }
+        TableEntity table = tableMapper.toEntity(dto);
+        table.setBranch(branchService.getEntity(branchId));
         table.setAvailable(Boolean.TRUE);
         table.setWaiter(null);
         TableEntity saved = tableRepository.save(table);
@@ -71,6 +66,12 @@ public class TableService {
 
     public TableResponseDTO findById(Long tableId) {
         TableEntity table = getTableById(tableId);
+        return tableMapper.toResponse(table);
+    }
+
+    public TableResponseDTO findByBranchIdAndNumber(Long branchId, Integer number) {
+        TableEntity table = tableRepository.findByBranchIdAndNumber(branchId, number)
+                .orElseThrow(() -> new ResourceNotFoundException("There is no table "+number+ " in branch "+branchId));
         return tableMapper.toResponse(table);
     }
 
@@ -110,6 +111,9 @@ public class TableService {
     @Transactional
     public TableResponseDTO update(Long id, TableUpdateDTO newTable) {
         TableEntity table = getTableById(id);
+        if(newTable.getNumber() != null){
+            table.setNumber(newTable.getNumber());
+        }
         if (newTable.getCapacity() != null) {
             if (newTable.getCapacity() < 1) {
                 throw new BusinessException("The capacity can not be less than 1");
@@ -141,6 +145,20 @@ public class TableService {
                 .map(tableMapper::toResponse)
                 .toList();
     }
+
+    private List<TableEntity> findByBranch(BranchEntity branch) {
+            return tableRepository.findByBranch(branch);
+        }
+
+        public List<TableResponseDTO> findByBranchId(Long branchId) {
+            BranchEntity branch = branchService.getEntity(branchId);
+
+            List<TableEntity> tables = findByBranch(branch);
+
+            return tables.stream()
+                    .map(tableMapper::toResponse)
+                    .toList();
+        }
 
     private List<TableEntity> findByBranchAndAvailable(BranchEntity branch, boolean available) {
         return tableRepository.findByBranchAndAvailable(branch, available);

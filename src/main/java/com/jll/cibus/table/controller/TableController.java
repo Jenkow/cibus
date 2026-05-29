@@ -32,6 +32,11 @@ public class TableController {
         return ResponseEntity.ok(tableService.findById(id));
     }
 
+    @GetMapping("/number/{number}")
+    public ResponseEntity<TableResponseDTO> getByBranchIdAndNumber(@PathVariable Long branchId, @PathVariable Integer number) {
+        return ResponseEntity.ok(tableService.findByBranchIdAndNumber(branchId, number));
+    }
+
     @PostMapping
     public ResponseEntity<TableResponseDTO> create(@PathVariable Long branchId, @Valid @RequestBody TableCreateDTO dto) {
         TableResponseDTO response = tableService.create(dto, branchId);
@@ -39,7 +44,7 @@ public class TableController {
     }
 
     @PatchMapping("/{tableId}/occupy")
-    public ResponseEntity<TableResponseDTO> occupy(@PathVariable Long branchId, @PathVariable Long tableId, @RequestBody TableUpdateDTO table) {
+    public ResponseEntity<TableResponseDTO> occupy(@PathVariable Long branchId, @PathVariable Long tableId, @Valid @RequestBody TableUpdateDTO table) {
         if(table.getWaiterId() == null){
             throw new BusinessException("Waiter ID is needed to ocuppy a table");
         }
@@ -52,7 +57,7 @@ public class TableController {
     }
 
     @PutMapping("/{tableId}")
-    public ResponseEntity<TableResponseDTO> update(@PathVariable Long branchId, @PathVariable Long tableId, @RequestBody TableUpdateDTO table) {
+    public ResponseEntity<TableResponseDTO> update(@PathVariable Long branchId, @PathVariable Long tableId, @Valid @RequestBody TableUpdateDTO table) {
         return ResponseEntity.ok(tableService.update(tableId, table));
     }
 
