@@ -48,7 +48,7 @@ public class OrderService {
             throw new ResourceNotFoundException("User dni"+ dto.getUserDni());
         if (!roleValidatorService.isWaiter(dto.getUserDni()))
             throw new BusinessException("The user with id "+ dto.getUserDni() +" is not a waiter");
-//        if (!tableService.existsById (dto.getTableId()))
+//        if (!tableService.existsByID(dto.getTableId()))
 //            throw new ResourceNotFoundException("Table id ", dto.getTableId());
     }
 @Transactional
@@ -65,7 +65,7 @@ public class OrderService {
         validateOrderRequest(dto);
 
         //VERIFICAR QUE MESA SEA DE ESA BRANCH
-        if (!table.getBranch().getId().equals(branch.getId()))
+        if (!tableService.existsByTableIdAndBranchId(table.getId(),branch.getId()))
             throw new BusinessException("The table n " + table.getId() + "is not from "+ branch.getName());
 
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
@@ -100,7 +100,7 @@ public class OrderService {
             throw new BusinessException("It is not possible to update the waiter");
 
         //VERIFICO QUE LA MESA CORRESPONDA A LA BRANCH
-        if (!newTable.getBranch().getId().equals(toUpdate.getBranch().getId()))
+        if (!tableService.existsByTableIdAndBranchId(newTable.getId(), toUpdate.getBranch().getId()))
              throw new BusinessException("That table is not from branch" + toUpdate.getBranch().getName());
 
         // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
