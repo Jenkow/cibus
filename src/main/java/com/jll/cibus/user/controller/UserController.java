@@ -31,9 +31,9 @@ public class UserController {
     }
 
     @GetMapping("/firstName/{firstName}")
-    public ResponseEntity<List<UserResponseDTO>> getByFirstName (@PathVariable String name) {
+    public ResponseEntity<List<UserResponseDTO>> getByFirstName (@PathVariable String firstName) {
 
-        return  ResponseEntity.ok(userService.findByFirstName(name));
+        return  ResponseEntity.ok(userService.findByFirstName(firstName));
     }
 
     @GetMapping("/lastName/{lastName}")
@@ -80,7 +80,7 @@ public class UserController {
     }
 
     @PutMapping ("/{dni}")
-    public ResponseEntity<UserResponseDTO> updateUser (@PathVariable Long userDni, @Valid @RequestBody UserRequestDTO dto) {
+    public ResponseEntity<UserResponseDTO> updateUser (@Valid @RequestBody UserRequestDTO dto) {
 
         return ResponseEntity.ok(userService.update(dto));
     }
