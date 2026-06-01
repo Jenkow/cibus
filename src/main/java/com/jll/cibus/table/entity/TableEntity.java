@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table (name = "tables")
+@Table(name = "tables", uniqueConstraints = {@UniqueConstraint(columnNames = {"branch_id", "number"})})
 @Getter
 @Setter
 @Builder
@@ -18,6 +18,9 @@ public class TableEntity {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column (name = "number", nullable = false)
+    private Integer number;
 
     @Column (name = "capacity", nullable = false)
     private Integer capacity;
@@ -33,6 +36,4 @@ public class TableEntity {
     @JoinColumn(name = "branch_id", nullable = false)
     private BranchEntity branch;
 
-
-    //CREATE METHODS TO VERIFY THAT EVERY TIME THAT THE TABLE IS NOT AVALIABLE THERE IS A WAITER, AND IF ITS AVALIABLE, THE WAITER IS NULL
 }

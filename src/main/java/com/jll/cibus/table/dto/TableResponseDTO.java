@@ -8,9 +8,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class TableResponseDTO
-{
+public class TableResponseDTO {
     private Long id;
+    private Integer number;
     private Integer capacity;
     private Boolean available;
     private Long waiterId;
