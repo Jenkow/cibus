@@ -37,4 +37,6 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>
 
     boolean existsByDniAndBranchId(Long dni, Long branchId);
 
+    List<UserEntity> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+    //no se que tan util sea esta query para reemplazar las otras de busqueda por nombre, hay que testear.
 }

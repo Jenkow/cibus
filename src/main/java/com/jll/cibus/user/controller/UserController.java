@@ -79,7 +79,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toCreate);
     }
 
-    @PutMapping ("/{dni}")
+    @PutMapping ()
     public ResponseEntity<UserResponseDTO> updateUser (@Valid @RequestBody UserRequestDTO dto) {
 
         return ResponseEntity.ok(userService.update(dto));
