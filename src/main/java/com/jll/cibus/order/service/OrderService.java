@@ -48,8 +48,8 @@ public class OrderService {
             throw new ResourceNotFoundException("User dni"+ dto.getUserDni());
         if (!roleValidatorService.isWaiter(dto.getUserDni()))
             throw new BusinessException("The user with id "+ dto.getUserDni() +" is not a waiter");
-//        if (!tableService.existsByID(dto.getTableId()))
-//            throw new ResourceNotFoundException("Table id ", dto.getTableId());
+        if (!tableService.existsById(dto.getTableId()))
+            throw new ResourceNotFoundException("Table id ", dto.getTableId());
     }
 @Transactional
     public OrderResponseDTO create (OrderRequestDTO dto) {
