@@ -5,7 +5,7 @@ import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
-import com.jll.cibus.order.OrderStatusRepository;
+import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
 import com.jll.cibus.order.entity.OrderEntity;
@@ -62,7 +62,7 @@ public class OrderService {
     TableEntity table = tableService.getTableById(dto.getTableId());
 
         //VERIFICO QUE EL USUARIO EXISTA, QUE SEA WAITER,  QUE LA TABLE EXISTA
-        validateOrderRequest(dto);
+
 
         //VERIFICAR QUE MESA SEA DE ESA BRANCH
         if (!tableService.existsByTableIdAndBranchId(table.getId(),branch.getId()))
