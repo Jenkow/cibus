@@ -44,10 +44,10 @@ public class OrderService {
     }
     private void validateOrderRequest (OrderRequestDTO dto)
     {
-        if (!userService.existsByDni(dto.getUserDni()))
-            throw new ResourceNotFoundException("User dni"+ dto.getUserDni());
-        if (!roleValidatorService.isWaiter(dto.getUserDni()))
-            throw new BusinessException("The user with id "+ dto.getUserDni() +" is not a waiter");
+        if (!userService.existsByDni(dto.getUserId()))
+            throw new ResourceNotFoundException("User dni"+ dto.getUserId());
+        if (!roleValidatorService.isWaiter(dto.getUserId()))
+            throw new BusinessException("The user with id "+ dto.getUserId() +" is not a waiter");
         if (!tableService.existsById(dto.getTableId()))
             throw new ResourceNotFoundException("Table id ", dto.getTableId());
     }
@@ -55,7 +55,7 @@ public class OrderService {
     public OrderResponseDTO create (OrderRequestDTO dto) {
 
     validateOrderRequest(dto);
-    UserEntity waiter = userService.getEntityByDni(dto.getUserDni());
+    UserEntity waiter = userService.getEntityByDni(dto.getUserId());
 
     //SACAR DEL REQUEST BRANCH ID
     BranchEntity branch = branchService.getEntity(waiter.getBranch().getId());
@@ -93,10 +93,10 @@ public class OrderService {
         OrderEntity toUpdate = getEntity(orderId);
         validateOrderRequest(dto);
     TableEntity newTable = tableService.getTableById(dto.getTableId());
-    UserEntity waiter = userService.getEntityByDni(dto.getUserDni());
+    UserEntity waiter = userService.getEntityByDni(dto.getUserId());
 
         // NO SE DEBERIA PODER CAMBIAR EL USER
-        if (!toUpdate.getWaiter().getId().equals(dto.getUserDni()))
+        if (!toUpdate.getWaiter().getId().equals(dto.getUserId()))
             throw new BusinessException("It is not possible to update the waiter");
 
         //VERIFICO QUE LA MESA CORRESPONDA A LA BRANCH

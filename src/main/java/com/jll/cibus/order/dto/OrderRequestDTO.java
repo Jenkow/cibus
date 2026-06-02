@@ -22,7 +22,7 @@ public class OrderRequestDTO {
     private Long tableId;
 
     @NotNull(message = "Waiter is required")
-    private Long UserDni;
+    private Long userId;
 
     @Valid
     @NotEmpty(message = "At least one item required")
