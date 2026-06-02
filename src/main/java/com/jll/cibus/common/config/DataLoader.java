@@ -1,5 +1,7 @@
 package com.jll.cibus.common.config;
 
+import com.jll.cibus.payment.entity.PaymentEntity;
+import com.jll.cibus.payment.repository.PaymentRepository;
 import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
 import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.product.entity.ProductEntity;
@@ -20,7 +22,8 @@ public class DataLoader {
 
             ProductRepository productRepository,
             ProductCategoryRepository categoryRepository,
-            UserRoleRepository userRoleRepository) {
+            UserRoleRepository userRoleRepository,
+            PaymentRepository paymentRepository) {
 
         return args -> {
 
@@ -164,6 +167,32 @@ public class DataLoader {
                 userRoleRepository.saveAll(roles);
 
                 System.out.println("Roles cargados correctamente.");
+            }
+
+            if (paymentRepository.count() == 0) {
+
+                List<PaymentEntity> payments = List.of(
+
+                        PaymentEntity.builder()
+                                .name("EFECTIVO")
+                                .build(),
+
+                        PaymentEntity.builder()
+                                .name("CREDITO")
+                                .build(),
+
+                        PaymentEntity.builder()
+                                .name("DEBITO")
+                                .build(),
+
+                        PaymentEntity.builder()
+                                .name("MERCADO PAGO")
+                                .build()
+                );
+
+                paymentRepository.saveAll(payments);
+
+                System.out.println("Medios de pago cargados correctamente.");
             }
         };
     }
