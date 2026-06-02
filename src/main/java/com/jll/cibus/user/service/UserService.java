@@ -10,8 +10,10 @@ import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.mapper.UserMapper;
 import com.jll.cibus.user.repository.UserRepository;
+import com.jll.cibus.user.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +38,6 @@ public class UserService {
         UserEntity user = userMapper.toEntity(requestDTO);
         user.setBranch(branch);
         user.setRole(userRole);
-
         UserEntity created = userRepository.save(user);
         return userMapper.toResponse(created);
     }
@@ -72,6 +73,20 @@ public class UserService {
         List<UserEntity> users = userRepository.findAll();
 
         return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    public List<UserResponseDTO> getUsers(Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId ){
+        PredicateSpecification<UserEntity> spec = PredicateSpecification.allOf(
+                UserSpecification.nameContains(name),
+                UserSpecification.dniEquals(dni),
+                UserSpecification.emailEquals(email),
+                UserSpecification.phoneNumberEquals(phoneNumber),
+                UserSpecification.branchIdEquals(branchId),
+                UserSpecification.userRoleIdEquals(userRoleId)
+        );
+        return userRepository.findAll(spec).stream()
                 .map(userMapper::toResponse)
                 .toList();
     }
