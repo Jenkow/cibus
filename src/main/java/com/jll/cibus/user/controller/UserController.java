@@ -24,28 +24,16 @@ public class UserController {
         return ResponseEntity.ok(userService.findAll());
     }
 
-    @GetMapping("/dni/{dni}")
-    public ResponseEntity<UserResponseDTO> getById (@PathVariable Long dni) {
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getById (@PathVariable Long id) {
 
-        return ResponseEntity.ok(userService.findByDni(dni));
+        return ResponseEntity.ok(userService.findById(id));
     }
 
-    @GetMapping("/firstName/{firstName}")
-    public ResponseEntity<List<UserResponseDTO>> getByFirstName (@PathVariable String firstName) {
+    @GetMapping("/name/{name}")
+    public ResponseEntity<List<UserResponseDTO>> getByName (@PathVariable String name) {
 
-        return  ResponseEntity.ok(userService.findByFirstName(firstName));
-    }
-
-    @GetMapping("/lastName/{lastName}")
-    public ResponseEntity<List<UserResponseDTO>> getByLastName (@PathVariable String lastName) {
-
-        return ResponseEntity.ok(userService.findByLastName(lastName));
-    }
-
-    @GetMapping ("/firstName/{firstName}/lastName/{lastName}")
-    public ResponseEntity<List<UserResponseDTO>> getByFirstNameAndLastName (@PathVariable String firstName, @PathVariable String lastName) {
-
-        return ResponseEntity.ok(userService.findByFirstNameAndLastName(firstName,lastName));
+        return  ResponseEntity.ok(userService.findByNameContaining(name));
     }
 
     @GetMapping ("/email/{email}")
@@ -73,22 +61,40 @@ public class UserController {
     }
 
     @PostMapping ()
-    public ResponseEntity<UserResponseDTO> createUser (@Valid @RequestBody UserRequestDTO dto) {
-
+    public ResponseEntity<UserResponseDTO> create (@Valid @RequestBody UserRequestDTO dto) {
         UserResponseDTO toCreate = userService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(toCreate);
     }
 
-    @PutMapping ()
-    public ResponseEntity<UserResponseDTO> updateUser (@Valid @RequestBody UserRequestDTO dto) {
+    @PutMapping ("/{id}")
+    public ResponseEntity<UserResponseDTO> update (@PathVariable Long id, @Valid @RequestBody UserRequestDTO dto) {
 
-        return ResponseEntity.ok(userService.update(dto));
+        return ResponseEntity.ok(userService.update(id, dto));
     }
 
-    @DeleteMapping("/{dni}")
-    public ResponseEntity<Void> deleteUser (@PathVariable Long dni) {
-
-        userService.deleteByDni(dni);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete (@PathVariable Long id) {
+        userService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    //-------------- ya esta el containing pero por si los quieren dejar
+
+    @GetMapping("/firstName/{firstName}")
+    public ResponseEntity<List<UserResponseDTO>> getByFirstName (@PathVariable String firstName) {
+
+        return  ResponseEntity.ok(userService.findByFirstName(firstName));
+    }
+
+    @GetMapping("/lastName/{lastName}")
+    public ResponseEntity<List<UserResponseDTO>> getByLastName (@PathVariable String lastName) {
+
+        return ResponseEntity.ok(userService.findByLastName(lastName));
+    }
+
+    @GetMapping ("/firstName/{firstName}/lastName/{lastName}")
+    public ResponseEntity<List<UserResponseDTO>> getByFirstNameAndLastName (@PathVariable String firstName, @PathVariable String lastName) {
+
+        return ResponseEntity.ok(userService.findByFirstNameAndLastName(firstName,lastName));
     }
 }
