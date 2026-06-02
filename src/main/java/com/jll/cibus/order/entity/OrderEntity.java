@@ -1,7 +1,6 @@
 package com.jll.cibus.order.entity;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.order.OrderStatusEntity;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import jakarta.persistence.*;
@@ -40,8 +39,8 @@ public class OrderEntity {
     private Boolean paid;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id", nullable = false)             // Cuales iban a ser los status ademas de libre u ocupada?
-    private OrderStatusEntity status;                             // Hice OrderStatusEntity pensando en que iban a ser varios status pero no recuerdo otros ademas de esos dos.
+    @JoinColumn(name = "status_id", nullable = false)
+    private OrderStatusEntity status;
 
     @CreationTimestamp
     @Column(name = "date_time", nullable = false, updatable = false)
