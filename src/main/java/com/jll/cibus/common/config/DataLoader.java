@@ -1,5 +1,7 @@
 package com.jll.cibus.common.config;
 
+import com.jll.cibus.order.entity.OrderStatusEntity;
+import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.payment.entity.PaymentEntity;
 import com.jll.cibus.payment.repository.PaymentRepository;
 import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
@@ -23,7 +25,9 @@ public class DataLoader {
             ProductRepository productRepository,
             ProductCategoryRepository categoryRepository,
             UserRoleRepository userRoleRepository,
-            PaymentRepository paymentRepository) {
+            PaymentRepository paymentRepository,
+            OrderStatusRepository orderStatusRepository
+    ) {
 
         return args -> {
 
@@ -194,6 +198,28 @@ public class DataLoader {
 
                 System.out.println("Medios de pago cargados correctamente.");
             }
+            if (orderStatusRepository.count() == 0)
+            {
+                List<OrderStatusEntity> orderStatus = List.of(
+
+                        OrderStatusEntity.builder()
+                                .name("PREPARING")
+                                .build(),
+                        OrderStatusEntity.builder()
+                                        .name("READY")
+                                        .build(),
+                        OrderStatusEntity.builder()
+                                .name("SERVED")
+                                .build(),
+                        OrderStatusEntity.builder()
+                                .name("PAID")
+                                .build(),
+                        OrderStatusEntity.builder()
+                                .name("CANCELLED")
+                                .build()
+                );
+            }
+
         };
     }
 }
