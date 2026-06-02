@@ -38,8 +38,6 @@ public class ProductService {
     public List<ProductResponseDTO> findAll(){
         List<ProductEntity> products = productRepository.findAll();
 
-        if(products.isEmpty()) throw new BusinessException("No products can be listed if there are no products");
-
         return products.stream()
                 .map(productMapper::toResponseDTO)
                 .toList();
@@ -78,8 +76,6 @@ public class ProductService {
 
     public List<ProductResponseDTO> findByCategory(Long categoryId){
         List<ProductEntity> products = productRepository.findAllByCategory_Id(categoryId);
-
-        if(products.isEmpty()) throw new ResourceNotFoundException("Product", categoryId);
 
         return products.stream()
                 .map(productMapper::toResponseDTO)
