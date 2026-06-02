@@ -16,10 +16,14 @@ import java.util.List;
 
 @Service
 public class BranchService {
-    @Autowired
-    private BranchRepository branchRepository;
-    @Autowired
-    private BranchMapper branchMapper;
+
+    private final BranchRepository branchRepository;
+    private final BranchMapper branchMapper;
+
+    public BranchService(BranchRepository branchRepository, BranchMapper branchMapper) {
+        this.branchRepository = branchRepository;
+        this.branchMapper = branchMapper;
+    }
 
     public List<BranchResponseDTO> getAllBranches() {
         return branchRepository.findAll()
