@@ -153,23 +153,30 @@ public class OrderService {
                 .toList();
     }
 
-    public List<OrderResponseDTO> findByTableId(Long tableId) {
-        List<OrderEntity> orders = orderRepository.findByTableId(tableId);
+    public List<OrderResponseDTO> findByBranchIdAndTableId(Long branchId,Long tableId)
+    {
+        if (!branchService.existsById(branchId))
+            throw new ResourceNotFoundException("Branch id "+ branchId);
+        if (!tableService.existsById(tableId))
+            throw new ResourceNotFoundException("Table id "+ tableId);
 
+        List<OrderEntity> orders = orderRepository.findByBranchIdAndTableId(branchId,tableId);
 
         return orders.stream()
                 .map(orderMapper::toDTO)
                 .toList();
     }
 
-    public List<OrderResponseDTO> findByWaiterId(Long waiterId) {
+    public List<OrderResponseDTO> findByBranchIdAndWaiterId(Long branchId,Long waiterId) {
 
+        if (!branchService.existsById(branchId))
+            throw new ResourceNotFoundException("Branch id "+ branchId);
         if (!userService.existsByDni(waiterId))
             throw new ResourceNotFoundException("User id "+ waiterId);
         if (!roleValidatorService.isWaiter(waiterId))
-            throw new BusinessException("The user with id "+ waiterId+ "is not a waiter");
+            throw new BusinessException("The user with id "+ waiterId+ " is not a waiter");
 
-        List<OrderEntity> orders = orderRepository.findByWaiterId(waiterId);
+        List<OrderEntity> orders = orderRepository.findByBranchIdAndWaiterId(branchId,waiterId);
 
         return orders.stream()
                 .map(orderMapper::toDTO)
