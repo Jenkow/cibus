@@ -13,12 +13,14 @@ import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class OrderDetailService {
 
     private final OrderDetailRepository orderDetailRepository;
@@ -26,14 +28,6 @@ public class OrderDetailService {
     private final ProductService productService;
     private final OrderService orderService;
     private final BranchProductService branchProductService;
-
-    public OrderDetailService(OrderDetailRepository orderDetailRepository, OrderDetailMapper orderDetailMapper, ProductService productService, OrderService orderService, BranchProductService branchProductService){
-        this.orderDetailRepository = orderDetailRepository;
-        this.orderDetailMapper = orderDetailMapper;
-        this.productService = productService;
-        this.orderService = orderService;
-        this.branchProductService = branchProductService;
-    }
 
     private void validateAvailability(BranchProductEntity productInBranch){
         if(!productInBranch.isAvailable()){
@@ -58,7 +52,7 @@ public class OrderDetailService {
        /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
             throw new BusinessException("No existe la orden " + orderId);
         }*/
-        if(entity.getOrder().getId()!=orderId){
+        if(!entity.getOrder().getId().equals(orderId)){
             throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
         }
         return orderDetailMapper.toDTO(entity);
@@ -121,7 +115,7 @@ public class OrderDetailService {
         /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
             throw new BusinessException("No existe la orden " + orderId);
         }*/
-        if(entity.getOrder().getId()!=orderId){
+        if(!entity.getOrder().getId().equals(orderId)){
             throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
         }
         orderDetailRepository.delete(entity);
