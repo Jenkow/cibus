@@ -105,7 +105,7 @@ public class OrderService {
 
         // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
         if (newTable.getAvailable())
-            throw new BusinessException("");
+            throw new BusinessException("Table " + newTable.getId() + " is not occupied");
 
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
         if (!newTable.getWaiter().getId().equals(waiter.getDni()))
