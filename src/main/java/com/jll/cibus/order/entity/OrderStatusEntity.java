@@ -1,4 +1,4 @@
-package com.jll.cibus.order;
+package com.jll.cibus.order.entity;
 
 
 import jakarta.persistence.*;
@@ -19,5 +19,4 @@ public class OrderStatusEntity {
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;
-
 }

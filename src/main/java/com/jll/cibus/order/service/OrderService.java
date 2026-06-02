@@ -5,7 +5,7 @@ import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
-import com.jll.cibus.order.OrderStatusRepository;
+import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
 import com.jll.cibus.order.entity.OrderEntity;
