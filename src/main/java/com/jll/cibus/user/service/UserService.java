@@ -42,15 +42,16 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO update(UserRequestDTO requestDTO) {
-        UserEntity toUpdate = userRepository.findByDni(requestDTO.getDni())
-                .orElseThrow(() -> new ResourceNotFoundException("User", requestDTO.getDni()));
+    public UserResponseDTO update(Long id, UserRequestDTO requestDTO) {
+        UserEntity toUpdate = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
 
         BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
         UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());
 
         toUpdate.setBranch(branch);
         toUpdate.setRole(userRole);
+        toUpdate.setDni(requestDTO.getDni());
         toUpdate.setEmail(requestDTO.getEmail());
         toUpdate.setFirstName(requestDTO.getFirstName());
         toUpdate.setLastName(requestDTO.getLastName());
@@ -59,10 +60,10 @@ public class UserService {
         return userMapper.toResponse(updated);
     }
 
-    public void deleteByDni(Long dni){
+    public void delete(Long id){
         UserEntity toDelete = userRepository
-                .findByDni(dni)
-                .orElseThrow(() -> new ResourceNotFoundException("User DNI", dni));
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
 
         userRepository.delete(toDelete);
     }
@@ -87,6 +88,16 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User DNI", dni));
 
         return userMapper.toResponse(user);
+    }
+
+    public List<UserResponseDTO> findByNameContaining (String name){
+        List<UserEntity> users = userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name);
+
+        if (users.isEmpty()) throw new ResourceNotFoundException("User name", name);
+
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
     }
 
     public List<UserResponseDTO> findByFirstName (String firstName){
@@ -159,6 +170,10 @@ public class UserService {
 
     public boolean existsByDni(Long dni){
         return userRepository.existsByDni(dni);
+    }
+
+    public boolean existsById(Long id){
+        return userRepository.existsById(id);
     }
 
     public boolean existsByDniAndBranch(Long dni, Long branchId){
