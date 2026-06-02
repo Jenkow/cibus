@@ -19,9 +19,14 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAll () {
+    public ResponseEntity<List<UserResponseDTO>> getAll (@RequestParam(required = false) Long dni,
+                                                         @RequestParam(required = false) String name,
+                                                         @RequestParam(required = false) String phoneNumber,
+                                                         @RequestParam(required = false) String email,
+                                                         @RequestParam(required = false) Long branchId,
+                                                         @RequestParam(required = false) Long userRoleId) {
 
-        return ResponseEntity.ok(userService.findAll());
+        return ResponseEntity.ok(userService.getUsers(dni, name, phoneNumber, email, branchId, userRoleId));
     }
 
     @GetMapping("/{id}")
