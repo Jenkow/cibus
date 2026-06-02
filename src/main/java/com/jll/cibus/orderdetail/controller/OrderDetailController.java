@@ -25,7 +25,7 @@ public class OrderDetailController {
         return ResponseEntity.ok(orderDetailService.getByOrderId(orderId));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{detailId}")
     public ResponseEntity<OrderDetailResponseDTO> getById(@PathVariable Long orderId, @PathVariable Long detailId){
         return ResponseEntity.ok(orderDetailService.getById(orderId, detailId));
     }
@@ -35,12 +35,12 @@ public class OrderDetailController {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderDetailService.create(orderId, detail));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{detailId}")
     public ResponseEntity<OrderDetailResponseDTO> update(@PathVariable Long orderId, @PathVariable Long detailId, @Valid @RequestBody OrderDetailRequestDTO detail){
         return ResponseEntity.ok(orderDetailService.update(orderId, detailId, detail));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{detailId}")
     public ResponseEntity<?> delete(@PathVariable Long orderId, @PathVariable Long detailId){
         orderDetailService.delete(orderId, detailId);
         return ResponseEntity.noContent().build();
