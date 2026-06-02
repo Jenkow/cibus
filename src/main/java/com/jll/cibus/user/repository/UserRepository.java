@@ -4,6 +4,8 @@ import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -38,5 +40,4 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>
     boolean existsByDniAndBranchId(Long dni, Long branchId);
 
     List<UserEntity> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
-    //no se que tan util sea esta query para reemplazar las otras de busqueda por nombre, hay que testear.
 }
