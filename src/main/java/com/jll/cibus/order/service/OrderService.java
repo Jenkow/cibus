@@ -5,6 +5,7 @@ import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
+import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
@@ -16,6 +17,7 @@ import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -78,6 +80,10 @@ public class OrderService {
         toCreate.setBranch(branch);
         toCreate.setPaid(false);
 
+        OrderStatusEntity orderStatus = orderStatusRepository.findByName("PREPARING")
+                        .orElseThrow(()-> new ResourceNotFoundException("Status not found"));
+        toCreate.setStatus(orderStatus);
+
         //HABRIA QUE INICIALIZAR EL ESTADO TAMBIEN
 
         OrderEntity createdOrder = orderRepository.save(toCreate);
@@ -116,17 +122,46 @@ public class OrderService {
         OrderEntity updatedOrder = orderRepository.save(toUpdate);
         return orderMapper.toDTO(updatedOrder);
     }
+    private void validateTransition (String current, String next)
+    {
+        switch (current)
+        {
+            case "PREPARING":
+                if (!next.equalsIgnoreCase("READY")&&!next.equalsIgnoreCase("CANCELLED"))
+                    throw new BusinessException("Invalid statis transition");
+                break;
+
+            case "READY":
+                if (!next.equalsIgnoreCase("SERVED")&& !next.equalsIgnoreCase("CANCELLED"))
+                    throw new BusinessException("Invalid statis transition");
+                break;
+            case "SERVED":
+                if (!next.equalsIgnoreCase("PAID")&& !next.equalsIgnoreCase("CANCELLED"))
+                    throw new BusinessException("Invalid status transition");
+                break;
+            case "PAID":
+            case "CANCELLED":
+                throw new BusinessException("Order can no longer change status");
+        }
+    }
+    @Transactional
+    public OrderResponseDTO changeStatus(Long orderId, String newStatus)
+    {
+        OrderEntity order = getEntity(orderId);
+        String currentStatus = order.getStatus().getName();
+        OrderStatusEntity orderStatus = orderStatusRepository.findByName(newStatus)
+                .orElseThrow(()-> new ResourceNotFoundException("Status not found"));
+        validateTransition(currentStatus,newStatus);
+
+        order.setStatus(orderStatus);
+        OrderEntity updatedOrder = orderRepository.save(order);
+        return orderMapper.toDTO(updatedOrder);
+    }
 
     @Transactional
     public void delete(Long orderId)
     {
-
-        //cambiar a baja logica
-
-        OrderEntity order = orderRepository.findById(orderId)
-                        .orElseThrow( () -> new ResourceNotFoundException("ID", orderId));
-
-        orderRepository.delete(order);
+        changeStatus(orderId,"CANCELLED");
     }
 
     public OrderEntity getEntity(Long orderId) {
