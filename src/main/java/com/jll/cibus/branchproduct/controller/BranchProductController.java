@@ -1,27 +1,24 @@
 package com.jll.cibus.branchproduct.controller;
 
-
-import com.jll.cibus.branch.dto.BranchResponseDTO;
 import com.jll.cibus.branchproduct.dto.BranchProductRequestDTO;
 import com.jll.cibus.branchproduct.dto.BranchProductResponseDTO;
 import com.jll.cibus.branchproduct.dto.BranchProductUpdateDTO;
 import com.jll.cibus.branchproduct.service.BranchProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/menu")
 public class BranchProductController {
 
     private final BranchProductService branchProductService;
-
-    public BranchProductController(BranchProductService branchProductService){
-        this.branchProductService = branchProductService;
-    }
 
     @GetMapping("/branch/{branchId}")
     public ResponseEntity<List<BranchProductResponseDTO>> getMenuByBranchId(
@@ -49,8 +46,15 @@ public class BranchProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<BranchProductResponseDTO> getByBranchAndProductId(@RequestParam Long branchId, @RequestParam Long productId){
-        return ResponseEntity.ok(branchProductService.getByBranchAndProduct(branchId, productId));
+    public ResponseEntity<List<BranchProductResponseDTO>> search(@RequestParam Long branchId, // El required es true ya que este metodo no esta pensado para ser utilziado por nadie que no tenga acceso a todas las branches, es decir, un empleado
+                                                                 @RequestParam(required = false) String name,
+                                                                 @RequestParam(required = false) Long categoryId,
+                                                                 @RequestParam(required = false) Boolean available,
+                                                                 @RequestParam(required = false) BigDecimal price,
+                                                                 @RequestParam(required = false) BigDecimal minPrice,
+                                                                 @RequestParam(required = false) BigDecimal maxPrice){
+
+        return ResponseEntity.ok(branchProductService.search(branchId, name, categoryId, available, price, minPrice, maxPrice));
     }
 
     @PostMapping
