@@ -38,8 +38,8 @@ public class UserController {
 
     @PostMapping ()
     public ResponseEntity<UserResponseDTO> create (@Valid @RequestBody UserRequestDTO dto) {
-        UserResponseDTO toCreate = userService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toCreate);
+        UserResponseDTO user = userService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @PutMapping ("/{id}")
@@ -54,54 +54,4 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    //-------------- ya esta el containing pero por si los quieren dejar
-/*
-    @GetMapping("/firstName/{firstName}")
-    public ResponseEntity<List<UserResponseDTO>> getByFirstName (@PathVariable String firstName) {
-
-        return  ResponseEntity.ok(userService.findByFirstName(firstName));
-    }
-
-    @GetMapping("/lastName/{lastName}")
-    public ResponseEntity<List<UserResponseDTO>> getByLastName (@PathVariable String lastName) {
-
-        return ResponseEntity.ok(userService.findByLastName(lastName));
-    }
-
-    @GetMapping ("/firstName/{firstName}/lastName/{lastName}")
-    public ResponseEntity<List<UserResponseDTO>> getByFirstNameAndLastName (@PathVariable String firstName, @PathVariable String lastName) {
-
-        return ResponseEntity.ok(userService.findByFirstNameAndLastName(firstName,lastName));
-    }
-
-    @GetMapping("/name/{name}")
-    public ResponseEntity<List<UserResponseDTO>> getByName (@PathVariable String name) {
-
-        return  ResponseEntity.ok(userService.findByNameContaining(name));
-    }
-
-    @GetMapping ("/email/{email}")
-    public ResponseEntity<UserResponseDTO> getByEmail (@PathVariable String email) {
-
-        return ResponseEntity.ok(userService.findByEmail(email));
-    }
-
-    @GetMapping("/phoneNumber/{phoneNumber}")
-    public ResponseEntity<UserResponseDTO> getByPhoneNumber (@PathVariable String phoneNumber) {
-
-        return ResponseEntity.ok(userService.findByPhoneNumber(phoneNumber));
-    }
-
-    @GetMapping ("/branchId/{branchId}")
-    public ResponseEntity<List<UserResponseDTO>> getByBranchId (@PathVariable Long branchId) {
-
-        return ResponseEntity.ok(userService.findByBranchId(branchId));
-    }
-
-    @GetMapping("/roleId/{roleId}")
-    public ResponseEntity<List<UserResponseDTO>> getByRoleId (@PathVariable Long roleId) {
-
-        return ResponseEntity.ok(userService.findByRoleId(roleId));
-    }
-*/
 }
