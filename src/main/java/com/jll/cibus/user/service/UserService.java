@@ -6,6 +6,7 @@ import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
+import com.jll.cibus.user.dto.UserUpdateDTO;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.mapper.UserMapper;
@@ -43,21 +44,33 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO update(Long id, UserRequestDTO requestDTO) {
-        UserEntity toUpdate = userRepository.findById(id)
+    public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
+        UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
-
-        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
-        UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());
-
-        toUpdate.setBranch(branch);
-        toUpdate.setRole(userRole);
-        toUpdate.setDni(requestDTO.getDni());
-        toUpdate.setEmail(requestDTO.getEmail());
-        toUpdate.setFirstName(requestDTO.getFirstName());
-        toUpdate.setLastName(requestDTO.getLastName());
-
-        UserEntity updated = userRepository.save(toUpdate);
+        if(updateDTO.getDni() != null){
+            user.setDni(updateDTO.getDni());
+        }
+        if(updateDTO.getFirstName() != null && !updateDTO.getFirstName().isBlank()){
+            user.setFirstName(updateDTO.getFirstName());
+        }
+        if(updateDTO.getLastName() != null && !updateDTO.getLastName().isBlank()){
+            user.setLastName(updateDTO.getLastName());
+        }
+        if(updateDTO.getPhoneNumber() != null && !updateDTO.getPhoneNumber().isBlank()){
+            user.setPhoneNumber(updateDTO.getPhoneNumber());
+        }
+        if(updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()){
+            user.setEmail(updateDTO.getEmail());
+        }
+        if(updateDTO.getBranchId() != null){
+            BranchEntity branch = branchService.getEntity(updateDTO.getBranchId());
+            user.setBranch(branch);
+        }
+        if(updateDTO.getUserRoleId() != null){
+            UserRoleEntity userRole = userRoleService.getEntity(updateDTO.getUserRoleId());
+            user.setRole(userRole);
+        }
+        UserEntity updated = userRepository.save(user);
         return userMapper.toResponse(updated);
     }
 
