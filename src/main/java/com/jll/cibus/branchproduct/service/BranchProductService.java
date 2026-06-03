@@ -1,7 +1,6 @@
 package com.jll.cibus.branchproduct.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.branchproduct.dto.BranchProductRequestDTO;
 import com.jll.cibus.branchproduct.dto.BranchProductResponseDTO;
@@ -9,15 +8,15 @@ import com.jll.cibus.branchproduct.dto.BranchProductUpdateDTO;
 import com.jll.cibus.branchproduct.entity.BranchProductEntity;
 import com.jll.cibus.branchproduct.mapper.BranchProductMapper;
 import com.jll.cibus.branchproduct.repository.BranchProductRepository;
+import com.jll.cibus.branchproduct.specification.BranchProductSpecification;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.product.entity.ProductEntity;
-import com.jll.cibus.product.repository.ProductRepository;
 import com.jll.cibus.product.service.ProductService;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -144,5 +143,27 @@ public class BranchProductService {
     public void delete(Long id){
         BranchProductEntity entity = getEntity(id);
         branchProductRepository.delete(entity);
+    }
+
+    public List<BranchProductResponseDTO> search(Long branchId,
+                                                 String name,
+                                                 Long categoryId,
+                                                 Boolean available,
+                                                 BigDecimal price,
+                                                 BigDecimal minPrice,
+                                                 BigDecimal maxPrice){
+
+        PredicateSpecification<BranchProductEntity> spec = PredicateSpecification.allOf(BranchProductSpecification.nameContains(name),
+                                                                                        BranchProductSpecification.equalsBranch(branchId),
+                                                                                        BranchProductSpecification.PriceGreaterThan(minPrice),
+                                                                                        BranchProductSpecification.PriceLesserThan(maxPrice),
+                                                                                        BranchProductSpecification.equalsCategory(categoryId),
+                                                                                        BranchProductSpecification.isAvailable(available),
+                                                                                        BranchProductSpecification.equalsPrice(price)
+                                                                                        );
+
+        return branchProductRepository.findAll(spec).stream()
+                .map(branchProductMapper::toDTO)
+                .toList();
     }
 }
