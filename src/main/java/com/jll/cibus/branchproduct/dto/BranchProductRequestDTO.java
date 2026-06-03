@@ -13,9 +13,6 @@ import java.math.BigDecimal;
 public class BranchProductRequestDTO {
 
     @NotNull
-    private Long branchId;
-
-    @NotNull
     private Long productId;
 
     @NotNull

@@ -15,12 +15,12 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/menu")
+@RequestMapping("/api/branches/{branchId}/menu")
 public class BranchProductController {
 
     private final BranchProductService branchProductService;
 
-    @GetMapping("/branch/{branchId}")
+    @GetMapping
     public ResponseEntity<List<BranchProductResponseDTO>> getMenuByBranchId(
             @PathVariable Long branchId,
             @RequestParam(required = false) Boolean available){
@@ -30,7 +30,7 @@ public class BranchProductController {
         return ResponseEntity.ok(branchProductService.getByBranchId(branchId));
     }
 
-    @GetMapping("/branch/name/{branchName}")
+    @GetMapping("name/{branchName}")
     public ResponseEntity<List<BranchProductResponseDTO>> getMenuByBranchName(
             @PathVariable String branchName,
             @RequestParam(required = false) Boolean available) {
@@ -58,8 +58,8 @@ public class BranchProductController {
     }
 
     @PostMapping
-    public ResponseEntity<BranchProductResponseDTO> create(@Valid @RequestBody BranchProductRequestDTO dto){
-        return ResponseEntity.status(HttpStatus.CREATED).body(branchProductService.create(dto));
+    public ResponseEntity<BranchProductResponseDTO> create(@PathVariable Long branchId, @Valid @RequestBody BranchProductRequestDTO dto){
+        return ResponseEntity.status(HttpStatus.CREATED).body(branchProductService.create(branchId, dto));
     }
 
     @PutMapping("/{id}")

@@ -13,6 +13,7 @@ import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,19 +22,13 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class BranchProductService {
 
     private final BranchProductRepository branchProductRepository;
     private final BranchProductMapper branchProductMapper;
     private final BranchService branchService;
     private final ProductService productService;
-
-    public BranchProductService(BranchProductRepository branchProductRepository, BranchProductMapper branchProductMapper, BranchService branchService, ProductService productService) {
-        this.branchProductRepository = branchProductRepository;
-        this.branchProductMapper = branchProductMapper;
-        this.branchService = branchService;
-        this.productService = productService;
-    }
 
     public List<BranchProductResponseDTO> getByBranchId(Long branchId){
         if(!branchService.existsById(branchId)){
@@ -100,11 +95,11 @@ public class BranchProductService {
         return branchProductMapper.toDTO(entity);
     }
 
-    public BranchProductResponseDTO create (BranchProductRequestDTO dto){
-        BranchEntity branch = branchService.getEntity(dto.getBranchId());
+    public BranchProductResponseDTO create (Long branchId, BranchProductRequestDTO dto){
+        BranchEntity branch = branchService.getEntity(branchId);
         ProductEntity product = productService.getEntity(dto.getProductId());
-        if(branchProductRepository.existsByBranch_IdAndProduct_Id(dto.getBranchId(), dto.getProductId())){
-            throw new ResourceAlreadyExistsException("El producto con id"+dto.getProductId()+" ya existe en la sucursal con id"+dto.getBranchId());
+        if(branchProductRepository.existsByBranch_IdAndProduct_Id(branchId, dto.getProductId())){
+            throw new ResourceAlreadyExistsException("El producto con id"+dto.getProductId()+" ya existe en la sucursal con id"+branchId);
         }
         BranchProductEntity entity = branchProductMapper.toEntity(dto);
         entity.setBranch(branch);
