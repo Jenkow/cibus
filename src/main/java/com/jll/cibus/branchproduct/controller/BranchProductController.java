@@ -6,12 +6,12 @@ import com.jll.cibus.branchproduct.dto.BranchProductUpdateDTO;
 import com.jll.cibus.branchproduct.service.BranchProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -21,14 +21,16 @@ public class BranchProductController {
     private final BranchProductService branchProductService;
 
     @GetMapping
-    public ResponseEntity<List<BranchProductResponseDTO>> search(@PathVariable Long branchId,
-                                                                 @RequestParam(required = false) Long productId,
-                                                                 @RequestParam(required = false) String productName,
-                                                                 @RequestParam(required = false) Long categoryId,
-                                                                 @RequestParam(required = false) Boolean available,
-                                                                 @RequestParam(required = false) BigDecimal minPrice,
-                                                                 @RequestParam(required = false) BigDecimal maxPrice){
-        return ResponseEntity.ok(branchProductService.search(branchId, productId, productName, categoryId, available, minPrice, maxPrice));
+    public ResponseEntity<Page<BranchProductResponseDTO>> findAll(Pageable pageable,
+                                                                  @PathVariable Long branchId,
+                                                                  @RequestParam(required = false) Long productId,
+                                                                  @RequestParam(required = false) String productName,
+                                                                  @RequestParam(required = false) Long categoryId,
+                                                                  @RequestParam(required = false) Boolean available,
+                                                                  @RequestParam(required = false) BigDecimal minPrice,
+                                                                  @RequestParam(required = false) BigDecimal maxPrice){
+
+        return ResponseEntity.ok(branchProductService.findAll(pageable, branchId, productId, productName, categoryId, available, minPrice, maxPrice));
     }
 
     @GetMapping("/{productId}")
