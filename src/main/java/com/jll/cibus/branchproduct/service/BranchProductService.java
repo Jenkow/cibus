@@ -14,7 +14,10 @@ import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -31,8 +34,8 @@ public class BranchProductService {
     private final ProductService productService;
 
 
-    public List<BranchProductResponseDTO> search(Long branchId, Long productId, String productName, Long categoryId, Boolean available, BigDecimal minPrice, BigDecimal maxPrice){
-        PredicateSpecification<BranchProductEntity> spec = PredicateSpecification.allOf(
+    public Page<BranchProductResponseDTO> findAll(Pageable pageable, Long branchId, Long productId, String productName, Long categoryId, Boolean available, BigDecimal minPrice, BigDecimal maxPrice){
+        Specification<BranchProductEntity> spec = Specification.allOf(
                 BranchProductSpecification.equalsBranchId(branchId),
                 BranchProductSpecification.equalsProductId(productId),
                 BranchProductSpecification.containsProductName(productName),
@@ -41,9 +44,9 @@ public class BranchProductService {
                 BranchProductSpecification.priceGreaterThanOrEqualTo(minPrice),
                 BranchProductSpecification.priceLessThanOrEqualTo(maxPrice)
         );
-        return branchProductRepository.findAll(spec).stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
+
+        return branchProductRepository.findAll(spec, pageable)
+                .map(branchProductMapper::toDTO);
     }
 
     public BranchProductEntity getEntity(Long id){
