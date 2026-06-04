@@ -13,8 +13,10 @@ import com.jll.cibus.user.mapper.UserMapper;
 import com.jll.cibus.user.repository.UserRepository;
 import com.jll.cibus.user.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,26 +50,26 @@ public class UserService {
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
-        if(updateDTO.getDni() != null){
+        if (updateDTO.getDni() != null) {
             user.setDni(updateDTO.getDni());
         }
-        if(updateDTO.getFirstName() != null && !updateDTO.getFirstName().isBlank()){
+        if (updateDTO.getFirstName() != null && !updateDTO.getFirstName().isBlank()) {
             user.setFirstName(updateDTO.getFirstName());
         }
-        if(updateDTO.getLastName() != null && !updateDTO.getLastName().isBlank()){
+        if (updateDTO.getLastName() != null && !updateDTO.getLastName().isBlank()) {
             user.setLastName(updateDTO.getLastName());
         }
-        if(updateDTO.getPhoneNumber() != null && !updateDTO.getPhoneNumber().isBlank()){
+        if (updateDTO.getPhoneNumber() != null && !updateDTO.getPhoneNumber().isBlank()) {
             user.setPhoneNumber(updateDTO.getPhoneNumber());
         }
-        if(updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()){
+        if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()) {
             user.setEmail(updateDTO.getEmail());
         }
-        if(updateDTO.getBranchId() != null){
+        if (updateDTO.getBranchId() != null) {
             BranchEntity branch = branchService.getEntity(updateDTO.getBranchId());
             user.setBranch(branch);
         }
-        if(updateDTO.getUserRoleId() != null){
+        if (updateDTO.getUserRoleId() != null) {
             UserRoleEntity userRole = userRoleService.getEntity(updateDTO.getUserRoleId());
             user.setRole(userRole);
         }
@@ -75,7 +77,7 @@ public class UserService {
         return userMapper.toResponse(updated);
     }
 
-    public void delete(Long id){
+    public void delete(Long id) {
         UserEntity toDelete = userRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
@@ -83,16 +85,16 @@ public class UserService {
         userRepository.delete(toDelete);
     }
 
-    public List<UserResponseDTO> findAll(){
-        List<UserEntity> users = userRepository.findAll();
+    public Page<UserResponseDTO> findAll(Pageable pageable) {
 
-        return users.stream()
-                .map(userMapper::toResponse)
-                .toList();
+        return userRepository.findAll(pageable)
+                .map(userMapper::toResponse);
     }
 
-    public List<UserResponseDTO> getUsers(Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId ){
-        PredicateSpecification<UserEntity> spec = PredicateSpecification.allOf(
+    public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
+
+
+        Specification<UserEntity> spec = Specification.allOf(
                 UserSpecification.nameContains(name),
                 UserSpecification.dniEquals(dni),
                 UserSpecification.emailEquals(email),
@@ -100,9 +102,9 @@ public class UserService {
                 UserSpecification.branchIdEquals(branchId),
                 UserSpecification.userRoleIdEquals(userRoleId)
         );
-        return userRepository.findAll(spec).stream()
-                .map(userMapper::toResponse)
-                .toList();
+
+        return userRepository.findAll(spec, pageable)
+                .map(userMapper::toResponse);
     }
 
     public UserResponseDTO findById(Long id) {
@@ -119,7 +121,7 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
-    public List<UserResponseDTO> findByNameContaining (String name){
+    public List<UserResponseDTO> findByNameContaining(String name) {
         List<UserEntity> users = userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name);
 
         if (users.isEmpty()) throw new ResourceNotFoundException("User name", name);
@@ -129,7 +131,7 @@ public class UserService {
                 .toList();
     }
 
-    public List<UserResponseDTO> findByFirstName (String firstName){
+    public List<UserResponseDTO> findByFirstName(String firstName) {
         List<UserEntity> users = userRepository.findByFirstName(firstName);
 
         if (users.isEmpty()) throw new ResourceNotFoundException("User First Name", firstName);
@@ -139,17 +141,17 @@ public class UserService {
                 .toList();
     }
 
-    public List<UserResponseDTO> findByLastName (String lastName){
+    public List<UserResponseDTO> findByLastName(String lastName) {
         List<UserEntity> users = userRepository.findByLastName(lastName);
 
-        if(users.isEmpty()) throw new ResourceNotFoundException("User Last name", lastName);
+        if (users.isEmpty()) throw new ResourceNotFoundException("User Last name", lastName);
 
         return users.stream()
                 .map(userMapper::toResponse)
                 .toList();
     }
 
-    public UserResponseDTO findByEmail (String email){
+    public UserResponseDTO findByEmail(String email) {
         UserEntity user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User email", email));
@@ -157,7 +159,7 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
-    public UserResponseDTO findByPhoneNumber (String phoneNumber){
+    public UserResponseDTO findByPhoneNumber(String phoneNumber) {
         UserEntity user = userRepository
                 .findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("User phone number", phoneNumber));
@@ -165,10 +167,10 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
-    public List<UserResponseDTO> findByFirstNameAndLastName (String firstName, String lastName){
+    public List<UserResponseDTO> findByFirstNameAndLastName(String firstName, String lastName) {
         List<UserEntity> users = userRepository.findByFirstNameAndLastName(firstName, lastName);
 
-        if(users.isEmpty()){
+        if (users.isEmpty()) {
             throw new ResourceNotFoundException("User first  last name", firstName + " and/or last name " + lastName);
         }
 
@@ -177,35 +179,35 @@ public class UserService {
                 .toList();
     }
 
-    public List<UserResponseDTO> findByBranchId (Long branchId) {
+    public List<UserResponseDTO> findByBranchId(Long branchId) {
         List<UserEntity> users = userRepository.findByBranchId(branchId);
 
-        if(users.isEmpty()) throw new ResourceNotFoundException("Branch", branchId);
+        if (users.isEmpty()) throw new ResourceNotFoundException("Branch", branchId);
 
         return users.stream()
                 .map(userMapper::toResponse)
                 .toList();
     }
 
-    public List<UserResponseDTO> findByRoleId (Long roleId) {
+    public List<UserResponseDTO> findByRoleId(Long roleId) {
         List<UserEntity> users = userRepository.findByRoleId(roleId);
 
-        if(users.isEmpty()) throw new ResourceNotFoundException("Role", roleId);
+        if (users.isEmpty()) throw new ResourceNotFoundException("Role", roleId);
 
         return users.stream()
                 .map(userMapper::toResponse)
                 .toList();
     }
 
-    public boolean existsByDni(Long dni){
+    public boolean existsByDni(Long dni) {
         return userRepository.existsByDni(dni);
     }
 
-    public boolean existsById(Long id){
+    public boolean existsById(Long id) {
         return userRepository.existsById(id);
     }
 
-    public boolean existsByDniAndBranch(Long dni, Long branchId){
+    public boolean existsByDniAndBranch(Long dni, Long branchId) {
         return userRepository.existsByDniAndBranchId(dni, branchId);
     }
 

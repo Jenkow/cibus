@@ -6,6 +6,8 @@ import com.jll.cibus.user.dto.UserUpdateDTO;
 import com.jll.cibus.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,14 +22,15 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAll (@RequestParam(required = false) Long dni,
+    public ResponseEntity<Page<UserResponseDTO>> getAll (Pageable pageable,
+                                                         @RequestParam(required = false) Long dni,
                                                          @RequestParam(required = false) String name,
                                                          @RequestParam(required = false) String phoneNumber,
                                                          @RequestParam(required = false) String email,
                                                          @RequestParam(required = false) Long branchId,
                                                          @RequestParam(required = false) Long userRoleId) {
 
-        return ResponseEntity.ok(userService.getUsers(dni, name, phoneNumber, email, branchId, userRoleId));
+        return ResponseEntity.ok(userService.findAll(pageable, dni, name, phoneNumber, email, branchId, userRoleId));
     }
 
     @GetMapping("/{id}")
