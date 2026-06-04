@@ -32,6 +32,7 @@ public class UserService {
     @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
         if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
+        if (userRepository.existsByEmail(requestDTO.getEmail())) throw new ResourceAlreadyExistsException("Email", requestDTO.getEmail());
 
         BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
         UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());

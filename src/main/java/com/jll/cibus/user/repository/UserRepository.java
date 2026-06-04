@@ -41,4 +41,6 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>, JpaSpeci
     boolean existsByDniAndBranchId(Long dni, Long branchId);
 
     List<UserEntity> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+
+    boolean existsByEmail (String email);
 }
