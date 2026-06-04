@@ -110,25 +110,32 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO update(Long branchId, Long orderId, OrderUpdateDTO dto) {
-        //validateOrderRequest(branchId, dto);
         OrderEntity order = getEntity(orderId);
-        TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
         UserEntity waiter = userService.getEntityById(order.getWaiter().getId());
-
-        //VERIFICO QUE LA MESA CORRESPONDA A LA BRANCH
-        if (!tableService.existsByTableIdAndBranchId(table.getId(), order.getBranch().getId()))
-            throw new BusinessException("That table is not from branch" + order.getBranch().getName());
-
-        // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
-        if (table.getAvailable())
-            throw new BusinessException("Table " + table.getId() + " is not occupied");
-
-        //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
-        if (!table.getWaiter().getId().equals(waiter.getDni()))
-            throw new BusinessException(waiter.getFirstName() + "is not asigned to table" + table.getId());
-
-        order.setTable(table);
-
+        if(dto.getTableNumber() != null){
+            TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
+            if(!table.isAvailable()){
+                throw new BusinessException("The table "+table.getNumber()+" is occupied");
+            }
+            //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
+            if (!table.getWaiter().getId().equals(waiter.getId()))
+                throw new BusinessException(waiter.getFirstName() + "is not asigned to table" + table.getId());
+            order.setTable(table);
+        }
+        if(dto.getStatusId() != null){
+            OrderStatusEntity status = orderStatusRepository.findById(dto.getStatusId())
+                    .orElseThrow(() -> new ResourceNotFoundException("OrderStatusId", dto.getStatusId()));
+            order.setStatus(status);
+        }
+        if(dto.getSubtotal() != null){
+            order.setSubtotal(dto.getSubtotal());
+        }
+        if(dto.getDiscount() != null){
+            order.setDiscount(dto.getDiscount());
+        }
+        if(dto.getFinalTotal() != null){
+            order.setFinalTotal(dto.getFinalTotal());
+        }
         OrderEntity updatedOrder = orderRepository.save(order);
         return orderMapper.toDTO(updatedOrder);
     }

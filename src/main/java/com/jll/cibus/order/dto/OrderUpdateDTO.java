@@ -22,9 +22,6 @@ public class OrderUpdateDTO {
     @Positive
     private Long statusId;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime closedAt;
-
     @PositiveOrZero
     private BigDecimal subtotal;
 

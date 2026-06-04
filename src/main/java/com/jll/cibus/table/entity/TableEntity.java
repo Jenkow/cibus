@@ -36,4 +36,8 @@ public class TableEntity {
     @JoinColumn(name = "branch_id", nullable = false)
     private BranchEntity branch;
 
+    public Boolean isAvailable(){
+        return this.getAvailable();
+    }
+
 }
