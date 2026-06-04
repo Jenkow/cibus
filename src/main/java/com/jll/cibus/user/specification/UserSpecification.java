@@ -25,7 +25,7 @@ public class UserSpecification {
             if (dni == null) {
                 return cb.conjunction();
             }
-            return cb.equal(root.get("dni").get("id"), dni);
+            return cb.equal(root.get("dni"), dni);
         };
     }
 
