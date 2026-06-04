@@ -19,12 +19,12 @@ public class OrderSpecification {
         };
     }
 
-    public static PredicateSpecification<OrderEntity> equalsTableId(Long tableId) {
+    public static PredicateSpecification<OrderEntity> equalsTableNumber(Long tableNumber) {
         return (root, cb) -> {
-            if (tableId == null) {
+            if (tableNumber == null) {
                 return cb.conjunction();
             }
-            return cb.equal(root.get("table").get("id"), tableId);
+            return cb.equal(root.get("table").get("number"), tableNumber);
         };
     }
 
@@ -46,21 +46,12 @@ public class OrderSpecification {
         };
     }
 
-    public static PredicateSpecification <OrderEntity> equalsPaid(Boolean paid){
-        return(root, cb) -> {
-          if(paid == null){
-              return cb.conjunction();
-          }
-          return cb.equal(root.get("paid"), paid);
-        };
-    }
-
     public static PredicateSpecification<OrderEntity> dateTimeAfter(LocalDateTime from){
         return(root, cb) -> {
             if(from == null){
                 return cb.conjunction();
             }
-            return cb.greaterThanOrEqualTo(root.get("dateTime"), from);
+            return cb.greaterThanOrEqualTo(root.get("createdAt"), from);
         };
     }
 
@@ -69,7 +60,7 @@ public class OrderSpecification {
             if (to == null) {
                 return cb.conjunction();
             }
-            return cb.lessThanOrEqualTo(root.get("dateTime"), to);
+            return cb.lessThanOrEqualTo(root.get("createdAt"), to);
         };
     }
 
@@ -78,7 +69,7 @@ public class OrderSpecification {
             if (minTotal == null) {
                 return cb.conjunction();
             }
-            return cb.greaterThanOrEqualTo(root.get("total"), minTotal);
+            return cb.greaterThanOrEqualTo(root.get("finalTotal"), minTotal);
         };
     }
 
@@ -87,7 +78,7 @@ public class OrderSpecification {
             if (maxTotal == null) {
                 return cb.conjunction();
             }
-            return cb.lessThanOrEqualTo(root.get("total"), maxTotal);
+            return cb.lessThanOrEqualTo(root.get("finalTotal"), maxTotal);
         };
     }
 

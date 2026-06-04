@@ -24,36 +24,8 @@ public class OrderEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "table_id", nullable = false)
-    private TableEntity table;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "waiter_id", nullable = false)
-    private UserEntity waiter;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     private BranchEntity branch;
-
-    @Column(name="paid", nullable = false)
-    private Boolean paid;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id", nullable = false)
-    private OrderStatusEntity status;
-
-    @CreationTimestamp
-    @Column(name = "date_time", nullable = false, updatable = false)
-    private LocalDateTime dateTime;
-
-    @Column(name="total", nullable = false, precision=10, scale=2)
-    private BigDecimal total;
-
-    /*
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_id", nullable = false)
@@ -64,14 +36,8 @@ public class OrderEntity {
     private UserEntity waiter;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    private BranchEntity branch;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
     private OrderStatusEntity status;
-
-    private PaymentEntity paymentMethod;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -88,7 +54,5 @@ public class OrderEntity {
 
     @Column(name="finalTotal", nullable = false, precision=10, scale=2)
     private BigDecimal finalTotal;
-
-     */
 
 }

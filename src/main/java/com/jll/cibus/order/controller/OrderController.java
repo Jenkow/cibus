@@ -1,5 +1,6 @@
 package com.jll.cibus.order.controller;
 
+import com.jll.cibus.order.dto.OrderUpdateDTO;
 import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
@@ -22,23 +23,47 @@ public class OrderController {
 
 
     @GetMapping
-    public ResponseEntity<List<OrderResponseDTO>> getAll(@RequestParam(required = false) Long branchId,
-                                                         @RequestParam(required = false) Long tableId,
+    public ResponseEntity<List<OrderResponseDTO>> getAll(@PathVariable Long branchId,
+                                                         @RequestParam(required = false) Long tableNumber,
                                                          @RequestParam(required = false) Long waiterId,
                                                          @RequestParam(required = false) String statusName,
-                                                         @RequestParam(required = false) Boolean paid,
                                                          @RequestParam(required = false) LocalDateTime from,
                                                          @RequestParam(required = false) LocalDateTime to,
                                                          @RequestParam(required = false) BigDecimal minTotal,
                                                          @RequestParam(required = false) BigDecimal maxTotal){
-        return ResponseEntity.ok(orderService.getAll(branchId, tableId, waiterId, statusName, paid, from, to, minTotal, maxTotal));
+        return ResponseEntity.ok(orderService.getAll(branchId, tableNumber, waiterId, statusName, from, to, minTotal, maxTotal));
     }
-/*
-    @GetMapping()
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> getById(@PathVariable Long id){
+        return ResponseEntity.ok(orderService.findById(id));
+    }
+
+    @PostMapping()
+    public ResponseEntity<OrderResponseDTO> create(@PathVariable Long branchId, @Valid @RequestBody OrderRequestDTO dto) {
+        OrderResponseDTO response = orderService.create(branchId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{orderId}")
+    public ResponseEntity<OrderResponseDTO> update(@PathVariable Long branchId, @PathVariable Long orderId, @Valid @RequestBody OrderUpdateDTO dto) {
+        return ResponseEntity.ok(orderService.update(branchId, orderId, dto));
+    }
+
+    //PROBABLEMENTE SEA MEJOR EL CAMBIAR A ESTADO CANCELADO ASI QUEDA GUARDADO
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<Void> delete(@PathVariable Long orderId) {
+        orderService.delete(orderId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /*----------------------------------------------------------------------------
+
+     @GetMapping()
     public ResponseEntity<List<OrderResponseDTO>> getByBranchId(@PathVariable Long branchId) {
         return ResponseEntity.ok(orderService.findByBranchId(branchId));
     }
-*/
+
     @GetMapping("/table/{tableId}")
     public ResponseEntity<List<OrderResponseDTO>> getByTableId(@PathVariable Long branchId, @PathVariable Long tableId) {
         return ResponseEntity.ok(orderService.findByBranchIdAndTableId(branchId, tableId));
@@ -59,22 +84,6 @@ public class OrderController {
         return ResponseEntity.ok(orderService.findByPaid(paid));
     }
 
-    @PostMapping()
-    public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO dto) {
-        OrderResponseDTO response = orderService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PutMapping("/{orderId}")
-    public ResponseEntity<OrderResponseDTO> updateOrder(@PathVariable Long orderId, @Valid @RequestBody OrderRequestDTO dto) {
-        return ResponseEntity.ok(orderService.update(orderId, dto));
-    }
-
-    //PROBABLEMENTE SEA MEJOR EL CAMBIAR A ESTADO CANCELADO ASI QUEDA GUARDADO
-    @DeleteMapping("/{orderId}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long orderId) {
-        orderService.delete(orderId);
-        return ResponseEntity.noContent().build();
-    }
+     */
 
 }

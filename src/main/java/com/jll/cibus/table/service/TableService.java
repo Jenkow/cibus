@@ -36,6 +36,11 @@ public class TableService {
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
     }
 
+    public TableEntity getTableByBranchIdAndNumber(Long branchId, Integer number) {
+        return tableRepository.findByBranch_IdAndNumber(branchId, number)
+                .orElseThrow(() -> new ResourceNotFoundException("table number", number));
+    }
+
     public List<TableResponseDTO> findByBranchId(Long branchId) {
         List<TableEntity> tables = tableRepository.findByBranchId(branchId);
         return tables.stream()
@@ -45,6 +50,10 @@ public class TableService {
 
     public Boolean existsById(Long id) {
         return tableRepository.existsById(id);
+    }
+
+    public Boolean existsByBranchIdAndNumber(Long branchId, Integer number){
+        return tableRepository.existsByBranchIdAndNumber(branchId, number);
     }
 
     public Boolean existsByTableIdAndBranchId(Long tableId, Long branchId) {
@@ -70,7 +79,7 @@ public class TableService {
     }
 
     public TableResponseDTO findByBranchIdAndNumber(Long branchId, Integer number) {
-        TableEntity table = tableRepository.findByBranchIdAndNumber(branchId, number)
+        TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, number)
                 .orElseThrow(() -> new ResourceNotFoundException("There is no table "+number+ " in branch "+branchId));
         return tableMapper.toResponse(table);
     }

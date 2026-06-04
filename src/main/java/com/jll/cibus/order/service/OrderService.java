@@ -5,6 +5,7 @@ import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
+import com.jll.cibus.order.dto.OrderUpdateDTO;
 import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
@@ -38,7 +39,7 @@ public class OrderService {
     private final RoleValidatorService roleValidatorService;
 
 
-    public List<OrderResponseDTO> getAll(Long branchId, Long tableId, Long waiterId, String statusName, Boolean paid, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal){
+    public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal){
         if (from != null && to != null && from.isAfter(to)) {
             throw new BusinessException("The start date cannot be after the end date");
         }
@@ -47,10 +48,9 @@ public class OrderService {
         }
         PredicateSpecification<OrderEntity> spec = PredicateSpecification.allOf(
                 OrderSpecification.equalsBranchId(branchId),
-                OrderSpecification.equalsTableId(tableId),
+                OrderSpecification.equalsTableNumber(tableNumber),
                 OrderSpecification.equalsWaiterId(waiterId),
                 OrderSpecification.equalsStatus(statusName),
-                OrderSpecification.equalsPaid(paid),
                 OrderSpecification.dateTimeAfter(from),
                 OrderSpecification.dateTimeBefore(to),
                 OrderSpecification.totalGreaterThanOrEqual(minTotal),
@@ -61,50 +61,47 @@ public class OrderService {
                 .toList();
     }
 
-    private void validateOrderRequest(OrderRequestDTO dto) {
-        if (!userService.existsById(dto.getUserId()))
-            throw new ResourceNotFoundException("User ID" + dto.getUserId());
-        if (!roleValidatorService.isWaiter(dto.getUserId()))
-            throw new BusinessException("The user with id " + dto.getUserId() + " is not a waiter");
-        if (!tableService.existsById(dto.getTableId()))
-            throw new ResourceNotFoundException("Table id ", dto.getTableId());
+    public OrderResponseDTO findById(Long id){
+        OrderEntity order = getEntity(id);
+        return orderMapper.toDTO(order);
+    }
+
+    private void validateOrderRequest(Long branchId, OrderRequestDTO dto) {
+        if (!userService.existsById(dto.getWaiterId()))
+            throw new ResourceNotFoundException("User ID" + dto.getWaiterId());
+        if (!roleValidatorService.isWaiter(dto.getWaiterId()))
+            throw new BusinessException("The user with id " + dto.getWaiterId() + " is not a waiter");
+        if (!tableService.existsByBranchIdAndNumber(branchId, dto.getTableNumber()))
+            throw new ResourceNotFoundException("Table number ", dto.getTableNumber());
     }
 
     @Transactional
-    public OrderResponseDTO create(OrderRequestDTO dto) {
-
-        validateOrderRequest(dto);
-        UserEntity waiter = userService.getEntityByDni(dto.getUserId());
-
-        //SACAR DEL REQUEST BRANCH ID
-        BranchEntity branch = branchService.getEntity(waiter.getBranch().getId());
-        TableEntity table = tableService.getTableById(dto.getTableId());
-
-        //VERIFICO QUE EL USUARIO EXISTA, QUE SEA WAITER,  QUE LA TABLE EXISTA
-
-
-        //VERIFICAR QUE MESA SEA DE ESA BRANCH
-        if (!tableService.existsByTableIdAndBranchId(table.getId(), branch.getId()))
-            throw new BusinessException("The table n " + table.getId() + "is not from " + branch.getName());
-
+    public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
+        validateOrderRequest(branchId, dto);
+        BranchEntity branch = branchService.getEntity(branchId);
+        TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
+        UserEntity waiter = userService.getEntityById(dto.getWaiterId());
+        //VERIFICO QUE SEA WAITER
+        if(!waiter.getRole().getName().equalsIgnoreCase("waiter")){
+            throw new BusinessException("The user "+waiter.getId()+" is not a waiter");
+        }
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
-        if (!table.getWaiter().getId().equals(waiter.getDni()))
+        if (!table.getWaiter().getId().equals(waiter.getId())) {
             throw new BusinessException(waiter.getFirstName() + "is not working with table n " + table.getId());
-
-        OrderEntity toCreate = orderMapper.toEntity(dto);
-        toCreate.setWaiter(waiter);
-        toCreate.setTotal(BigDecimal.ZERO);
-        toCreate.setBranch(branch);
-        toCreate.setPaid(false);
-
+        }
+        OrderEntity order = orderMapper.toEntity(dto);
+        order.setBranch(branch);
+        order.setTable(table);
+        order.setWaiter(waiter);
         OrderStatusEntity orderStatus = orderStatusRepository.findByName("PREPARING")
                 .orElseThrow(() -> new ResourceNotFoundException("Status not found"));
-        toCreate.setStatus(orderStatus);
-
-        //HABRIA QUE INICIALIZAR EL ESTADO TAMBIEN
-
-        OrderEntity createdOrder = orderRepository.save(toCreate);
-        return orderMapper.toDTO(createdOrder);
+        order.setStatus(orderStatus);
+        order.setCreatedAt(LocalDateTime.now());
+        order.setSubtotal(BigDecimal.ZERO);
+        order.setDiscount(BigDecimal.ZERO);
+        order.setFinalTotal(BigDecimal.ZERO);
+        OrderEntity saved = orderRepository.save(order);
+        return orderMapper.toDTO(saved);
     }
 
     public boolean existsById(Long orderId) {
@@ -112,31 +109,27 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponseDTO update(Long orderId, OrderRequestDTO dto) {
-        OrderEntity toUpdate = getEntity(orderId);
-        validateOrderRequest(dto);
-        TableEntity newTable = tableService.getTableById(dto.getTableId());
-        UserEntity waiter = userService.getEntityByDni(dto.getUserId());
-
-        // NO SE DEBERIA PODER CAMBIAR EL USER
-        if (!toUpdate.getWaiter().getId().equals(dto.getUserId()))
-            throw new BusinessException("It is not possible to update the waiter");
+    public OrderResponseDTO update(Long branchId, Long orderId, OrderUpdateDTO dto) {
+        //validateOrderRequest(branchId, dto);
+        OrderEntity order = getEntity(orderId);
+        TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
+        UserEntity waiter = userService.getEntityById(order.getWaiter().getId());
 
         //VERIFICO QUE LA MESA CORRESPONDA A LA BRANCH
-        if (!tableService.existsByTableIdAndBranchId(newTable.getId(), toUpdate.getBranch().getId()))
-            throw new BusinessException("That table is not from branch" + toUpdate.getBranch().getName());
+        if (!tableService.existsByTableIdAndBranchId(table.getId(), order.getBranch().getId()))
+            throw new BusinessException("That table is not from branch" + order.getBranch().getName());
 
         // VERIFICAR QUE LA MESA ESTE ASIGNADA A ALGUIEN
-        if (newTable.getAvailable())
-            throw new BusinessException("Table " + newTable.getId() + " is not occupied");
+        if (table.getAvailable())
+            throw new BusinessException("Table " + table.getId() + " is not occupied");
 
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
-        if (!newTable.getWaiter().getId().equals(waiter.getDni()))
-            throw new BusinessException(waiter.getFirstName() + "is not asigned to table" + newTable.getId());
+        if (!table.getWaiter().getId().equals(waiter.getDni()))
+            throw new BusinessException(waiter.getFirstName() + "is not asigned to table" + table.getId());
 
-        toUpdate.setTable(newTable);
+        order.setTable(table);
 
-        OrderEntity updatedOrder = orderRepository.save(toUpdate);
+        OrderEntity updatedOrder = orderRepository.save(order);
         return orderMapper.toDTO(updatedOrder);
     }
 
@@ -234,8 +227,8 @@ public class OrderService {
                 .toList();
     }
 
-    public List<OrderResponseDTO> findByPaid(Boolean paid) {
-        List<OrderEntity> orders = orderRepository.findByPaid(paid);
+    public List<OrderResponseDTO> findByPaid(Long branchId, Boolean paid) {
+        List<OrderEntity> orders = orderRepository.findByBranch_IdAndStatus_Name(branchId, "PAID");
 
         return orders.stream()
                 .map(orderMapper::toDTO)

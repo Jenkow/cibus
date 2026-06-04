@@ -213,5 +213,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
     }
 
+    public UserEntity getEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ID", id));
+    }
+
 
 }

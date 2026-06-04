@@ -1,32 +1,37 @@
 package com.jll.cibus.order.dto;
 
-import com.jll.cibus.orderdetail.dto.OrderDetailResponseDTO;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderResponseDTO {
-    private Long id;
-    private Long branchId;
-    private String branchName;
+public class OrderUpdateDTO {
+
+    @Positive
     private Integer tableNumber;
-    private Long waiterId;
-    private String waiterFirstName;
-    private String waiterLastName;
-    private String status;
-    private LocalDateTime createdAt;
+
+    @Positive
+    private Long statusId;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime closedAt;
+
+    @PositiveOrZero
     private BigDecimal subtotal;
+
+    @PositiveOrZero
     private BigDecimal discount;
+
+    @PositiveOrZero
     private BigDecimal finalTotal;
-    private List<OrderDetailResponseDTO> items;
+
 }

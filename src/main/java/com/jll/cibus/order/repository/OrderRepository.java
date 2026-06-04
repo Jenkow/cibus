@@ -16,6 +16,4 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     List<OrderEntity> findByBranchIdAndWaiterId (Long branchId, Long waiterId);
     List<OrderEntity> findByBranch_IdAndStatus_Name(Long branchId, String statusName);
 
-    List<OrderEntity> findByPaid(boolean paid);
-
 }
