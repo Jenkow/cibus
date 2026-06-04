@@ -15,46 +15,25 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/branches/{branchId}/menu")
+@RequestMapping("/api/branches/{branchId}/products")
 public class BranchProductController {
 
     private final BranchProductService branchProductService;
 
     @GetMapping
-    public ResponseEntity<List<BranchProductResponseDTO>> getMenuByBranchId(
-            @PathVariable Long branchId,
-            @RequestParam(required = false) Boolean available){
-        if(Boolean.TRUE.equals(available)){
-            return ResponseEntity.ok(branchProductService.findAvailableByBranchId(branchId));
-        }
-        return ResponseEntity.ok(branchProductService.getByBranchId(branchId));
-    }
-
-    @GetMapping("name/{branchName}")
-    public ResponseEntity<List<BranchProductResponseDTO>> getMenuByBranchName(
-            @PathVariable String branchName,
-            @RequestParam(required = false) Boolean available) {
-        if (Boolean.TRUE.equals(available)) {
-            return ResponseEntity.ok(branchProductService.findAvailableByBranchName(branchName));
-        }
-        return ResponseEntity.ok(branchProductService.getByBranchName(branchName));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<BranchProductResponseDTO> getById(@PathVariable Long id){
-        return ResponseEntity.ok(branchProductService.getById(id));
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<BranchProductResponseDTO>> search(@RequestParam Long branchId, // El required es true ya que este metodo no esta pensado para ser utilziado por nadie que no tenga acceso a todas las branches, es decir, un empleado
-                                                                 @RequestParam(required = false) String name,
+    public ResponseEntity<List<BranchProductResponseDTO>> search(@PathVariable Long branchId,
+                                                                 @RequestParam(required = false) Long productId,
+                                                                 @RequestParam(required = false) String productName,
                                                                  @RequestParam(required = false) Long categoryId,
                                                                  @RequestParam(required = false) Boolean available,
-                                                                 @RequestParam(required = false) BigDecimal price,
                                                                  @RequestParam(required = false) BigDecimal minPrice,
                                                                  @RequestParam(required = false) BigDecimal maxPrice){
+        return ResponseEntity.ok(branchProductService.search(branchId, productId, productName, categoryId, available, minPrice, maxPrice));
+    }
 
-        return ResponseEntity.ok(branchProductService.search(branchId, name, categoryId, available, price, minPrice, maxPrice));
+    @GetMapping("/{productId}")
+    public ResponseEntity<BranchProductResponseDTO> getByBranchIdAndProductId(@PathVariable Long branchId, @PathVariable Long productId){
+        return ResponseEntity.ok(branchProductService.getByBranchAndProduct(branchId, productId));
     }
 
     @PostMapping
@@ -62,15 +41,33 @@ public class BranchProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(branchProductService.create(branchId, dto));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BranchProductResponseDTO> update(@PathVariable Long id, @Valid @RequestBody BranchProductUpdateDTO dto){
-        return ResponseEntity.ok(branchProductService.update(id, dto));
+    @PutMapping("/{productId}")
+    public ResponseEntity<BranchProductResponseDTO> update(@PathVariable Long branchId, @PathVariable Long productId, @Valid @RequestBody BranchProductUpdateDTO dto){
+        return ResponseEntity.ok(branchProductService.update(branchId, productId, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id){
-        branchProductService.delete(id);
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<?> delete(@PathVariable Long branchId, @PathVariable Long productId){
+        branchProductService.delete(branchId, productId);
         return ResponseEntity.noContent().build();
     }
+
+    /* ------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BranchProductResponseDTO> getById(@PathVariable Long id){                       por como es el endpoint me parece mucho mas legible que se busque por
+        return ResponseEntity.ok(branchProductService.getById(id));                                       el branchId y productId antes que el id de la relacion.
+    }
+
+    @GetMapping("name/{branchName}")
+    public ResponseEntity<List<BranchProductResponseDTO>> getMenuByBranchName(                             La dejo comentada porque el branchId ya llega siempre por el endpoint,
+            @PathVariable String branchName,                                                               entonces la vamos a querer buscar por el nombre en algun momento?
+            @RequestParam(required = false) Boolean available) {
+        if (Boolean.TRUE.equals(available)) {
+            return ResponseEntity.ok(branchProductService.findAvailableByBranchName(branchName));
+        }
+        return ResponseEntity.ok(branchProductService.getByBranchName(branchName));
+    }
+     */
 
 }

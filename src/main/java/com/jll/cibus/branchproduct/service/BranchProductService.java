@@ -30,50 +30,20 @@ public class BranchProductService {
     private final BranchService branchService;
     private final ProductService productService;
 
-    public List<BranchProductResponseDTO> getByBranchId(Long branchId){
-        if(!branchService.existsById(branchId)){
-            throw new ResourceNotFoundException("branch", branchId);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_Id(branchId);
-        return products.stream()
+
+    public List<BranchProductResponseDTO> search(Long branchId, Long productId, String productName, Long categoryId, Boolean available, BigDecimal minPrice, BigDecimal maxPrice){
+        PredicateSpecification<BranchProductEntity> spec = PredicateSpecification.allOf(
+                BranchProductSpecification.equalsBranchId(branchId),
+                BranchProductSpecification.equalsProductId(productId),
+                BranchProductSpecification.containsProductName(productName),
+                BranchProductSpecification.equalsCategoryId(categoryId),
+                BranchProductSpecification.isAvailable(available),
+                BranchProductSpecification.priceGreaterThanOrEqualTo(minPrice),
+                BranchProductSpecification.priceLessThanOrEqualTo(maxPrice)
+        );
+        return branchProductRepository.findAll(spec).stream()
                 .map(branchProductMapper::toDTO)
                 .toList();
-    }
-
-    public List<BranchProductResponseDTO> getByBranchName(String branchName){
-        if(!branchService.existsByName(branchName)){
-            throw new ResourceNotFoundException("branch", branchName);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_Name(branchName);
-        return products.stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
-
-    public List<BranchProductResponseDTO> findAvailableByBranchId(Long branchId){
-        if(!branchService.existsById(branchId)){
-            throw new ResourceNotFoundException("branch", branchId);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_IdAndAvailableTrue(branchId);
-        return products.stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
-
-    public List<BranchProductResponseDTO> findAvailableByBranchName(String branchName){
-        if(!branchService.existsByName(branchName)){
-            throw new ResourceNotFoundException("branch", branchName);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_NameAndAvailableTrue(branchName);
-        return products.stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
-
-    public BranchProductResponseDTO getById(Long id){
-        BranchProductEntity product = branchProductRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Menu Item", id));
-        return branchProductMapper.toDTO(product);
     }
 
     public BranchProductEntity getEntity(Long id){
@@ -89,10 +59,8 @@ public class BranchProductService {
     }
 
     public BranchProductResponseDTO getByBranchAndProduct(Long branchId, Long productId){
-        branchService.getEntity(branchId);
-        productService.getEntity(productId);
-        BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
-        return branchProductMapper.toDTO(entity);
+        BranchProductEntity product = getEntityByBranchAndProduct(branchId, productId);
+        return branchProductMapper.toDTO(product);
     }
 
     public BranchProductResponseDTO create (Long branchId, BranchProductRequestDTO dto){
@@ -109,8 +77,8 @@ public class BranchProductService {
         return branchProductMapper.toDTO(saved);
     }
 
-    public BranchProductResponseDTO update(Long id, BranchProductUpdateDTO dto){
-        BranchProductEntity entity = getEntity(id);
+    public BranchProductResponseDTO update(Long branchId, Long productId, BranchProductUpdateDTO dto){
+        BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         if(dto.getPrice() != null){
             entity.setPrice(dto.getPrice());
         }
@@ -135,30 +103,9 @@ public class BranchProductService {
         changeAvailability(id, Boolean.FALSE);
     }
 
-    public void delete(Long id){
-        BranchProductEntity entity = getEntity(id);
+    public void delete(Long branchId, Long productId){
+        BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         branchProductRepository.delete(entity);
     }
 
-    public List<BranchProductResponseDTO> search(Long branchId,
-                                                 String name,
-                                                 Long categoryId,
-                                                 Boolean available,
-                                                 BigDecimal price,
-                                                 BigDecimal minPrice,
-                                                 BigDecimal maxPrice){
-
-        PredicateSpecification<BranchProductEntity> spec = PredicateSpecification.allOf(BranchProductSpecification.nameContains(name),
-                                                                                        BranchProductSpecification.equalsBranch(branchId),
-                                                                                        BranchProductSpecification.PriceGreaterThan(minPrice),
-                                                                                        BranchProductSpecification.PriceLesserThan(maxPrice),
-                                                                                        BranchProductSpecification.equalsCategory(categoryId),
-                                                                                        BranchProductSpecification.isAvailable(available),
-                                                                                        BranchProductSpecification.equalsPrice(price)
-                                                                                        );
-
-        return branchProductRepository.findAll(spec).stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
 }
