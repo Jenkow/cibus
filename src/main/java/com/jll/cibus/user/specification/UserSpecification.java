@@ -1,14 +1,14 @@
 package com.jll.cibus.user.specification;
 
 import com.jll.cibus.user.entity.UserEntity;
-import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 public class UserSpecification {
 
     private UserSpecification() {}  // para evitar que se instancie
 
-    public static PredicateSpecification<UserEntity> nameContains(String name) {
-        return (root, cb) -> {
+    public static Specification<UserEntity> nameContains(String name) {
+        return (root, query, cb) -> {
             if (name == null || name.isBlank()) {
                 return cb.conjunction();
             }
@@ -20,17 +20,17 @@ public class UserSpecification {
         };
     }
 
-    public static PredicateSpecification<UserEntity> dniEquals(Long dni) {
-        return (root, cb) -> {
+    public static Specification<UserEntity> dniEquals(Long dni) {
+        return (root, query, cb) -> {
             if (dni == null) {
                 return cb.conjunction();
             }
-            return cb.equal(root.get("dni").get("id"), dni);
+            return cb.equal(root.get("dni"), dni);
         };
     }
 
-    public static PredicateSpecification<UserEntity> emailEquals(String email) {
-        return (root, cb) -> {
+    public static Specification<UserEntity> emailEquals(String email) {
+        return (root, query, cb) -> {
             if (email == null || email.isBlank()) {
                 return cb.conjunction();
             }
@@ -38,8 +38,8 @@ public class UserSpecification {
         };
     }
 
-    public static PredicateSpecification<UserEntity> phoneNumberEquals(String phoneNumber) {
-        return (root, cb) -> {
+    public static Specification<UserEntity> phoneNumberEquals(String phoneNumber) {
+        return (root, query, cb) -> {
             if (phoneNumber == null || phoneNumber.isBlank()) {
                 return cb.conjunction();
             }
@@ -47,8 +47,8 @@ public class UserSpecification {
         };
     }
 
-    public static PredicateSpecification<UserEntity> branchIdEquals(Long branchId) {
-        return (root, cb) -> {
+    public static Specification<UserEntity> branchIdEquals(Long branchId) {
+        return (root, query, cb) -> {
             if (branchId == null) {
                 return cb.conjunction();
             }
@@ -56,8 +56,8 @@ public class UserSpecification {
         };
     }
 
-    public static PredicateSpecification<UserEntity> userRoleIdEquals(Long userRoleId) {
-        return (root, cb) -> {
+    public static Specification<UserEntity> userRoleIdEquals(Long userRoleId) {
+        return (root, query, cb) -> {
             if (userRoleId == null) {
                 return cb.conjunction();
             }

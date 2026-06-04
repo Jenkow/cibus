@@ -1,5 +1,7 @@
 package com.jll.cibus.common.config;
 
+import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.payment.entity.PaymentEntity;
@@ -26,7 +28,8 @@ public class DataLoader {
             ProductCategoryRepository categoryRepository,
             UserRoleRepository userRoleRepository,
             PaymentRepository paymentRepository,
-            OrderStatusRepository orderStatusRepository
+            OrderStatusRepository orderStatusRepository,
+            BranchRepository branchRepository
     ) {
 
         return args -> {
@@ -218,6 +221,33 @@ public class DataLoader {
                                 .name("CANCELLED")
                                 .build()
                 );
+            }
+            if (branchRepository.count() == 0) {
+
+                List<BranchEntity> branches = List.of(
+
+                        BranchEntity.builder()
+                                .name("Sucursal Centro")
+                                .street("San Martín")
+                                .number(1234)
+                                .build(),
+
+                        BranchEntity.builder()
+                                .name("Sucursal Norte")
+                                .street("Independencia")
+                                .number(567)
+                                .build(),
+
+                        BranchEntity.builder()
+                                .name("Sucursal Sur")
+                                .street("Belgrano")
+                                .number(890)
+                                .build()
+                );
+
+                branchRepository.saveAll(branches);
+
+                System.out.println("Sucursales cargadas correctamente.");
             }
 
         };
