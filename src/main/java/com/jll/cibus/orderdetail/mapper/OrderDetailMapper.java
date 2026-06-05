@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Component
 @RequiredArgsConstructor
 public class OrderDetailMapper implements IMapper<OrderDetailEntity, OrderDetailRequestDTO, OrderDetailResponseDTO> {
@@ -17,9 +19,9 @@ public class OrderDetailMapper implements IMapper<OrderDetailEntity, OrderDetail
     @Override
     public OrderDetailResponseDTO toDTO(OrderDetailEntity entity){
         OrderDetailResponseDTO dto = modelMapper.map(entity, OrderDetailResponseDTO.class);
-        dto.setOrderId(entity.getOrder().getId());
         dto.setProductId(entity.getProduct().getId());
         dto.setProductName(entity.getProduct().getName());
+        dto.setSubtotal(entity.getUnitPrice().multiply(BigDecimal.valueOf(entity.getQuantity())));
         return dto;
     }
 

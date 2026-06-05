@@ -57,33 +57,4 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
-    /*----------------------------------------------------------------------------
-
-     @GetMapping()
-    public ResponseEntity<List<OrderResponseDTO>> getByBranchId(@PathVariable Long branchId) {
-        return ResponseEntity.ok(orderService.findByBranchId(branchId));
-    }
-
-    @GetMapping("/table/{tableId}")
-    public ResponseEntity<List<OrderResponseDTO>> getByTableId(@PathVariable Long branchId, @PathVariable Long tableId) {
-        return ResponseEntity.ok(orderService.findByBranchIdAndTableId(branchId, tableId));
-    }
-
-    @GetMapping("/waiter/{waiterId}")
-    public ResponseEntity<List<OrderResponseDTO>> getByWaiterId(@PathVariable Long branchId, @PathVariable Long waiterId) {
-        return ResponseEntity.ok(orderService.findByBranchIdAndWaiterId(branchId, waiterId));
-    }
-
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<OrderResponseDTO>> getByBranchAndStatus(@PathVariable Long branchId, @PathVariable String status) {
-        return ResponseEntity.ok(orderService.findByBranchAndStatus(branchId, status));
-    }
-
-    @GetMapping("/paid/{paid}")
-    public ResponseEntity<List<OrderResponseDTO>> getByPaid(@PathVariable Long branchId, @PathVariable Boolean paid) {
-        return ResponseEntity.ok(orderService.findByPaid(paid));
-    }
-
-     */
-
 }

@@ -10,16 +10,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class OrderDetailResponseDTO
-{
+public class OrderDetailResponseDTO {
     private Long id;
-    private Long orderId;
-    private String observation;
-    private Integer quantity;
     private Long productId;
     private String productName;
+    private Integer quantity;
     private BigDecimal unitPrice;
-
-    // We could add a subtotal function in service and add that atribute here
+    private BigDecimal subtotal;
+    private String observation;
 
 }

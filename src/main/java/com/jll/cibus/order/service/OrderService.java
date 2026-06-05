@@ -14,6 +14,9 @@ import com.jll.cibus.order.entity.OrderEntity;
 import com.jll.cibus.order.mapper.OrderMapper;
 import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.order.specification.OrderSpecification;
+import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
+import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
+import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
@@ -32,6 +35,8 @@ public class OrderService {
 
     private final OrderMapper orderMapper;
     private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final OrderDetailMapper orderDetailMapper;
     private final OrderStatusRepository orderStatusRepository;
     private final UserService userService;
     private final TableService tableService;
@@ -58,12 +63,29 @@ public class OrderService {
         );
         return orderRepository.findAll(spec).stream()
                 .map(orderMapper::toDTO)
+                .map((dto) -> {
+                    setResponseItems(dto);
+                    return dto;
+                })
                 .toList();
     }
 
     public OrderResponseDTO findById(Long id){
         OrderEntity order = getEntity(id);
-        return orderMapper.toDTO(order);
+        OrderResponseDTO response = orderMapper.toDTO(order);
+        setResponseItems(response);
+        return response;
+    }
+
+    private List<OrderDetailEntity> getItems(Long id){
+        return orderDetailRepository.findByOrderId(id);
+    }
+
+    private void setResponseItems(OrderResponseDTO order){
+        List<OrderDetailEntity> items = getItems(order.getId());
+        order.setItems(items.stream()
+                .map(orderDetailMapper::toDTO)
+                .toList());
     }
 
     private void validateOrderRequest(Long branchId, OrderRequestDTO dto) {
@@ -77,7 +99,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
-        //validateOrderRequest(branchId, dto);
+        validateOrderRequest(branchId, dto);
         BranchEntity branch = branchService.getEntity(branchId);
         TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
         UserEntity waiter = userService.getEntityById(dto.getWaiterId());
@@ -101,6 +123,8 @@ public class OrderService {
         order.setDiscount(BigDecimal.ZERO);
         order.setFinalTotal(BigDecimal.ZERO);
         OrderEntity saved = orderRepository.save(order);
+        OrderResponseDTO response = orderMapper.toDTO(saved);
+        response.setItems(List.of());
         return orderMapper.toDTO(saved);
     }
 
@@ -183,7 +207,7 @@ public class OrderService {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
     }
-
+/*
     public List<OrderResponseDTO> findByBranchId(Long branchId) {
         if (!branchService.existsById(branchId))
             throw new ResourceNotFoundException("Branch id " + branchId);
@@ -194,7 +218,7 @@ public class OrderService {
                 .map(orderMapper::toDTO)
                 .toList();
     }
-/*
+
     public List<OrderResponseDTO> findByBranchIdAndTableId(Long branchId, Long tableId) {
         if (!branchService.existsById(branchId))
             throw new ResourceNotFoundException("Branch id " + branchId);

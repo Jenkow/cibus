@@ -2,6 +2,7 @@ package com.jll.cibus.orderdetail.controller;
 
 import com.jll.cibus.orderdetail.dto.OrderDetailRequestDTO;
 import com.jll.cibus.orderdetail.dto.OrderDetailResponseDTO;
+import com.jll.cibus.orderdetail.dto.OrderDetailUpdateDTO;
 import com.jll.cibus.orderdetail.service.OrderDetailService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/orders/{orderId}/details")
+@RequestMapping("/api/orders/{orderId}/items")
 public class OrderDetailController {
 
     private final OrderDetailService orderDetailService;
@@ -36,7 +37,7 @@ public class OrderDetailController {
     }
 
     @PutMapping("/{detailId}")
-    public ResponseEntity<OrderDetailResponseDTO> update(@PathVariable Long orderId, @PathVariable Long detailId, @Valid @RequestBody OrderDetailRequestDTO detail){
+    public ResponseEntity<OrderDetailResponseDTO> update(@PathVariable Long orderId, @PathVariable Long detailId, @Valid @RequestBody OrderDetailUpdateDTO detail){
         return ResponseEntity.ok(orderDetailService.update(orderId, detailId, detail));
     }
 

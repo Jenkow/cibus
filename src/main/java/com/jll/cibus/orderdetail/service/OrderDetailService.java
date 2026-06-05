@@ -8,6 +8,7 @@ import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.entity.OrderEntity;
 import com.jll.cibus.orderdetail.dto.OrderDetailRequestDTO;
 import com.jll.cibus.orderdetail.dto.OrderDetailResponseDTO;
+import com.jll.cibus.orderdetail.dto.OrderDetailUpdateDTO;
 import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
 import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
@@ -49,9 +50,9 @@ public class OrderDetailService {
 
     public OrderDetailResponseDTO getById(Long orderId, Long id) {
         OrderDetailEntity entity = getEntity(id);
-       /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
+        if(orderService.existsById(orderId)){
             throw new BusinessException("No existe la orden " + orderId);
-        }*/
+        }
         if(!entity.getOrder().getId().equals(orderId)){
             throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
         }
@@ -86,23 +87,26 @@ public class OrderDetailService {
     }
 
     @Transactional
-    public OrderDetailResponseDTO update (Long orderId, Long id, OrderDetailRequestDTO dto){
+    public OrderDetailResponseDTO update (Long orderId, Long id, OrderDetailUpdateDTO dto){
         OrderDetailEntity entity = getEntity(id);
         OrderEntity order = orderService.getEntity(orderId);
         entity.setOrder(order);
+        /*
         if(dto.getProductId() != null){
             ProductEntity product = productService.getEntity(dto.getProductId());
-            BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(
-                            entity.getOrder().getBranch().getId(),
+            BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(              Yo creo que no se deberia poder cambiar el producto del detalle.
+                            entity.getOrder().getBranch().getId(),                                               Un detalle en una orden es decir que producto hay en esa orden, si quiere cambiar el producto que cree otro detalle.
                             product.getId());
             validateAvailability(productInBranch);
             entity.setProduct(product);
             entity.setUnitPrice(productInBranch.getPrice());
         }
+         */
         if(dto.getObservation() != null){
             entity.setObservation(dto.getObservation());
         }
         if(dto.getQuantity() != null){
+
             entity.setQuantity(dto.getQuantity());
         }
         OrderDetailEntity saved = orderDetailRepository.save(entity);
@@ -112,9 +116,9 @@ public class OrderDetailService {
     @Transactional
     public void delete(Long orderId, Long id){
         OrderDetailEntity entity = getEntity(id);
-        /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
+        if(orderService.existsById(id)){
             throw new BusinessException("No existe la orden " + orderId);
-        }*/
+        }
         if(!entity.getOrder().getId().equals(orderId)){
             throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
         }
