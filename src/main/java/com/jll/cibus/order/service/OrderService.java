@@ -77,7 +77,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
-        validateOrderRequest(branchId, dto);
+        //validateOrderRequest(branchId, dto);
         BranchEntity branch = branchService.getEntity(branchId);
         TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
         UserEntity waiter = userService.getEntityById(dto.getWaiterId());
@@ -86,8 +86,8 @@ public class OrderService {
             throw new BusinessException("The user "+waiter.getId()+" is not a waiter");
         }
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
-        if (!table.getWaiter().getId().equals(waiter.getId())) {
-            throw new BusinessException(waiter.getFirstName() + "is not working with table n " + table.getId());
+        if (table.getWaiter() == null || !table.getWaiter().getId().equals(waiter.getId())) {
+            throw new BusinessException(waiter.getFirstName() + " is not working with table n " + table.getNumber());
         }
         OrderEntity order = orderMapper.toEntity(dto);
         order.setBranch(branch);
@@ -118,8 +118,8 @@ public class OrderService {
                 throw new BusinessException("The table "+table.getNumber()+" is occupied");
             }
             //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
-            if (!table.getWaiter().getId().equals(waiter.getId()))
-                throw new BusinessException(waiter.getFirstName() + "is not asigned to table" + table.getId());
+            if (table.getWaiter() == null || !table.getWaiter().getId().equals(waiter.getId()))
+                throw new BusinessException(waiter.getFirstName() + " is not asigned to table " + table.getNumber());
             order.setTable(table);
         }
         if(dto.getStatusId() != null){
@@ -144,12 +144,12 @@ public class OrderService {
         switch (current) {
             case "PREPARING":
                 if (!next.equalsIgnoreCase("READY") && !next.equalsIgnoreCase("CANCELLED"))
-                    throw new BusinessException("Invalid statis transition");
+                    throw new BusinessException("Invalid status transition");
                 break;
 
             case "READY":
                 if (!next.equalsIgnoreCase("SERVED") && !next.equalsIgnoreCase("CANCELLED"))
-                    throw new BusinessException("Invalid statis transition");
+                    throw new BusinessException("Invalid status transition");
                 break;
             case "SERVED":
                 if (!next.equalsIgnoreCase("PAID") && !next.equalsIgnoreCase("CANCELLED"))
@@ -194,7 +194,7 @@ public class OrderService {
                 .map(orderMapper::toDTO)
                 .toList();
     }
-
+/*
     public List<OrderResponseDTO> findByBranchIdAndTableId(Long branchId, Long tableId) {
         if (!branchService.existsById(branchId))
             throw new ResourceNotFoundException("Branch id " + branchId);
@@ -241,4 +241,6 @@ public class OrderService {
                 .map(orderMapper::toDTO)
                 .toList();
     }
+
+ */
 }

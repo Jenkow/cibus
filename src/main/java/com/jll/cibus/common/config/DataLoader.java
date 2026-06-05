@@ -221,6 +221,10 @@ public class DataLoader {
                                 .name("CANCELLED")
                                 .build()
                 );
+
+                orderStatusRepository.saveAll(orderStatus);
+
+                System.out.println("Estados de orden cargados correctamente.");
             }
             if (branchRepository.count() == 0) {
 

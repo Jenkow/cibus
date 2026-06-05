@@ -85,8 +85,8 @@ public class TableService {
     }
 
     @Transactional
-    public TableResponseDTO occupy(Long tableId, Long waiterId) {
-        TableEntity table = getTableById(tableId);
+    public TableResponseDTO occupy(Long branchId, Integer tableNumber, Long waiterId) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
 
         if (!table.getAvailable())
             throw new BusinessException("The table is already occupied");
@@ -104,8 +104,8 @@ public class TableService {
     }
 
     @Transactional
-    public TableResponseDTO free(Long tableId) {
-        TableEntity table = getTableById(tableId);
+    public TableResponseDTO free(Long branchId, Integer tableNumber) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
 
         if (table.getAvailable()) {
             throw new BusinessException("The table is already free");
@@ -118,8 +118,8 @@ public class TableService {
     }
 
     @Transactional
-    public TableResponseDTO update(Long id, TableUpdateDTO newTable) {
-        TableEntity table = getTableById(id);
+    public TableResponseDTO update(Long branchId, Integer tableNumber, TableUpdateDTO newTable) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         if(newTable.getNumber() != null){
             table.setNumber(newTable.getNumber());
         }
@@ -130,7 +130,7 @@ public class TableService {
             table.setCapacity(newTable.getCapacity());
         }
         if (newTable.getWaiterId() != null) {
-            UserEntity waiter = userService.getEntityByDni(newTable.getWaiterId());           //   FALTA getEntityById en UserService
+            UserEntity waiter = userService.getEntityById(newTable.getWaiterId());           //   FALTA getEntityById en UserService
             table.setWaiter(waiter);
         }
 
@@ -139,8 +139,8 @@ public class TableService {
     }
 
     @Transactional
-    public void delete(Long tableId) {
-        TableEntity table = getTableById(tableId);
+    public void delete(Long branchId, Integer tableNumber) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         tableRepository.delete(table);
     }
 
