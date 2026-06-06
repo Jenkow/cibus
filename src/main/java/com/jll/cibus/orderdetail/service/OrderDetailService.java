@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -43,22 +44,6 @@ public class OrderDetailService {
                 .toList();
     }
 
-    private OrderDetailEntity getEntity(Long id) {
-        return orderDetailRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("order detail", id));
-    }
-
-    public OrderDetailResponseDTO getById(Long orderId, Long id) {
-        OrderDetailEntity entity = getEntity(id);
-        if(orderService.existsById(orderId)){
-            throw new BusinessException("No existe la orden " + orderId);
-        }
-        if(!entity.getOrder().getId().equals(orderId)){
-            throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
-        }
-        return orderDetailMapper.toDTO(entity);
-    }
-
     public List<OrderDetailResponseDTO> getByOrderId (Long orderId){
         orderService.getEntity(orderId);
         List<OrderDetailEntity> entities = orderDetailRepository.findByOrderId(orderId);
@@ -67,9 +52,19 @@ public class OrderDetailService {
                 .toList();
     }
 
-    public OrderDetailEntity getByOrderIdAndProductId (Long orderId, Long productId){
+    private OrderDetailEntity getEntityByOrderIdAndProductId(Long orderId, Long productId){
+        if(!orderService.existsById(orderId)){
+            throw new ResourceNotFoundException("order ID", orderId);
+        }
+        if(!productService.existsById(productId)){
+            throw new ResourceNotFoundException("product ID", productId);
+        }
         return orderDetailRepository.findByOrderIdAndProductId(orderId, productId)
-                .orElseThrow(() -> new ResourceNotFoundException("No existe un detalle para la orden " + orderId + " y el producto " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("detail of product", productId));
+    }
+
+    public OrderDetailResponseDTO getByOrderIdAndProductId (Long orderId, Long productId){
+        return orderDetailMapper.toDTO(getEntityByOrderIdAndProductId(orderId, productId));
     }
 
     @Transactional
@@ -82,13 +77,17 @@ public class OrderDetailService {
         entity.setUnitPrice(productInBranch.getPrice());
         entity.setProduct(product);
         entity.setOrder(order);
+        if(dto.getObservation() == null){
+            entity.setObservation("");                                        //Me parece mejor cadena vacia a que quede un null.
+        }
         OrderDetailEntity saved = orderDetailRepository.save(entity);
+        orderService.recalculateTotals(entity.getOrder().getId());
         return orderDetailMapper.toDTO(saved);
     }
 
     @Transactional
-    public OrderDetailResponseDTO update (Long orderId, Long id, OrderDetailUpdateDTO dto){
-        OrderDetailEntity entity = getEntity(id);
+    public OrderDetailResponseDTO update (Long orderId, Long productId, OrderDetailUpdateDTO dto){
+        OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, productId);
         OrderEntity order = orderService.getEntity(orderId);
         entity.setOrder(order);
         /*
@@ -106,23 +105,18 @@ public class OrderDetailService {
             entity.setObservation(dto.getObservation());
         }
         if(dto.getQuantity() != null){
-
             entity.setQuantity(dto.getQuantity());
         }
         OrderDetailEntity saved = orderDetailRepository.save(entity);
+        orderService.recalculateTotals(entity.getOrder().getId());
         return orderDetailMapper.toDTO(saved);
     }
 
     @Transactional
-    public void delete(Long orderId, Long id){
-        OrderDetailEntity entity = getEntity(id);
-        if(orderService.existsById(id)){
-            throw new BusinessException("No existe la orden " + orderId);
-        }
-        if(!entity.getOrder().getId().equals(orderId)){
-            throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
-        }
+    public void delete(Long orderId, Long productId){
+        OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, productId);
         orderDetailRepository.delete(entity);
+        orderService.recalculateTotals(entity.getOrder().getId());
     }
 
 }

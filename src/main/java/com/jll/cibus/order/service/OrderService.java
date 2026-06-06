@@ -207,6 +207,18 @@ public class OrderService {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
     }
+
+    @Transactional
+    public void recalculateTotals(Long id){
+        OrderEntity order = getEntity(id);
+        BigDecimal subtotal = getItems(id).stream()
+                .map(detail -> detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setSubtotal(subtotal);
+        order.setFinalTotal(subtotal.subtract(order.getDiscount()));
+        orderRepository.save(order);
+    }
+
 /*
     public List<OrderResponseDTO> findByBranchId(Long branchId) {
         if (!branchService.existsById(branchId))
