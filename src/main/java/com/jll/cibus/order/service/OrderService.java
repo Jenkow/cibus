@@ -185,6 +185,12 @@ public class OrderService {
         }
     }
 
+    public List<String> getStatuses(){
+        return orderStatusRepository.findAll().stream()
+                .map(OrderStatusEntity::getName)
+                .toList();
+    }
+
     @Transactional
     public OrderResponseDTO changeStatus(Long orderId, String newStatus) {
         OrderEntity order = getEntity(orderId);

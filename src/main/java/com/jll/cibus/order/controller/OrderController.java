@@ -57,4 +57,9 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/statuses")
+    public ResponseEntity<List<String>> getStatuses(){
+        return ResponseEntity.ok(orderService.getStatuses());
+    }
+
 }

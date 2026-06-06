@@ -204,7 +204,9 @@ public class DataLoader {
             if (orderStatusRepository.count() == 0)
             {
                 List<OrderStatusEntity> orderStatus = List.of(
-
+                        OrderStatusEntity.builder()
+                                .name("PENDING")
+                                .build(),
                         OrderStatusEntity.builder()
                                 .name("PREPARING")
                                 .build(),
