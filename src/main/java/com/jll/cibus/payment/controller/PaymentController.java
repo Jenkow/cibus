@@ -31,7 +31,7 @@ public class PaymentController {
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<List<PaymentResponseDTO>> findById(@PathVariable String name){
+    public ResponseEntity<List<PaymentResponseDTO>> findByName(@PathVariable String name){
         return ResponseEntity.ok(paymentService.findByName(name));
     }
 

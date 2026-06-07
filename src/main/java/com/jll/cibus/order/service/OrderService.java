@@ -17,6 +17,8 @@ import com.jll.cibus.order.specification.OrderSpecification;
 import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
 import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
+import com.jll.cibus.payment.entity.PaymentEntity;
+import com.jll.cibus.payment.repository.PaymentRepository;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;

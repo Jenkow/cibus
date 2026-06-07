@@ -11,6 +11,7 @@ import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.mapper.UserMapper;
 import com.jll.cibus.user.repository.UserRepository;
+import com.jll.cibus.user.repository.UserRoleRepository;
 import com.jll.cibus.user.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final BranchService branchService;
     private final UserRoleService userRoleService;
+    private final UserRoleRepository userRoleRepository;
 
     @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
@@ -221,5 +223,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("ID", id));
     }
 
+    public List<String> getUserRoles(){
+        return userRoleRepository.findAll().stream()
+                .map(UserRoleEntity::getName)
+                .toList();
+    }
 
 }

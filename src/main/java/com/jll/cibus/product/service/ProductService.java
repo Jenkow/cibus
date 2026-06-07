@@ -8,23 +8,23 @@ import com.jll.cibus.product.dto.ProductRequestDTO;
 import com.jll.cibus.product.dto.ProductResponseDTO;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.mapper.ProductMapper;
+import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
+import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.productcategory.service.ProductCategoryService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductCategoryService productCategoryService;
+    private final ProductCategoryRepository productCategoryRepository;
     private final ProductMapper productMapper;
 
-    public ProductService(ProductRepository productRepository, ProductCategoryService productCategoryService, ProductMapper productMapper){
-        this.productRepository = productRepository;
-        this.productCategoryService = productCategoryService;
-        this.productMapper = productMapper;
-    }
 
     @Transactional
     public ProductResponseDTO create(ProductRequestDTO dto){
@@ -96,6 +96,12 @@ public class ProductService {
     public void delete(Long id) {
         ProductEntity product = getEntity(id);
         productRepository.delete(product);
+    }
+
+    public List<String> getProductCategories(){
+        return productCategoryRepository.findAll().stream()
+                .map(ProductCategoryEntity::getName)
+                .toList();
     }
 
 }

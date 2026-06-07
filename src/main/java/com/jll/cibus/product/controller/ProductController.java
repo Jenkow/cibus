@@ -60,4 +60,9 @@ public class ProductController {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getProductCategories(){
+        return ResponseEntity.ok(productService.getProductCategories());
+    }
 }
