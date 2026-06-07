@@ -4,6 +4,7 @@ import com.jll.cibus.order.dto.OrderUpdateDTO;
 import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
+import com.jll.cibus.payment.dto.PaymentDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,11 @@ public class OrderController {
     @PutMapping("/{orderId}")
     public ResponseEntity<OrderResponseDTO> update(@PathVariable Long branchId, @PathVariable Long orderId, @Valid @RequestBody OrderUpdateDTO dto) {
         return ResponseEntity.ok(orderService.update(branchId, orderId, dto));
+    }
+
+    @PostMapping("/{orderId}/payments")
+    public ResponseEntity<PaymentDTO> addPayment(@PathVariable Long orderId, @RequestBody PaymentDTO payment){
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addPayment(orderId, payment));
     }
 
     //PROBABLEMENTE SEA MEJOR EL CAMBIAR A ESTADO CANCELADO ASI QUEDA GUARDADO

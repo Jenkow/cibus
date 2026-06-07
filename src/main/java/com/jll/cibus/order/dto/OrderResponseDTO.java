@@ -28,5 +28,6 @@ public class OrderResponseDTO {
     private BigDecimal subtotal;
     private BigDecimal discount;
     private BigDecimal finalTotal;
+    private BigDecimal remainingAmount;
     private List<OrderDetailResponseDTO> items;
 }

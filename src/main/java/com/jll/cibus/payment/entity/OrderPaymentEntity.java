@@ -25,7 +25,7 @@ public class OrderPaymentEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paymentMethod_id", nullable = false)
-    private PaymentEntity paymentMethod;
+    private PaymentMethodEntity paymentMethod;
 
     private BigDecimal amount;
 

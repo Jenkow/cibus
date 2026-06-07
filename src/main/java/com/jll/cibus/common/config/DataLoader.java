@@ -4,8 +4,8 @@ import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
-import com.jll.cibus.payment.entity.PaymentEntity;
-import com.jll.cibus.payment.repository.PaymentRepository;
+import com.jll.cibus.payment.entity.PaymentMethodEntity;
+import com.jll.cibus.payment.repository.PaymentMethodRepository;
 import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
 import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.product.entity.ProductEntity;
@@ -27,7 +27,7 @@ public class DataLoader {
             ProductRepository productRepository,
             ProductCategoryRepository categoryRepository,
             UserRoleRepository userRoleRepository,
-            PaymentRepository paymentRepository,
+            PaymentMethodRepository paymentMethodRepository,
             OrderStatusRepository orderStatusRepository,
             BranchRepository branchRepository
     ) {
@@ -176,28 +176,28 @@ public class DataLoader {
                 System.out.println("Roles cargados correctamente.");
             }
 
-            if (paymentRepository.count() == 0) {
+            if (paymentMethodRepository.count() == 0) {
 
-                List<PaymentEntity> payments = List.of(
+                List<PaymentMethodEntity> payments = List.of(
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("EFECTIVO")
                                 .build(),
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("CREDITO")
                                 .build(),
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("DEBITO")
                                 .build(),
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("MERCADO PAGO")
                                 .build()
                 );
 
-                paymentRepository.saveAll(payments);
+                paymentMethodRepository.saveAll(payments);
 
                 System.out.println("Medios de pago cargados correctamente.");
             }

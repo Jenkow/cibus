@@ -17,8 +17,11 @@ import com.jll.cibus.order.specification.OrderSpecification;
 import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
 import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
-import com.jll.cibus.payment.entity.PaymentEntity;
-import com.jll.cibus.payment.repository.PaymentRepository;
+import com.jll.cibus.payment.dto.PaymentDTO;
+import com.jll.cibus.payment.entity.OrderPaymentEntity;
+import com.jll.cibus.payment.entity.PaymentMethodEntity;
+import com.jll.cibus.payment.repository.OrderPaymentRepository;
+import com.jll.cibus.payment.repository.PaymentMethodRepository;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
@@ -44,6 +47,8 @@ public class OrderService {
     private final TableService tableService;
     private final BranchService branchService;
     private final RoleValidatorService roleValidatorService;
+    private final PaymentMethodRepository paymentMethodRepository;
+    private final OrderPaymentRepository orderPaymentRepository;
 
 
     public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal){
@@ -65,10 +70,8 @@ public class OrderService {
         );
         return orderRepository.findAll(spec).stream()
                 .map(orderMapper::toDTO)
-                .map((dto) -> {
-                    setResponseItems(dto);
-                    return dto;
-                })
+                .peek(this::setResponseItems)
+                .peek(this::setRemainingAmount)
                 .toList();
     }
 
@@ -76,6 +79,7 @@ public class OrderService {
         OrderEntity order = getEntity(id);
         OrderResponseDTO response = orderMapper.toDTO(order);
         setResponseItems(response);
+        setRemainingAmount(response);
         return response;
     }
 
@@ -127,7 +131,8 @@ public class OrderService {
         OrderEntity saved = orderRepository.save(order);
         OrderResponseDTO response = orderMapper.toDTO(saved);
         response.setItems(List.of());
-        return orderMapper.toDTO(saved);
+        setRemainingAmount(response);
+        return response;
     }
 
     public boolean existsById(Long orderId) {
@@ -163,25 +168,31 @@ public class OrderService {
             order.setFinalTotal(dto.getFinalTotal());
         }
         OrderEntity updatedOrder = orderRepository.save(order);
-        return orderMapper.toDTO(updatedOrder);
+        OrderResponseDTO response = orderMapper.toDTO(updatedOrder);
+        setRemainingAmount(response);
+        return response;
     }
 
     private void validateTransition(String current, String next) {
         switch (current) {
-            case "PREPARING":
-                if (!next.equalsIgnoreCase("READY") && !next.equalsIgnoreCase("CANCELLED"))
+            case "PENDING":
+                if (!next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
                     throw new BusinessException("Invalid status transition");
                 break;
-
+            case "PREPARING":
+                if (!next.equalsIgnoreCase("READY") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
+                    throw new BusinessException("Invalid status transition");
+                break;
             case "READY":
-                if (!next.equalsIgnoreCase("SERVED") && !next.equalsIgnoreCase("CANCELLED"))
+                if (!next.equalsIgnoreCase("SERVED") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
                     throw new BusinessException("Invalid status transition");
                 break;
             case "SERVED":
-                if (!next.equalsIgnoreCase("PAID") && !next.equalsIgnoreCase("CANCELLED"))
+                if (!next.equalsIgnoreCase("PAID") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
                     throw new BusinessException("Invalid status transition");
                 break;
             case "PAID":
+                throw new BusinessException("Order can no longer change status");
             case "CANCELLED":
                 throw new BusinessException("Order can no longer change status");
         }
@@ -203,7 +214,70 @@ public class OrderService {
 
         order.setStatus(orderStatus);
         OrderEntity updatedOrder = orderRepository.save(order);
-        return orderMapper.toDTO(updatedOrder);
+        OrderResponseDTO response = orderMapper.toDTO(updatedOrder);
+        setRemainingAmount(response);
+        return response;
+    }
+
+    private List<OrderPaymentEntity> getPayments(Long orderId){
+        return orderPaymentRepository.findByOrder_Id(orderId);
+    }
+
+    private void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
+        BigDecimal totalPaid = getPayments(dto.getId())
+                .stream()
+                .map(OrderPaymentEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        dto.setRemainingAmount(dto.getFinalTotal().subtract(totalPaid));
+    }
+
+    public Boolean isCancelled(OrderEntity order){
+        return order.getStatus().getName().equalsIgnoreCase("CANCELLED");
+    }
+
+    public Boolean isPaid(OrderEntity order){
+        return order.getStatus().getName().equalsIgnoreCase("PAID");
+    }
+
+    @Transactional
+    public PaymentDTO addPayment(Long orderId, PaymentDTO payment){
+        OrderEntity order = getEntity(orderId);
+        if(isCancelled(order)){
+            throw new BusinessException("The order "+orderId+" is cancelled");
+        }
+        if(isPaid(order)){
+            throw new BusinessException("The order "+orderId+" is already paid");
+        }
+        if (payment.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Amount must be greater than zero");
+        }
+        BigDecimal totalPaid = getPayments(orderId)
+                .stream()
+                .map(OrderPaymentEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal remainingAmount = order.getFinalTotal().subtract(totalPaid);
+        if(payment.getAmount().compareTo(remainingAmount) > 0){
+            throw new BusinessException("Payment amount exceeds remaining balance");
+        }
+        PaymentMethodEntity paymentMethod = paymentMethodRepository.findById(payment.getPaymentMethodId())
+                .orElseThrow(() -> new ResourceNotFoundException("payment method ID", payment.getPaymentMethodId()));
+        OrderPaymentEntity paymentEntity = OrderPaymentEntity.builder()
+                .order(order)
+                .paymentMethod(paymentMethod)
+                .amount(payment.getAmount())
+                .build();
+        OrderPaymentEntity saved = orderPaymentRepository.save(paymentEntity);
+        if (totalPaid.add(paymentEntity.getAmount()).compareTo(order.getFinalTotal()) >= 0) {
+            OrderStatusEntity paidStatus = orderStatusRepository.findByName("PAID")
+                            .orElseThrow(() -> new ResourceNotFoundException("Status not found"));
+            order.setStatus(paidStatus);
+            order.setClosedAt(LocalDateTime.now());
+            orderRepository.save(order);
+        }
+        return PaymentDTO.builder()
+                .paymentMethodId(saved.getPaymentMethod().getId())
+                .amount(saved.getAmount())
+                .build();
     }
 
     @Transactional
