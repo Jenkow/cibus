@@ -117,7 +117,7 @@ public class OrderService {
         order.setBranch(branch);
         order.setTable(table);
         order.setWaiter(waiter);
-        OrderStatusEntity orderStatus = orderStatusRepository.findByName("PREPARING")
+        OrderStatusEntity orderStatus = orderStatusRepository.findByName("PENDING")
                 .orElseThrow(() -> new ResourceNotFoundException("Status not found"));
         order.setStatus(orderStatus);
         order.setCreatedAt(LocalDateTime.now());

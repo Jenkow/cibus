@@ -87,6 +87,7 @@ public class OrderDetailService {
         if(dto.getObservation() == null){
             entity.setObservation("");                                        //Me parece mejor cadena vacia a que quede un null.
         }
+        orderService.changeStatus(orderId, "PREPARING");
         OrderDetailEntity saved = orderDetailRepository.save(entity);
         orderService.recalculateTotals(entity.getOrder().getId());
         return orderDetailMapper.toDTO(saved);
