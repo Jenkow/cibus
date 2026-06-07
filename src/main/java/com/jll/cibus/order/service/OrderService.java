@@ -227,6 +227,11 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    public Boolean productExistsInDetails(Long orderId, Long productId){
+        return getItems(orderId).stream()
+                .anyMatch(item -> item.getProduct().getId().equals(productId));
+    }
+
 /*
     public List<OrderResponseDTO> findByBranchId(Long branchId) {
         if (!branchService.existsById(branchId))

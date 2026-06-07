@@ -69,6 +69,13 @@ public class OrderDetailService {
 
     @Transactional
     public OrderDetailResponseDTO create(Long orderId, OrderDetailRequestDTO dto) {
+        if(orderService.productExistsInDetails(orderId, dto.getProductId())){
+            OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, dto.getProductId());
+            entity.setQuantity(entity.getQuantity()+dto.getQuantity());
+            OrderDetailEntity saved = orderDetailRepository.save(entity);
+            orderService.recalculateTotals(orderId);
+            return orderDetailMapper.toDTO(saved);
+        }
         OrderDetailEntity entity = orderDetailMapper.toEntity(dto);
         ProductEntity product = productService.getEntity(dto.getProductId());
         OrderEntity order = orderService.getEntity(orderId);
