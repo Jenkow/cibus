@@ -17,6 +17,7 @@ import com.jll.cibus.order.specification.OrderSpecification;
 import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
 import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
+import com.jll.cibus.payment.dto.DiscountRequestDTO;
 import com.jll.cibus.payment.dto.PaymentDTO;
 import com.jll.cibus.payment.entity.OrderPaymentEntity;
 import com.jll.cibus.payment.entity.PaymentMethodEntity;
@@ -278,6 +279,28 @@ public class OrderService {
                 .paymentMethodId(saved.getPaymentMethod().getId())
                 .amount(saved.getAmount())
                 .build();
+    }
+
+    @Transactional
+    public OrderResponseDTO applyDiscount(Long orderId, DiscountRequestDTO discount){
+        OrderEntity order = getEntity(orderId);
+        if(isCancelled(order)){
+            throw new BusinessException("The order "+orderId+" is cancelled");
+        }
+        if(isPaid(order)){
+            throw new BusinessException("The order "+orderId+" is already paid");
+        }
+        if(discount.getAmount().compareTo(BigDecimal.ZERO) <= 0){
+            throw new BusinessException("Discount must be greater than zero");
+        }
+        if(discount.getAmount().compareTo(order.getFinalTotal()) > 0){
+            throw new BusinessException("Discount cannot exceed final total");
+        }
+        order.setDiscount(order.getDiscount().add(discount.getAmount()));
+        order.setFinalTotal(order.getFinalTotal().subtract(discount.getAmount()));
+        OrderEntity saved = orderRepository.save(order);
+        OrderResponseDTO response = orderMapper.toDTO(saved);
+        return response;
     }
 
     @Transactional

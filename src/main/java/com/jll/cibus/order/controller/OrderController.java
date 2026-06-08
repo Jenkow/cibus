@@ -4,6 +4,7 @@ import com.jll.cibus.order.dto.OrderUpdateDTO;
 import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
+import com.jll.cibus.payment.dto.DiscountRequestDTO;
 import com.jll.cibus.payment.dto.PaymentDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +36,9 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getAll(branchId, tableNumber, waiterId, statusName, from, to, minTotal, maxTotal));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<OrderResponseDTO> getById(@PathVariable Long id){
-        return ResponseEntity.ok(orderService.findById(id));
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponseDTO> getById(@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.findById(orderId));
     }
 
     @PostMapping()
@@ -54,6 +55,11 @@ public class OrderController {
     @PostMapping("/{orderId}/payments")
     public ResponseEntity<PaymentDTO> addPayment(@PathVariable Long orderId, @RequestBody PaymentDTO payment){
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addPayment(orderId, payment));
+    }
+
+    @PatchMapping("/{orderId}/discount")
+    public ResponseEntity<OrderResponseDTO> addDiscount(@PathVariable Long orderId, @Valid @RequestBody DiscountRequestDTO discount){
+        return ResponseEntity.ok(orderService.applyDiscount(orderId, discount));
     }
 
     //PROBABLEMENTE SEA MEJOR EL CAMBIAR A ESTADO CANCELADO ASI QUEDA GUARDADO
