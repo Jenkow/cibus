@@ -55,7 +55,9 @@ public class OrderStatusService {
 
     @Transactional
     public void changeOrderStatus(OrderEntity order, String newStatus) {
-        String currentStatus = order.getStatus().getName();
+        String currentStatus = order.getStatus() == null
+                ? "CREATED"
+                : order.getStatus().getName();
         OrderStatusEntity orderStatus = orderStatusRepository.findByName(newStatus)
                 .orElseThrow(() -> new ResourceNotFoundException("Status not found"));
         validateTransition(currentStatus, newStatus);

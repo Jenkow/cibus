@@ -7,7 +7,6 @@ import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
 import com.jll.cibus.order.dto.OrderStatusDTO;
 import com.jll.cibus.order.dto.OrderUpdateDTO;
-import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
@@ -20,10 +19,9 @@ import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.payment.dto.DiscountRequestDTO;
 import com.jll.cibus.payment.dto.PaymentDTO;
-import com.jll.cibus.payment.entity.OrderPaymentEntity;
-import com.jll.cibus.payment.entity.PaymentMethodEntity;
 import com.jll.cibus.payment.repository.OrderPaymentRepository;
 import com.jll.cibus.payment.repository.PaymentMethodRepository;
+import com.jll.cibus.payment.service.PaymentService;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
@@ -44,14 +42,12 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final OrderDetailMapper orderDetailMapper;
-    private final OrderStatusRepository orderStatusRepository;
     private final OrderStatusService orderStatusService;
     private final UserService userService;
     private final TableService tableService;
     private final BranchService branchService;
     private final RoleValidatorService roleValidatorService;
-    private final PaymentMethodRepository paymentMethodRepository;
-    private final OrderPaymentRepository orderPaymentRepository;
+    private final PaymentService paymentService;
 
 
     public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal){
@@ -124,9 +120,7 @@ public class OrderService {
         order.setBranch(branch);
         order.setTable(table);
         order.setWaiter(waiter);
-        OrderStatusEntity orderStatus = orderStatusRepository.findByName("PENDING")
-                .orElseThrow(() -> new ResourceNotFoundException("Status not found"));
-        order.setStatus(orderStatus);
+        orderStatusService.changeOrderStatus(order, "PENDING");
         order.setCreatedAt(LocalDateTime.now());
         order.setSubtotal(BigDecimal.ZERO);
         order.setDiscount(BigDecimal.ZERO);
@@ -156,20 +150,6 @@ public class OrderService {
                 throw new BusinessException(waiter.getFirstName() + " is not asigned to table " + table.getNumber());
             order.setTable(table);
         }
-        if(dto.getStatusId() != null){
-            OrderStatusEntity status = orderStatusRepository.findById(dto.getStatusId())
-                    .orElseThrow(() -> new ResourceNotFoundException("OrderStatusId", dto.getStatusId()));
-            order.setStatus(status);
-        }
-        if(dto.getSubtotal() != null){
-            order.setSubtotal(dto.getSubtotal());
-        }
-        if(dto.getDiscount() != null){
-            order.setDiscount(dto.getDiscount());
-        }
-        if(dto.getFinalTotal() != null){
-            order.setFinalTotal(dto.getFinalTotal());
-        }
         OrderEntity updatedOrder = orderRepository.save(order);
         OrderResponseDTO response = orderMapper.toDTO(updatedOrder);
         setRemainingAmount(response);
@@ -189,15 +169,8 @@ public class OrderService {
         return response;
     }
 
-    private List<OrderPaymentEntity> getPayments(Long orderId){
-        return orderPaymentRepository.findByOrder_Id(orderId);
-    }
-
     public void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
-        BigDecimal totalPaid = getPayments(dto.getId())
-                .stream()
-                .map(OrderPaymentEntity::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPaid = paymentService.getTotalPaid(dto.getId());
         dto.setRemainingAmount(dto.getFinalTotal().subtract(totalPaid));
     }
 
@@ -209,66 +182,30 @@ public class OrderService {
         return order.getStatus().getName().equalsIgnoreCase("PAID");
     }
 
+    private void checkIfOrderIsPaidOrCancelled(OrderEntity order){
+        if(isCancelled(order)){
+            throw new BusinessException("The order "+order.getId()+" is cancelled");
+        }
+        if(isPaid(order)){
+            throw new BusinessException("The order "+order.getId()+" is already paid");
+        }
+    }
+
     @Transactional
     public PaymentDTO addPayment(Long orderId, PaymentDTO payment){
         OrderEntity order = getEntity(orderId);
-        if(isCancelled(order)){
-            throw new BusinessException("The order "+orderId+" is cancelled");
-        }
-        if(isPaid(order)){
-            throw new BusinessException("The order "+orderId+" is already paid");
-        }
-        if (payment.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("Amount must be greater than zero");
-        }
-        BigDecimal totalPaid = getPayments(orderId)
-                .stream()
-                .map(OrderPaymentEntity::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal remainingAmount = order.getFinalTotal().subtract(totalPaid);
-        if(payment.getAmount().compareTo(remainingAmount) > 0){
-            throw new BusinessException("Payment amount exceeds remaining balance");
-        }
-        PaymentMethodEntity paymentMethod = paymentMethodRepository.findById(payment.getPaymentMethodId())
-                .orElseThrow(() -> new ResourceNotFoundException("payment method ID", payment.getPaymentMethodId()));
-        OrderPaymentEntity paymentEntity = OrderPaymentEntity.builder()
-                .order(order)
-                .paymentMethod(paymentMethod)
-                .amount(payment.getAmount())
-                .build();
-        OrderPaymentEntity saved = orderPaymentRepository.save(paymentEntity);
-        if (totalPaid.add(paymentEntity.getAmount()).compareTo(order.getFinalTotal()) >= 0) {
-            OrderStatusEntity paidStatus = orderStatusRepository.findByName("PAID")
-                            .orElseThrow(() -> new ResourceNotFoundException("Status not found"));
-            order.setStatus(paidStatus);
-            order.setClosedAt(LocalDateTime.now());
-            orderRepository.save(order);
-        }
-        return PaymentDTO.builder()
-                .paymentMethodId(saved.getPaymentMethod().getId())
-                .amount(saved.getAmount())
-                .build();
+        checkIfOrderIsPaidOrCancelled(order);
+        return paymentService.addPayment(order, payment);
     }
 
     @Transactional
     public OrderResponseDTO applyDiscount(Long orderId, DiscountRequestDTO discount){
         OrderEntity order = getEntity(orderId);
-        if(isCancelled(order)){
-            throw new BusinessException("The order "+orderId+" is cancelled");
-        }
-        if(isPaid(order)){
-            throw new BusinessException("The order "+orderId+" is already paid");
-        }
-        if(discount.getAmount().compareTo(BigDecimal.ZERO) <= 0){
-            throw new BusinessException("Discount must be greater than zero");
-        }
-        if(discount.getAmount().compareTo(order.getFinalTotal()) > 0){
-            throw new BusinessException("Discount cannot exceed final total");
-        }
-        order.setDiscount(order.getDiscount().add(discount.getAmount()));
-        order.setFinalTotal(order.getFinalTotal().subtract(discount.getAmount()));
-        OrderEntity saved = orderRepository.save(order);
+        checkIfOrderIsPaidOrCancelled(order);
+        OrderEntity saved = paymentService.applyDiscount(order, discount);
         OrderResponseDTO response = orderMapper.toDTO(saved);
+        setRemainingAmount(response);
+        setResponseItems(response);
         return response;
     }
 
