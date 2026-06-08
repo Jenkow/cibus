@@ -37,6 +37,11 @@ public class TableController {
         return ResponseEntity.ok(tableService.findByBranchIdAndNumber(branchId, number));
     }
 
+    @GetMapping("/waiter/{waiterId}")
+    public ResponseEntity<List<TableResponseDTO>> getByBranchIdAndNumber(@PathVariable Long waiterId) {
+        return ResponseEntity.ok(tableService.findByWaiterId(waiterId));
+    }
+
     @PostMapping
     public ResponseEntity<TableResponseDTO> create(@PathVariable Long branchId, @Valid @RequestBody TableCreateDTO dto) {
         TableResponseDTO response = tableService.create(dto, branchId);

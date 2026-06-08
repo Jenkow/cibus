@@ -41,6 +41,13 @@ public class TableService {
                 .orElseThrow(() -> new ResourceNotFoundException("table number", number));
     }
 
+    public List<TableResponseDTO> findByWaiterId(Long waiterId){
+        List<TableEntity> tables = tableRepository.findByWaiter_id(waiterId);
+        return tables.stream()
+                .map(tableMapper::toResponse)
+                .toList();
+    }
+
     public List<TableResponseDTO> findByBranchId(Long branchId) {
         List<TableEntity> tables = tableRepository.findByBranchId(branchId);
         return tables.stream()
