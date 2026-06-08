@@ -74,4 +74,19 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getStatuses());
     }
 
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderResponseDTO> setCancelStatus(@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.changeStatus(orderId, "CANCELLED"));
+    }
+
+    @PostMapping("/{orderId}/ready")
+    public ResponseEntity<OrderResponseDTO> setReadyStatus(@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.changeStatus(orderId, "READY"));
+    }
+
+    @PostMapping("/{orderId}/serve")
+    public ResponseEntity<OrderResponseDTO> setServedStatus(@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.changeStatus(orderId, "SERVED"));
+    }
+
 }

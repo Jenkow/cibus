@@ -69,7 +69,11 @@ public class OrderDetailService {
 
     @Transactional
     public OrderDetailResponseDTO create(Long orderId, OrderDetailRequestDTO dto) {
+        OrderEntity order = orderService.getEntity(orderId);
         if(orderService.productExistsInDetails(orderId, dto.getProductId())){
+            if(order.getStatus().getName().equalsIgnoreCase("CANCELLED") || order.getStatus().getName().equalsIgnoreCase("PAID")){
+                throw new BusinessException("The order "+orderId+" is already closed");
+            }
             OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, dto.getProductId());
             entity.setQuantity(entity.getQuantity()+dto.getQuantity());
             OrderDetailEntity saved = orderDetailRepository.save(entity);
@@ -78,7 +82,6 @@ public class OrderDetailService {
         }
         OrderDetailEntity entity = orderDetailMapper.toEntity(dto);
         ProductEntity product = productService.getEntity(dto.getProductId());
-        OrderEntity order = orderService.getEntity(orderId);
         BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(order.getBranch().getId(), product.getId());
         validateAvailability(productInBranch);
         entity.setUnitPrice(productInBranch.getPrice());
