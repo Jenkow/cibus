@@ -30,6 +30,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,7 +51,7 @@ public class OrderService {
     private final PaymentService paymentService;
 
 
-    public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal){
+    public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
         if (from != null && to != null && from.isAfter(to)) {
             throw new BusinessException("The start date cannot be after the end date");
         }
@@ -74,7 +75,12 @@ public class OrderService {
                 .toList();
     }
 
-    public OrderResponseDTO findById(Long id){
+    public OrderEntity getEntity(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
+    }
+
+    public OrderResponseDTO findById(Long id) {
         OrderEntity order = getEntity(id);
         OrderResponseDTO response = orderMapper.toDTO(order);
         setResponseItems(response);
@@ -82,15 +88,19 @@ public class OrderService {
         return response;
     }
 
-    private List<OrderDetailEntity> getItems(Long id){
+    private List<OrderDetailEntity> getItems(Long id) {
         return orderDetailRepository.findByOrderId(id);
     }
 
-    private void setResponseItems(OrderResponseDTO order){
+    private void setResponseItems(OrderResponseDTO order) {                         //Metodo para agregarle al ResponseDTO los deatlles de la orden
         List<OrderDetailEntity> items = getItems(order.getId());
         order.setItems(items.stream()
                 .map(orderDetailMapper::toDTO)
                 .toList());
+    }
+
+    public boolean existsById(Long orderId) {
+        return orderRepository.existsById(orderId);
     }
 
     private void validateOrderRequest(Long branchId, OrderRequestDTO dto) {
@@ -102,6 +112,11 @@ public class OrderService {
             throw new ResourceNotFoundException("Table number ", dto.getTableNumber());
     }
 
+    public Boolean productExistsInDetails(Long orderId, Long productId) {
+        return getItems(orderId).stream()
+                .anyMatch(item -> item.getProduct().getId().equals(productId));
+    }
+
     @Transactional
     public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
         validateOrderRequest(branchId, dto);
@@ -109,8 +124,8 @@ public class OrderService {
         TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
         UserEntity waiter = userService.getEntityById(dto.getWaiterId());
         //VERIFICO QUE SEA WAITER
-        if(!waiter.getRole().getName().equalsIgnoreCase("waiter")){
-            throw new BusinessException("The user "+waiter.getId()+" is not a waiter");
+        if (!waiter.getRole().getName().equalsIgnoreCase("waiter")) {
+            throw new BusinessException("The user " + waiter.getId() + " is not a waiter");
         }
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
         if (table.getWaiter() == null || !table.getWaiter().getId().equals(waiter.getId())) {
@@ -132,18 +147,14 @@ public class OrderService {
         return response;
     }
 
-    public boolean existsById(Long orderId) {
-        return orderRepository.existsById(orderId);
-    }
-
     @Transactional
     public OrderResponseDTO update(Long branchId, Long orderId, OrderUpdateDTO dto) {
         OrderEntity order = getEntity(orderId);
         UserEntity waiter = userService.getEntityById(order.getWaiter().getId());
-        if(dto.getTableNumber() != null){
+        if (dto.getTableNumber() != null) {
             TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
-            if(!table.isAvailable()){
-                throw new BusinessException("The table "+table.getNumber()+" is occupied");
+            if (!table.isAvailable()) {
+                throw new BusinessException("The table " + table.getNumber() + " is occupied");
             }
             //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
             if (table.getWaiter() == null || !table.getWaiter().getId().equals(waiter.getId()))
@@ -156,11 +167,18 @@ public class OrderService {
         return response;
     }
 
-    public List<OrderStatusDTO> getStatuses(){
+    @Transactional
+    public void delete(Long orderId) {
+        changeStatus(orderId, "CANCELLED");
+    }
+
+    // ------------------------------------------------------------- STATUS MANAGMENT --------------------------------------------------------
+
+    public List<OrderStatusDTO> getStatuses() {
         return orderStatusService.findAll();
     }
 
-    public OrderResponseDTO changeStatus(Long orderId, String newStatus){
+    public OrderResponseDTO changeStatus(Long orderId, String newStatus) {
         OrderEntity order = getEntity(orderId);
         orderStatusService.changeOrderStatus(order, newStatus);
         OrderEntity updatedOrder = orderRepository.save(order);
@@ -169,37 +187,34 @@ public class OrderService {
         return response;
     }
 
-    public void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
-        BigDecimal totalPaid = paymentService.getTotalPaid(dto.getId());
-        dto.setRemainingAmount(dto.getFinalTotal().subtract(totalPaid));
-    }
-
-    public Boolean isCancelled(OrderEntity order){
+    public Boolean isCancelled(OrderEntity order) {
         return order.getStatus().getName().equalsIgnoreCase("CANCELLED");
     }
 
-    public Boolean isPaid(OrderEntity order){
+    public Boolean isPaid(OrderEntity order) {
         return order.getStatus().getName().equalsIgnoreCase("PAID");
     }
 
-    private void checkIfOrderIsPaidOrCancelled(OrderEntity order){
-        if(isCancelled(order)){
-            throw new BusinessException("The order "+order.getId()+" is cancelled");
+    // ------------------------------------------------------------- PAYMENT MANAGMENT --------------------------------------------------------
+
+    private void checkIfOrderIsPaidOrCancelled(OrderEntity order) {
+        if (isCancelled(order)) {
+            throw new BusinessException("The order " + order.getId() + " is cancelled");
         }
-        if(isPaid(order)){
-            throw new BusinessException("The order "+order.getId()+" is already paid");
+        if (isPaid(order)) {
+            throw new BusinessException("The order " + order.getId() + " is already paid");
         }
     }
 
     @Transactional
-    public PaymentDTO addPayment(Long orderId, PaymentDTO payment){
+    public PaymentDTO addPayment(Long orderId, PaymentDTO payment) {
         OrderEntity order = getEntity(orderId);
         checkIfOrderIsPaidOrCancelled(order);
         return paymentService.addPayment(order, payment);
     }
 
     @Transactional
-    public OrderResponseDTO applyDiscount(Long orderId, DiscountRequestDTO discount){
+    public OrderResponseDTO applyDiscount(Long orderId, DiscountRequestDTO discount) {
         OrderEntity order = getEntity(orderId);
         checkIfOrderIsPaidOrCancelled(order);
         OrderEntity saved = paymentService.applyDiscount(order, discount);
@@ -210,17 +225,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void delete(Long orderId) {
-        changeStatus(orderId, "CANCELLED");
-    }
-
-    public OrderEntity getEntity(Long orderId) {
-        return orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
-    }
-
-    @Transactional
-    public void recalculateTotals(Long id){
+    public void recalculateTotals(Long id) {
         OrderEntity order = getEntity(id);
         BigDecimal subtotal = getItems(id).stream()
                 .map(detail -> detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())))
@@ -230,9 +235,9 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public Boolean productExistsInDetails(Long orderId, Long productId){
-        return getItems(orderId).stream()
-                .anyMatch(item -> item.getProduct().getId().equals(productId));
+    public void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
+        BigDecimal totalPaid = paymentService.getTotalPaid(dto.getId());
+        dto.setRemainingAmount(dto.getFinalTotal().subtract(totalPaid));
     }
 
 }
