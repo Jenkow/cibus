@@ -1,5 +1,6 @@
 package com.jll.cibus.order.controller;
 
+import com.jll.cibus.order.dto.OrderStatusDTO;
 import com.jll.cibus.order.dto.OrderUpdateDTO;
 import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.dto.OrderRequestDTO;
@@ -70,7 +71,7 @@ public class OrderController {
     }
 
     @GetMapping("/statuses")
-    public ResponseEntity<List<String>> getStatuses(){
+    public ResponseEntity<List<OrderStatusDTO>> getStatuses(){
         return ResponseEntity.ok(orderService.getStatuses());
     }
 

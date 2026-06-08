@@ -5,6 +5,7 @@ import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
+import com.jll.cibus.order.dto.OrderStatusDTO;
 import com.jll.cibus.order.dto.OrderUpdateDTO;
 import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
@@ -44,6 +45,7 @@ public class OrderService {
     private final OrderDetailRepository orderDetailRepository;
     private final OrderDetailMapper orderDetailMapper;
     private final OrderStatusRepository orderStatusRepository;
+    private final OrderStatusService orderStatusService;
     private final UserService userService;
     private final TableService tableService;
     private final BranchService branchService;
@@ -174,46 +176,13 @@ public class OrderService {
         return response;
     }
 
-    private void validateTransition(String current, String next) {
-        switch (current) {
-            case "PENDING":
-                if (!next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
-                    throw new BusinessException("Invalid status transition");
-                break;
-            case "PREPARING":
-                if (!next.equalsIgnoreCase("READY") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
-                    throw new BusinessException("Invalid status transition");
-                break;
-            case "READY":
-                if (!next.equalsIgnoreCase("SERVED") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
-                    throw new BusinessException("Invalid status transition");
-                break;
-            case "SERVED":
-                if (!next.equalsIgnoreCase("PAID") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
-                    throw new BusinessException("Invalid status transition");
-                break;
-            case "PAID":
-                throw new BusinessException("Order can no longer change status");
-            case "CANCELLED":
-                throw new BusinessException("Order can no longer change status");
-        }
+    public List<OrderStatusDTO> getStatuses(){
+        return orderStatusService.findAll();
     }
 
-    public List<String> getStatuses(){
-        return orderStatusRepository.findAll().stream()
-                .map(OrderStatusEntity::getName)
-                .toList();
-    }
-
-    @Transactional
-    public OrderResponseDTO changeStatus(Long orderId, String newStatus) {
+    public OrderResponseDTO changeStatus(Long orderId, String newStatus){
         OrderEntity order = getEntity(orderId);
-        String currentStatus = order.getStatus().getName();
-        OrderStatusEntity orderStatus = orderStatusRepository.findByName(newStatus)
-                .orElseThrow(() -> new ResourceNotFoundException("Status not found"));
-        validateTransition(currentStatus, newStatus);
-
-        order.setStatus(orderStatus);
+        orderStatusService.changeOrderStatus(order, newStatus);
         OrderEntity updatedOrder = orderRepository.save(order);
         OrderResponseDTO response = orderMapper.toDTO(updatedOrder);
         setRemainingAmount(response);
@@ -224,7 +193,7 @@ public class OrderService {
         return orderPaymentRepository.findByOrder_Id(orderId);
     }
 
-    private void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
+    public void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
         BigDecimal totalPaid = getPayments(dto.getId())
                 .stream()
                 .map(OrderPaymentEntity::getAmount)
@@ -329,64 +298,4 @@ public class OrderService {
                 .anyMatch(item -> item.getProduct().getId().equals(productId));
     }
 
-/*
-    public List<OrderResponseDTO> findByBranchId(Long branchId) {
-        if (!branchService.existsById(branchId))
-            throw new ResourceNotFoundException("Branch id " + branchId);
-
-        List<OrderEntity> orders = orderRepository.findByBranchId(branchId);
-
-        return orders.stream()
-                .map(orderMapper::toDTO)
-                .toList();
-    }
-
-    public List<OrderResponseDTO> findByBranchIdAndTableId(Long branchId, Long tableId) {
-        if (!branchService.existsById(branchId))
-            throw new ResourceNotFoundException("Branch id " + branchId);
-        if (!tableService.existsById(tableId))
-            throw new ResourceNotFoundException("Table id " + tableId);
-
-        List<OrderEntity> orders = orderRepository.findByBranchIdAndTableId(branchId, tableId);
-
-        return orders.stream()
-                .map(orderMapper::toDTO)
-                .toList();
-    }
-
-    public List<OrderResponseDTO> findByBranchIdAndWaiterId(Long branchId, Long waiterId) {
-
-        if (!branchService.existsById(branchId))
-            throw new ResourceNotFoundException("Branch id " + branchId);
-        if (!userService.existsByDni(waiterId))
-            throw new ResourceNotFoundException("User id " + waiterId);
-        if (!roleValidatorService.isWaiter(waiterId))
-            throw new BusinessException("The user with id " + waiterId + " is not a waiter");
-
-        List<OrderEntity> orders = orderRepository.findByBranchIdAndWaiterId(branchId, waiterId);
-
-        return orders.stream()
-                .map(orderMapper::toDTO)
-                .toList();
-    }
-
-    public List<OrderResponseDTO> findByBranchAndStatus(Long branchId, String status) {
-        if (!branchService.existsById(branchId))
-            throw new ResourceNotFoundException("BRANCH ID", branchId);
-
-        List<OrderEntity> orders = orderRepository.findByBranch_IdAndStatus_Name(branchId, status);
-        return orders.stream()
-                .map(orderMapper::toDTO)
-                .toList();
-    }
-
-    public List<OrderResponseDTO> findByPaid(Long branchId, Boolean paid) {
-        List<OrderEntity> orders = orderRepository.findByBranch_IdAndStatus_Name(branchId, "PAID");
-
-        return orders.stream()
-                .map(orderMapper::toDTO)
-                .toList();
-    }
-
- */
 }
