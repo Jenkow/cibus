@@ -1,0 +1,41 @@
+package com.jll.cibus.role;
+
+public enum Permits
+{
+    USER_READ,
+    USER_CREATE,
+            USER_UPDATE,
+    USER_DELETE,
+            PRODUCT_READ,
+    PRODUCT_CREATE,
+            PRODUCT_UPDATE,
+    PRODUCT_DELETE,
+            CATEGORY_READ,
+    CATEGORY_CREATE,
+            CATEGORY_UPDATE,
+    CATEGORY_DELETE,
+            BRANCH_READ,
+    BRANCH_CREATE,
+            BRANCH_UPDATE,
+    BRANCH_DELETE,
+            TABLE_READ,
+    TABLE_CREATE,
+            TABLE_UPDATE,
+    TABLE_DELETE,
+            TABLE_OPEN,
+    TABLE_CLOSE,
+            ORDER_READ,
+    ORDER_CREATE,
+            ORDER_UPDATE,
+    ORDER_CANCEL,
+            ORDER_CLOSE,
+    ORDER_CHANGE_STATUS,
+    PAYMENT_READ,
+            PAYMENT_CREATE,
+    PAYMENT_REFUND,
+            ORDER_STATUS_READ,
+    ORDER_STATUS_CREATE,
+            ORDER_STATUS_UPDATE,
+    ORDER_STATUS_DELETE
+
+}
