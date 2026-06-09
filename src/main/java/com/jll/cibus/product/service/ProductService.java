@@ -1,6 +1,5 @@
 package com.jll.cibus.product.service;
 
-import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.product.repository.ProductRepository;
@@ -8,12 +7,16 @@ import com.jll.cibus.product.dto.ProductRequestDTO;
 import com.jll.cibus.product.dto.ProductResponseDTO;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.mapper.ProductMapper;
+import com.jll.cibus.product.specification.ProductSpecification;
 import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
 import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.productcategory.service.ProductCategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
@@ -26,23 +29,6 @@ public class ProductService {
     private final ProductMapper productMapper;
 
 
-    @Transactional
-    public ProductResponseDTO create(ProductRequestDTO dto){
-        if(productRepository.findByNameIgnoreCase(dto.getName()).isPresent()) throw new ResourceAlreadyExistsException("Product", dto.getName());
-        ProductEntity entity = productMapper.toEntity(dto);
-        entity.setCategory(productCategoryService.getEntity(dto.getCategoryId()));
-        ProductEntity saved = productRepository.save(entity);
-        return productMapper.toResponseDTO(saved);
-    }
-
-    public List<ProductResponseDTO> findAll(){
-        List<ProductEntity> products = productRepository.findAll();
-
-        return products.stream()
-                .map(productMapper::toResponseDTO)
-                .toList();
-    }
-
     public Boolean existsById(Long id){
         return productRepository.existsById(id);
     }
@@ -52,34 +38,27 @@ public class ProductService {
                 .orElseThrow( () -> new ResourceNotFoundException("Product", id));
     }
 
+    public Page<ProductResponseDTO> findAll(Pageable pageable, String name, Long categoryId, String categoryName){
+        Specification<ProductEntity> spec = Specification.allOf(
+                ProductSpecification.nameContains(name),
+                ProductSpecification.equalsCategoryId(categoryId),
+                ProductSpecification.equalsCategoryName(categoryName));
+        return productRepository.findAll(spec, pageable)
+                .map(productMapper::toResponseDTO);
+    }
+
     public ProductResponseDTO findById(Long id){
         ProductEntity product = getEntity(id);
         return productMapper.toResponseDTO(product);
     }
 
-    public ProductResponseDTO findByName(String name){
-        ProductEntity product = productRepository.findByNameIgnoreCase(name)
-                .orElseThrow( () -> new ResourceNotFoundException("Product", name));
-
-        return productMapper.toResponseDTO(product);
-    }
-
-    public List<ProductResponseDTO> searchByName(String name){
-        List<ProductEntity> products = productRepository.findAllByNameContainingIgnoreCase(name);
-
-        if(products.isEmpty()) throw new ResourceNotFoundException("Product", name);
-
-        return products.stream()
-                .map(productMapper::toResponseDTO)
-                .toList();
-    }
-
-    public List<ProductResponseDTO> findByCategory(Long categoryId){
-        List<ProductEntity> products = productRepository.findAllByCategory_Id(categoryId);
-
-        return products.stream()
-                .map(productMapper::toResponseDTO)
-                .toList();
+    @Transactional
+    public ProductResponseDTO create(ProductRequestDTO dto){
+        if(productRepository.findByNameIgnoreCase(dto.getName()).isPresent()) throw new ResourceAlreadyExistsException("Product", dto.getName());
+        ProductEntity entity = productMapper.toEntity(dto);
+        entity.setCategory(productCategoryService.getEntity(dto.getCategoryId()));
+        ProductEntity saved = productRepository.save(entity);
+        return productMapper.toResponseDTO(saved);
     }
 
     @Transactional

@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,14 +87,11 @@ public class UserService {
     }
 
     public Page<UserResponseDTO> findAll(Pageable pageable) {
-
         return userRepository.findAll(pageable)
                 .map(userMapper::toResponse);
     }
 
     public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
-
-
         Specification<UserEntity> spec = Specification.allOf(
                 UserSpecification.nameContains(name),
                 UserSpecification.dniEquals(dni),
@@ -104,7 +100,6 @@ public class UserService {
                 UserSpecification.branchIdEquals(branchId),
                 UserSpecification.userRoleIdEquals(userRoleId)
         );
-
         return userRepository.findAll(spec, pageable)
                 .map(userMapper::toResponse);
     }
@@ -112,93 +107,7 @@ public class UserService {
     public UserResponseDTO findById(Long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
-
         return userMapper.toResponse(user);
-    }
-
-    public UserResponseDTO findByDni(Long dni) {
-        UserEntity user = userRepository.findByDni(dni)
-                .orElseThrow(() -> new ResourceNotFoundException("User DNI", dni));
-
-        return userMapper.toResponse(user);
-    }
-
-    public List<UserResponseDTO> findByNameContaining(String name) {
-        List<UserEntity> users = userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name);
-
-        if (users.isEmpty()) throw new ResourceNotFoundException("User name", name);
-
-        return users.stream()
-                .map(userMapper::toResponse)
-                .toList();
-    }
-
-    public List<UserResponseDTO> findByFirstName(String firstName) {
-        List<UserEntity> users = userRepository.findByFirstName(firstName);
-
-        if (users.isEmpty()) throw new ResourceNotFoundException("User First Name", firstName);
-
-        return users.stream()
-                .map(userMapper::toResponse)
-                .toList();
-    }
-
-    public List<UserResponseDTO> findByLastName(String lastName) {
-        List<UserEntity> users = userRepository.findByLastName(lastName);
-
-        if (users.isEmpty()) throw new ResourceNotFoundException("User Last name", lastName);
-
-        return users.stream()
-                .map(userMapper::toResponse)
-                .toList();
-    }
-
-    public UserResponseDTO findByEmail(String email) {
-        UserEntity user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User email", email));
-
-        return userMapper.toResponse(user);
-    }
-
-    public UserResponseDTO findByPhoneNumber(String phoneNumber) {
-        UserEntity user = userRepository
-                .findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("User phone number", phoneNumber));
-
-        return userMapper.toResponse(user);
-    }
-
-    public List<UserResponseDTO> findByFirstNameAndLastName(String firstName, String lastName) {
-        List<UserEntity> users = userRepository.findByFirstNameAndLastName(firstName, lastName);
-
-        if (users.isEmpty()) {
-            throw new ResourceNotFoundException("User first  last name", firstName + " and/or last name " + lastName);
-        }
-
-        return users.stream()
-                .map(userMapper::toResponse)
-                .toList();
-    }
-
-    public List<UserResponseDTO> findByBranchId(Long branchId) {
-        List<UserEntity> users = userRepository.findByBranchId(branchId);
-
-        if (users.isEmpty()) throw new ResourceNotFoundException("Branch", branchId);
-
-        return users.stream()
-                .map(userMapper::toResponse)
-                .toList();
-    }
-
-    public List<UserResponseDTO> findByRoleId(Long roleId) {
-        List<UserEntity> users = userRepository.findByRoleId(roleId);
-
-        if (users.isEmpty()) throw new ResourceNotFoundException("Role", roleId);
-
-        return users.stream()
-                .map(userMapper::toResponse)
-                .toList();
     }
 
     public boolean existsByDni(Long dni) {
