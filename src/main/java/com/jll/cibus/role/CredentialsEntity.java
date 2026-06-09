@@ -36,6 +36,9 @@ public class CredentialsEntity implements UserDetails
     @Column(nullable = false, columnDefinition = "boolean default true")
     private Boolean enabled;
 
+    @Column(name = "refresh_token",length = 2048,unique = true, nullable = false)
+    private String refreshToken;
+
     @OneToOne
     @JoinColumn (name = "usuario_id", referencedColumnName = "id", unique = true)
     private UserEntity usuario;
@@ -65,6 +68,10 @@ public class CredentialsEntity implements UserDetails
     @Override
     public String getUsername() {
         return username;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     @Override

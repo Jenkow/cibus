@@ -1,6 +1,7 @@
 package com.jll.cibus.common.auth;
 
 import com.jll.cibus.common.config.JwtService;
+import com.jll.cibus.role.CredentialsEntity;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.service.UserService;
@@ -21,12 +22,22 @@ public class AuthController {
     private final UserService userService;
     private final JwtService jwtService;
 
-    @PostMapping("/login")
+    @PostMapping()
     public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest authRequest){
-        UserDetails user = authService.authenticate(authRequest);
+        CredentialsEntity user = authService.authenticate(authRequest);
+        System.out.println(user);
         String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthResponse(token));
+        System.out.println(token);
+        return ResponseEntity.ok(new AuthResponse(token,
+                user.getRefreshToken()));
     }
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request){
+        AuthResponse response =
+                authService.refreshAccessToken(request.refreshToken());
+        return ResponseEntity.ok(response);
+        }
+
 
 //    @PostMapping("/register")
 //    public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRequestDTO newUser){

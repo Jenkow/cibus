@@ -1,6 +1,7 @@
 package com.jll.cibus.common.config;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ public class JwtService
     private String jwtSecretKey;
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
+    @Value("${jwt.refresh-expiration}")
+    private Long refreshTokenExpiration;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -93,5 +96,25 @@ public class JwtService
         Date expiration = extractClaim(token, Claims::getExpiration);
         return expiration.before(new Date());
     }
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh");
+        return buildToken(claims, userDetails, refreshTokenExpiration);
+    }
+    public boolean validateRefreshToken(String refreshToken, UserDetails
+            userDetails) {
+        try {
+            Jwts.parser()
+                    .verifyWith(getSignInKey())
+                    .build()
+                    .parseSignedClaims(refreshToken);
+            final String username = extractUsername(refreshToken);
+            return (username.equals(userDetails.getUsername())) &&
+                    !isTokenExpired(refreshToken);
+        } catch (JwtException e) {
+            return false; // Invalid token
+        }
+    }
+
 
 }
