@@ -11,6 +11,8 @@ import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.repository.ProductRepository;
 import com.jll.cibus.role.*;
+import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +34,8 @@ public class DataLoader {
             PermitRepository permitRepository,
             PaymentMethodRepository paymentMethodRepository,
             OrderStatusRepository orderStatusRepository,
-            BranchRepository branchRepository
+            BranchRepository branchRepository,
+            UserRepository userRepository
     ) {
 
         return args -> {
@@ -147,6 +150,19 @@ public class DataLoader {
                 productRepository.saveAll(menuCompleto);
 
                 System.out.println("Menú cargado correctamente.");
+            }
+
+            if(userRepository.count() == 0){
+                UserEntity admin = UserEntity.builder()
+                        .dni(0L)
+                        .pin("111111")
+                        .firstName("admin")
+                        .lastName("master")
+                        .phoneNumber("1111111111")
+                        .email("admin@gmail.com")
+                        .build();
+                userRepository.save(admin);
+                System.out.println("Admin cargado correctamente");
             }
 
             if (roleRepository.count() == 0) {
