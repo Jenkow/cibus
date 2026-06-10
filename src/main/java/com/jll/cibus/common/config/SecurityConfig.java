@@ -41,10 +41,13 @@ public class SecurityConfig
             Exception {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/users/**")
-                        .hasRole("ADMIN")
-                        .anyRequest()
-                        .authenticated())
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/branches/**").hasRole("ADMIN")
+                        .requestMatchers("/api/products/**").hasRole("ADMIN")
+                        .requestMatchers("/api/statistics/global/**").hasRole("ADMIN")
+                        .requestMatchers("/api/statistics/branch/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/branch-products/**").hasAnyRole("ADMIN", "MANAGER")
+                        .anyRequest().authenticated())
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers
