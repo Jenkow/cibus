@@ -1,6 +1,7 @@
 package com.jll.cibus.user.entity;
 
 import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.role.RoleEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -36,6 +37,10 @@ public class UserEntity {
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role")
+    private RoleEntity role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")

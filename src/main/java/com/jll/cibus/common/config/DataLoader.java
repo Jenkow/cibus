@@ -170,8 +170,11 @@ public class DataLoader {
             }
 
             if(userRepository.count() == 0){
+                RoleEntity adminRole = roleRepository.findByRole(Roles.ADMIN)
+                        .orElseThrow(() -> new RuntimeException("Error: create admin user failed"));
                 UserEntity admin = UserEntity.builder()
                         .dni(0L)
+                        .role(adminRole)
                         .pin("111111")
                         .firstName("admin")
                         .lastName("master")
