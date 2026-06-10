@@ -103,7 +103,7 @@ public class TableService {
                 .orElseThrow(() -> new BusinessException("The user with id " + waiterId + " has no credentials"));
 
         boolean isWaiter = waiterCredentials.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(Roles.ROLE_WAITER.name()));
+                .anyMatch(a -> a.getAuthority().equals(Roles.WAITER.name()));
         if (!isWaiter)
             throw new BusinessException("The user is not a waiter");
 
