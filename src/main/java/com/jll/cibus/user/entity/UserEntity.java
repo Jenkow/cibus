@@ -38,7 +38,7 @@ public class UserEntity {
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
+    @JoinColumn(name = "branch_id")
     private BranchEntity branch;
 
 }

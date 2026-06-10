@@ -33,7 +33,7 @@ public class UserRequestDTO {
     @Email(message = "Invalid format")
     private String email;
 
-    @NotNull(message = "Branch id is mandatory")
+    @Positive
     private Long branchId;
 
     @NotNull(message = "Role is mandatory")
