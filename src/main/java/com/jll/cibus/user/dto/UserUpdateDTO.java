@@ -10,10 +10,13 @@ import lombok.*;
 @Builder
 public class UserUpdateDTO {
 
-
     @Min(value = 1_000_000, message = "Ivalid DNI")
     @Max(value = 99_999_999, message = "Invalid DNI")
     private Long dni;
+
+
+    @Pattern(regexp = "\\d{6}", message = "El PIN debe tener exactamente 6 dígitos")
+    private String pin;
 
 
     @Size(min = 2, max = 50, message = "First name must have between 2 & 50 characters")
