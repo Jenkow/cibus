@@ -111,7 +111,7 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException("The user with id " + dto.getWaiterId() + " has no credentials"));
 
         boolean isWaiter = waiterCredentials.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(Roles.ROLE_WAITER.name()));
+                .anyMatch(a -> a.getAuthority().equals(Roles.WAITER.name()));
 
         if (!isWaiter)
             throw new BusinessException("The user with id " + dto.getWaiterId() + " is not a waiter");
