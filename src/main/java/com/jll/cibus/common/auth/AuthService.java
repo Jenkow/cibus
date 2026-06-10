@@ -19,8 +19,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    public CredentialsEntity authenticate (AuthRequest input)
-    {
+    public CredentialsEntity authenticate(AuthRequest input) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         input.getUsername(),
@@ -28,14 +27,15 @@ public class AuthService {
                 )
         );
         return credentialsRepository.findByUsername(input.getUsername())
-                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     }
+
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
         String username = jwtService.extractUsername(refreshToken);
         CredentialsEntity user = credentialsRepository.findByUsername(username)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (!user.getRefreshToken().equals(refreshToken)) {
             throw new IllegalArgumentException("Refresh token does not match");
         }
@@ -48,7 +48,6 @@ public class AuthService {
         credentialsRepository.save(user);
         return new AuthResponse(newAccessToken, newRefreshToken);
     }
-
 
 
 }

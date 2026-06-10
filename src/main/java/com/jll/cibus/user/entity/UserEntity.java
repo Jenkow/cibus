@@ -22,10 +22,6 @@ public class UserEntity {
     @Column(name = "dni", nullable = false, unique = true)
     private Long dni;
 
-    @Pattern(regexp = "\\d{6}", message = "PIN must have six digits")
-    @Column(name = "pin", nullable = false, unique = true, length = 6)
-    private String pin;
-
     @Column(name = "first_name", nullable = false)
     private String firstName;
 

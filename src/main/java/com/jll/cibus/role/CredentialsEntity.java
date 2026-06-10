@@ -2,6 +2,7 @@ package com.jll.cibus.role;
 
 import com.jll.cibus.user.entity.UserEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class CredentialsEntity implements UserDetails
     private String username;
 
     @Column(nullable = false)
+    @Pattern(regexp = "\\d{6}", message = "PIN must have six digits")
     private String password;
 
     @Column(nullable = false, columnDefinition = "boolean default true")

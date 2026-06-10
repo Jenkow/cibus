@@ -175,7 +175,6 @@ public class DataLoader {
                 UserEntity admin = UserEntity.builder()
                         .dni(0L)
                         .role(adminRole)
-                        .pin("111111")
                         .firstName("admin")
                         .lastName("master")
                         .phoneNumber("1111111111")
