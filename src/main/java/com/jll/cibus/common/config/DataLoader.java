@@ -10,13 +10,15 @@ import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
 import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.repository.ProductRepository;
-import com.jll.cibus.user.entity.UserRoleEntity;
-import com.jll.cibus.user.repository.UserRoleRepository;
+import com.jll.cibus.role.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class DataLoader {
@@ -26,7 +28,8 @@ public class DataLoader {
 
             ProductRepository productRepository,
             ProductCategoryRepository categoryRepository,
-            UserRoleRepository userRoleRepository,
+            RoleRepository roleRepository,
+            PermitRepository permitRepository,
             PaymentMethodRepository paymentMethodRepository,
             OrderStatusRepository orderStatusRepository,
             BranchRepository branchRepository
@@ -146,35 +149,66 @@ public class DataLoader {
                 System.out.println("Menú cargado correctamente.");
             }
 
-            if (userRoleRepository.count() == 0) {
+            if (roleRepository.count() == 0) {
 
-                List<UserRoleEntity> roles = List.of(
+                // 1. Crear todos los permisos
+                Map<Permits, PermitEntity> permisos = new EnumMap<>(Permits.class);
+                for (Permits p : Permits.values()) {
+                    PermitEntity pe = PermitEntity.builder().permit(p).build();
+                    permitRepository.save(pe);
+                    permisos.put(p, pe);
+                }
 
-                        UserRoleEntity.builder()
-                                .name("ADMIN")
-                                .build(),
+                // 2. Helper para construir un RoleEntity con sus permisos
+                // (lambda o método privado)
 
-                        UserRoleEntity.builder()
-                                .name("MANAGER")
-                                .build(),
+                // 3. ROLE_ADMIN — todo
+                RoleEntity admin = new RoleEntity(Roles.ROLE_ADMIN);
+                Arrays.stream(Permits.values()).forEach(p -> admin.addPermit(permisos.get(p)));
 
-                        UserRoleEntity.builder()
-                                .name("HOST")
-                                .build(),
+                // 4. ROLE_MANAGER
+                RoleEntity manager = new RoleEntity(Roles.ROLE_MANAGER);
+                List.of(
+                        Permits.USER_READ, Permits.USER_UPDATE,
+                        Permits.PRODUCT_READ,
+                        Permits.CATEGORY_READ,
+                        Permits.TABLE_READ, Permits.ORDER_READ, Permits.ORDER_STATUS_READ,
+                        Permits.PAYMENT_READ
+                ).forEach(p -> manager.addPermit(permisos.get(p)));
 
-                        UserRoleEntity.builder()
-                                .name("WAITER")
-                                .build(),
+                // 5. ROLE_HOST
+                RoleEntity host = new RoleEntity(Roles.ROLE_HOST);
+                List.of(
+                        Permits.TABLE_READ,  Permits.TABLE_UPDATE,
+                        Permits.TABLE_OPEN, Permits.TABLE_CLOSE,
+                        Permits.ORDER_READ, Permits.ORDER_CREATE, Permits.ORDER_UPDATE,
+                        Permits.ORDER_CANCEL, Permits.ORDER_CLOSE,
+                        Permits.ORDER_STATUS_READ,
+                        Permits.PAYMENT_READ, Permits.PAYMENT_CREATE
+                ).forEach(p -> host.addPermit(permisos.get(p)));
 
-                        UserRoleEntity.builder()
-                                .name("KITCHEN")
-                                .build()
-                );
+                // 6. ROLE_WAITER
+                RoleEntity waiter = new RoleEntity(Roles.ROLE_WAITER);
+                List.of(
+                        Permits.TABLE_READ,
+                        Permits.ORDER_READ, Permits.ORDER_CREATE, Permits.ORDER_UPDATE,
+                        Permits.ORDER_CANCEL, Permits.ORDER_CLOSE,
+                        Permits.ORDER_STATUS_READ,
+                        Permits.PAYMENT_READ, Permits.PAYMENT_CREATE
+                ).forEach(p -> waiter.addPermit(permisos.get(p)));
 
-                userRoleRepository.saveAll(roles);
+                // 7. ROLE_KITCHEN
+                RoleEntity kitchen = new RoleEntity(Roles.ROLE_KITCHEN);
+                List.of(
+                        Permits.ORDER_READ, Permits.ORDER_CHANGE_STATUS,
+                        Permits.ORDER_STATUS_READ,
+                        Permits.ORDER_STATUS_UPDATE
+                ).forEach(p -> kitchen.addPermit(permisos.get(p)));
 
-                System.out.println("Roles cargados correctamente.");
+                roleRepository.saveAll(List.of(admin, manager, host, waiter, kitchen));
+                System.out.println("Roles y permisos cargados correctamente.");
             }
+
 
             if (paymentMethodRepository.count() == 0) {
 
