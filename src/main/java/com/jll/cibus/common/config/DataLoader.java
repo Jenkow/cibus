@@ -163,11 +163,11 @@ public class DataLoader {
                 // (lambda o método privado)
 
                 // 3. ROLE_ADMIN — todo
-                RoleEntity admin = new RoleEntity(Roles.ROLE_ADMIN);
+                RoleEntity admin = new RoleEntity(Roles.ADMIN);
                 Arrays.stream(Permits.values()).forEach(p -> admin.addPermit(permisos.get(p)));
 
                 // 4. ROLE_MANAGER
-                RoleEntity manager = new RoleEntity(Roles.ROLE_MANAGER);
+                RoleEntity manager = new RoleEntity(Roles.MANAGER);
                 List.of(
                         Permits.USER_READ, Permits.USER_UPDATE,
                         Permits.PRODUCT_READ,
@@ -177,7 +177,7 @@ public class DataLoader {
                 ).forEach(p -> manager.addPermit(permisos.get(p)));
 
                 // 5. ROLE_HOST
-                RoleEntity host = new RoleEntity(Roles.ROLE_HOST);
+                RoleEntity host = new RoleEntity(Roles.HOST);
                 List.of(
                         Permits.TABLE_READ,  Permits.TABLE_UPDATE,
                         Permits.TABLE_OPEN, Permits.TABLE_CLOSE,
@@ -188,7 +188,7 @@ public class DataLoader {
                 ).forEach(p -> host.addPermit(permisos.get(p)));
 
                 // 6. ROLE_WAITER
-                RoleEntity waiter = new RoleEntity(Roles.ROLE_WAITER);
+                RoleEntity waiter = new RoleEntity(Roles.WAITER);
                 List.of(
                         Permits.TABLE_READ,
                         Permits.ORDER_READ, Permits.ORDER_CREATE, Permits.ORDER_UPDATE,
@@ -198,7 +198,7 @@ public class DataLoader {
                 ).forEach(p -> waiter.addPermit(permisos.get(p)));
 
                 // 7. ROLE_KITCHEN
-                RoleEntity kitchen = new RoleEntity(Roles.ROLE_KITCHEN);
+                RoleEntity kitchen = new RoleEntity(Roles.KITCHEN);
                 List.of(
                         Permits.ORDER_READ, Permits.ORDER_CHANGE_STATUS,
                         Permits.ORDER_STATUS_READ,
