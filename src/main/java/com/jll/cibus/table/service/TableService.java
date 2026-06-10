@@ -1,10 +1,11 @@
 package com.jll.cibus.table.service;
 
-import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.common.service.RoleValidatorService;
+import com.jll.cibus.role.CredentialsEntity;
+import com.jll.cibus.role.CredentialsRepository;
+import com.jll.cibus.role.Roles;
 import com.jll.cibus.table.dto.TableCreateDTO;
 import com.jll.cibus.table.dto.TableUpdateDTO;
 import com.jll.cibus.table.dto.TableResponseDTO;
@@ -18,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class TableService {
     private final TableRepository tableRepository;
     private final TableMapper tableMapper;
     private final BranchService branchService;
-    private final RoleValidatorService roleValidatorService;
+    private final CredentialsRepository credentialsRepository;
     private final UserService userService;
 
 
@@ -97,10 +97,15 @@ public class TableService {
 
         if (!table.getAvailable())
             throw new BusinessException("The table is already occupied");
-        if (!roleValidatorService.isWaiter(waiterId))
-            throw new BusinessException("The user is not a waiter");
+        UserEntity waiter = userService.getEntityById(waiterId);
+        CredentialsEntity waiterCredentials = credentialsRepository
+                .findByUsuarioId(waiterId)
+                .orElseThrow(() -> new BusinessException("The user with id " + waiterId + " has no credentials"));
 
-        UserEntity waiter = userService.getEntityByDni(waiterId);
+        boolean isWaiter = waiterCredentials.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(Roles.ROLE_WAITER.name()));
+        if (!isWaiter)
+            throw new BusinessException("The user is not a waiter");
 
         table.setAvailable(false);
         table.setWaiter(waiter);
