@@ -4,10 +4,8 @@ import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.common.service.RoleValidatorService;
 import com.jll.cibus.order.dto.OrderStatusDTO;
 import com.jll.cibus.order.dto.OrderUpdateDTO;
-import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
 import com.jll.cibus.order.entity.OrderEntity;
@@ -19,9 +17,10 @@ import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.payment.dto.DiscountRequestDTO;
 import com.jll.cibus.payment.dto.PaymentDTO;
-import com.jll.cibus.payment.repository.OrderPaymentRepository;
-import com.jll.cibus.payment.repository.PaymentMethodRepository;
 import com.jll.cibus.payment.service.PaymentService;
+import com.jll.cibus.role.CredentialsEntity;
+import com.jll.cibus.role.CredentialsRepository;
+import com.jll.cibus.role.Roles;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
@@ -47,8 +46,8 @@ public class OrderService {
     private final UserService userService;
     private final TableService tableService;
     private final BranchService branchService;
-    private final RoleValidatorService roleValidatorService;
     private final PaymentService paymentService;
+    private final CredentialsRepository credentialsRepository;
 
 
     public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
@@ -106,8 +105,17 @@ public class OrderService {
     private void validateOrderRequest(Long branchId, OrderRequestDTO dto) {
         if (!userService.existsById(dto.getWaiterId()))
             throw new ResourceNotFoundException("User ID" + dto.getWaiterId());
-        if (!roleValidatorService.isWaiter(dto.getWaiterId()))
+
+        CredentialsEntity waiterCredentials = credentialsRepository
+                .findByUsuarioId(dto.getWaiterId())
+                .orElseThrow(() -> new BusinessException("The user with id " + dto.getWaiterId() + " has no credentials"));
+
+        boolean isWaiter = waiterCredentials.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(Roles.ROLE_WAITER.name()));
+
+        if (!isWaiter)
             throw new BusinessException("The user with id " + dto.getWaiterId() + " is not a waiter");
+
         if (!tableService.existsByBranchIdAndNumber(branchId, dto.getTableNumber()))
             throw new ResourceNotFoundException("Table number ", dto.getTableNumber());
     }
@@ -124,9 +132,6 @@ public class OrderService {
         TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
         UserEntity waiter = userService.getEntityById(dto.getWaiterId());
         //VERIFICO QUE SEA WAITER
-        if (!waiter.getRole().getName().equalsIgnoreCase("waiter")) {
-            throw new BusinessException("The user " + waiter.getId() + " is not a waiter");
-        }
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
         if (table.getWaiter() == null || !table.getWaiter().getId().equals(waiter.getId())) {
             throw new BusinessException(waiter.getFirstName() + " is not working with table n " + table.getNumber());
