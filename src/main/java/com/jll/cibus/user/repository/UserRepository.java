@@ -1,12 +1,9 @@
 package com.jll.cibus.user.repository;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -32,9 +29,6 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>, JpaSpeci
 
     List<UserEntity> findByBranchId (Long branchId);
 
-    List<UserEntity> findByRole (UserRoleEntity role);
-
-    List<UserEntity> findByRoleId (Long id);
     
     boolean existsByDni (Long dni);
 
