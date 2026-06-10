@@ -48,7 +48,7 @@ public class UserRequestDTO
     @NotNull(message = "Branch id is mandatory")
     private Long branchId;
 
-    @NotNull(message = "User role id is mandatory")
-    private Long userRoleId;
+    @NotNull(message = "Role is mandatory")
+    private String role;
 
 }
