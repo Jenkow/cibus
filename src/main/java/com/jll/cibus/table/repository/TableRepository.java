@@ -15,7 +15,9 @@ public interface TableRepository extends JpaRepository<TableEntity, Long> {
 
     List<TableEntity> findByBranchId(Long branchId);
 
-    Optional<TableEntity> findByBranchIdAndNumber(Long branchId, Integer number);
+    Optional<TableEntity> findByBranch_IdAndNumber(Long branchId, Integer number);
+
+    List<TableEntity> findByWaiter_id(Long waiterId);
 
 
     boolean existsById(Long id);

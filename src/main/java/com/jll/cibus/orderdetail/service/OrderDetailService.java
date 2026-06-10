@@ -8,6 +8,7 @@ import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.entity.OrderEntity;
 import com.jll.cibus.orderdetail.dto.OrderDetailRequestDTO;
 import com.jll.cibus.orderdetail.dto.OrderDetailResponseDTO;
+import com.jll.cibus.orderdetail.dto.OrderDetailUpdateDTO;
 import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
 import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -42,22 +44,6 @@ public class OrderDetailService {
                 .toList();
     }
 
-    private OrderDetailEntity getEntity(Long id) {
-        return orderDetailRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("order detail", id));
-    }
-
-    public OrderDetailResponseDTO getById(Long orderId, Long id) {
-        OrderDetailEntity entity = getEntity(id);
-       /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
-            throw new BusinessException("No existe la orden " + orderId);
-        }*/
-        if(!entity.getOrder().getId().equals(orderId)){
-            throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
-        }
-        return orderDetailMapper.toDTO(entity);
-    }
-
     public List<OrderDetailResponseDTO> getByOrderId (Long orderId){
         orderService.getEntity(orderId);
         List<OrderDetailEntity> entities = orderDetailRepository.findByOrderId(orderId);
@@ -66,39 +52,66 @@ public class OrderDetailService {
                 .toList();
     }
 
-    public OrderDetailEntity getByOrderIdAndProductId (Long orderId, Long productId){
+    private OrderDetailEntity getEntityByOrderIdAndProductId(Long orderId, Long productId){
+        if(!orderService.existsById(orderId)){
+            throw new ResourceNotFoundException("order ID", orderId);
+        }
+        if(!productService.existsById(productId)){
+            throw new ResourceNotFoundException("product ID", productId);
+        }
         return orderDetailRepository.findByOrderIdAndProductId(orderId, productId)
-                .orElseThrow(() -> new ResourceNotFoundException("No existe un detalle para la orden " + orderId + " y el producto " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("detail of product", productId));
+    }
+
+    public OrderDetailResponseDTO getByOrderIdAndProductId (Long orderId, Long productId){
+        return orderDetailMapper.toDTO(getEntityByOrderIdAndProductId(orderId, productId));
     }
 
     @Transactional
     public OrderDetailResponseDTO create(Long orderId, OrderDetailRequestDTO dto) {
+        OrderEntity order = orderService.getEntity(orderId);
+        if(orderService.productExistsInDetails(orderId, dto.getProductId())){
+            if(order.getStatus().getName().equalsIgnoreCase("CANCELLED") || order.getStatus().getName().equalsIgnoreCase("PAID")){
+                throw new BusinessException("The order "+orderId+" is already closed");
+            }
+            OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, dto.getProductId());
+            entity.setQuantity(entity.getQuantity()+dto.getQuantity());
+            OrderDetailEntity saved = orderDetailRepository.save(entity);
+            orderService.recalculateTotals(orderId);
+            return orderDetailMapper.toDTO(saved);
+        }
         OrderDetailEntity entity = orderDetailMapper.toEntity(dto);
         ProductEntity product = productService.getEntity(dto.getProductId());
-        OrderEntity order = orderService.getEntity(orderId);
         BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(order.getBranch().getId(), product.getId());
         validateAvailability(productInBranch);
         entity.setUnitPrice(productInBranch.getPrice());
         entity.setProduct(product);
         entity.setOrder(order);
+        if(dto.getObservation() == null){
+            entity.setObservation("");                                        //Me parece mejor cadena vacia a que quede un null.
+        }
+        orderService.changeStatus(orderId, "PREPARING");
         OrderDetailEntity saved = orderDetailRepository.save(entity);
+        orderService.recalculateTotals(entity.getOrder().getId());
         return orderDetailMapper.toDTO(saved);
     }
 
     @Transactional
-    public OrderDetailResponseDTO update (Long orderId, Long id, OrderDetailRequestDTO dto){
-        OrderDetailEntity entity = getEntity(id);
+    public OrderDetailResponseDTO update (Long orderId, Long productId, OrderDetailUpdateDTO dto){
+        OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, productId);
         OrderEntity order = orderService.getEntity(orderId);
         entity.setOrder(order);
+        /*
         if(dto.getProductId() != null){
             ProductEntity product = productService.getEntity(dto.getProductId());
-            BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(
-                            entity.getOrder().getBranch().getId(),
+            BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(              Yo creo que no se deberia poder cambiar el producto del detalle.
+                            entity.getOrder().getBranch().getId(),                                               Un detalle en una orden es decir que producto hay en esa orden, si quiere cambiar el producto que cree otro detalle.
                             product.getId());
             validateAvailability(productInBranch);
             entity.setProduct(product);
             entity.setUnitPrice(productInBranch.getPrice());
         }
+         */
         if(dto.getObservation() != null){
             entity.setObservation(dto.getObservation());
         }
@@ -106,19 +119,15 @@ public class OrderDetailService {
             entity.setQuantity(dto.getQuantity());
         }
         OrderDetailEntity saved = orderDetailRepository.save(entity);
+        orderService.recalculateTotals(entity.getOrder().getId());
         return orderDetailMapper.toDTO(saved);
     }
 
     @Transactional
-    public void delete(Long orderId, Long id){
-        OrderDetailEntity entity = getEntity(id);
-        /* if(orderService.existsById){            FALTA METODO EXISTBYID EN ORDERSERVICE
-            throw new BusinessException("No existe la orden " + orderId);
-        }*/
-        if(!entity.getOrder().getId().equals(orderId)){
-            throw new BusinessException("El detalle " + id + " no pertenece a la orden " + orderId);
-        }
+    public void delete(Long orderId, Long productId){
+        OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, productId);
         orderDetailRepository.delete(entity);
+        orderService.recalculateTotals(entity.getOrder().getId());
     }
 
 }

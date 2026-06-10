@@ -2,8 +2,10 @@ package com.jll.cibus.orderdetail.controller;
 
 import com.jll.cibus.orderdetail.dto.OrderDetailRequestDTO;
 import com.jll.cibus.orderdetail.dto.OrderDetailResponseDTO;
+import com.jll.cibus.orderdetail.dto.OrderDetailUpdateDTO;
 import com.jll.cibus.orderdetail.service.OrderDetailService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,23 +13,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/orders/{orderId}/details")
+@RequestMapping("/api/orders/{orderId}/items")
+@RequiredArgsConstructor
 public class OrderDetailController {
 
     private final OrderDetailService orderDetailService;
-
-    public OrderDetailController(OrderDetailService orderDetailService){
-        this.orderDetailService = orderDetailService;
-    }
 
     @GetMapping
     public ResponseEntity<List<OrderDetailResponseDTO>> getDetailsByOrderId(@PathVariable Long orderId){
         return ResponseEntity.ok(orderDetailService.getByOrderId(orderId));
     }
 
-    @GetMapping("/{detailId}")
-    public ResponseEntity<OrderDetailResponseDTO> getById(@PathVariable Long orderId, @PathVariable Long detailId){
-        return ResponseEntity.ok(orderDetailService.getById(orderId, detailId));
+    @GetMapping("/{productId}")
+    public ResponseEntity<OrderDetailResponseDTO> getById(@PathVariable Long orderId, @PathVariable Long productId){
+        return ResponseEntity.ok(orderDetailService.getByOrderIdAndProductId(orderId, productId));
     }
 
     @PostMapping
@@ -35,14 +34,14 @@ public class OrderDetailController {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderDetailService.create(orderId, detail));
     }
 
-    @PutMapping("/{detailId}")
-    public ResponseEntity<OrderDetailResponseDTO> update(@PathVariable Long orderId, @PathVariable Long detailId, @Valid @RequestBody OrderDetailRequestDTO detail){
-        return ResponseEntity.ok(orderDetailService.update(orderId, detailId, detail));
+    @PutMapping("/{productId}")
+    public ResponseEntity<OrderDetailResponseDTO> update(@PathVariable Long orderId, @PathVariable Long productId, @Valid @RequestBody OrderDetailUpdateDTO detail){
+        return ResponseEntity.ok(orderDetailService.update(orderId, productId, detail));
     }
 
-    @DeleteMapping("/{detailId}")
-    public ResponseEntity<?> delete(@PathVariable Long orderId, @PathVariable Long detailId){
-        orderDetailService.delete(orderId, detailId);
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<?> delete(@PathVariable Long orderId, @PathVariable Long productId){
+        orderDetailService.delete(orderId, productId);
         return ResponseEntity.noContent().build();
     }
 }

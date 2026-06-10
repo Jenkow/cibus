@@ -13,30 +13,30 @@ public class RoleValidatorService {
         this.userRepository = userRepository;
     }
 
-    public boolean isAdmin(Long dni){
-        UserEntity user = userRepository.findByDni(dni)
-                .orElseThrow( () -> new ResourceNotFoundException("DNI", dni));
+    public boolean isAdmin(Long id){
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("ID", id));
 
         return user.getRole().getName().equalsIgnoreCase("ADMIN");
     }
 
-    public boolean isWaiter(Long dni){
-        UserEntity user = userRepository.findByDni(dni)
-                .orElseThrow( () -> new ResourceNotFoundException("DNI", dni));
+    public boolean isWaiter(Long id){
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("ID", id));
 
         return user.getRole().getName().equalsIgnoreCase("WAITER");
     }
 
-    public boolean isHost(Long dni){
-        UserEntity user = userRepository.findByDni(dni)
-                .orElseThrow( () -> new ResourceNotFoundException("DNI", dni));
+    public boolean isHost(Long id){
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("ID", id));
 
         return user.getRole().getName().equalsIgnoreCase("HOST");
     }
 
-    public boolean isKitchen(Long dni){
-        UserEntity user = userRepository.findByDni(dni)
-                .orElseThrow( () -> new ResourceNotFoundException("DNI", dni));
+    public boolean isKitchen(Long id){
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("ID", id));
 
         return user.getRole().getName().equalsIgnoreCase("KITCHEN");
     }

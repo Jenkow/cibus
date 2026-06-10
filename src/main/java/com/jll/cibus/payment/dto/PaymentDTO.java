@@ -1,8 +1,9 @@
-package com.jll.cibus.branchproduct.dto;
+package com.jll.cibus.payment.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
+
 import java.math.BigDecimal;
 
 @Getter
@@ -10,13 +11,14 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BranchProductRequestDTO {
-
-    @NotNull
-    private Long productId;
+public class PaymentDTO {
 
     @NotNull
     @Positive
-    private BigDecimal price;
+    private Long paymentMethodId;
+
+    @NotNull
+    @Positive
+    private BigDecimal amount;
 
 }

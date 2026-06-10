@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentRequestDTO {
+public class PaymentMethodRequestDTO {
 
     @NotBlank(message = "Name is required")
     @Size(max = 100, message = "Name can't be longer than 100 characters")

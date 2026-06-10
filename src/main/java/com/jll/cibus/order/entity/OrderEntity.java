@@ -24,6 +24,10 @@ public class OrderEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private BranchEntity branch;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_id", nullable = false)
     private TableEntity table;
 
@@ -32,30 +36,23 @@ public class OrderEntity {
     private UserEntity waiter;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    private BranchEntity branch;
-
-    @Column(name="paid", nullable = false)
-    private Boolean paid;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
     private OrderStatusEntity status;
 
     @CreationTimestamp
-    @Column(name = "date_time", nullable = false, updatable = false)
-    private LocalDateTime dateTime;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name="total", nullable = false, precision=10, scale=2)
-    private BigDecimal total;
+    @Column(name = "closed_at")
+    private LocalDateTime closedAt;
 
-    /*
-    created_at
-    closed_at
-    subtotal
-    discount
-    final_total
-    payment_method
-     */
+    @Column(name="subtotal", nullable = false, precision=10, scale=2)
+    private BigDecimal subtotal;
+
+    @Column(name="discount", precision=10, scale=2)
+    private BigDecimal discount;
+
+    @Column(name="finalTotal", nullable = false, precision=10, scale=2)
+    private BigDecimal finalTotal;
 
 }

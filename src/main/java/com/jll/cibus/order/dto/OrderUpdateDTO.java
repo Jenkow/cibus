@@ -1,6 +1,5 @@
 package com.jll.cibus.order.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,14 +10,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderRequestDTO {
+public class OrderUpdateDTO {
 
-    @NotNull(message = "Table is required")
     @Positive
     private Integer tableNumber;
-
-    @NotNull(message = "Waiter is required")
-    @Positive
-    private Long waiterId;
 
 }

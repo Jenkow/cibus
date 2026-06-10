@@ -1,81 +1,90 @@
 package com.jll.cibus.payment.service;
 
-import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
+import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.payment.dto.PaymentRequestDTO;
-import com.jll.cibus.payment.dto.PaymentResponseDTO;
-import com.jll.cibus.payment.entity.PaymentEntity;
-import com.jll.cibus.payment.mapper.PaymentMapper;
-import com.jll.cibus.payment.repository.PaymentRepository;
+import com.jll.cibus.order.entity.OrderEntity;
+import com.jll.cibus.order.repository.OrderRepository;
+import com.jll.cibus.order.repository.OrderStatusRepository;
+import com.jll.cibus.order.service.OrderStatusService;
+import com.jll.cibus.payment.dto.DiscountRequestDTO;
+import com.jll.cibus.payment.dto.PaymentDTO;
+import com.jll.cibus.payment.entity.OrderPaymentEntity;
+import com.jll.cibus.payment.entity.PaymentMethodEntity;
+import com.jll.cibus.payment.repository.OrderPaymentRepository;
+import com.jll.cibus.payment.repository.PaymentMethodRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
 
-    private final PaymentRepository paymentRepository;
-    private final PaymentMapper paymentMapper;
+    private final OrderPaymentRepository orderPaymentRepository;
+    private final PaymentMethodRepository paymentMethodRepository;
+    private final OrderStatusService orderStatusService;
+    private final OrderRepository orderRepository;
 
-    public List<PaymentResponseDTO> findAll(){
-        List<PaymentEntity> payments = paymentRepository.findAll();
-        return payments.stream()
-                .map(paymentMapper::toDTO)
-                .toList();
+    public List<OrderPaymentEntity> getPayments(Long orderId){
+        return orderPaymentRepository.findByOrder_Id(orderId);
     }
 
-    public PaymentEntity getEntity(Long id){
-        return paymentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("id",id));
+    public BigDecimal getTotalPaid(Long orderId) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
+        return getPayments(orderId)
+                .stream()
+                .map(OrderPaymentEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public PaymentEntity getEntityByName(String name){
-        return paymentRepository.findByName(name)
-                .orElseThrow(() -> new ResourceNotFoundException("name",name));
-    }
-
-    public PaymentResponseDTO findById(Long id){
-        PaymentEntity payment = getEntity(id);
-        return paymentMapper.toDTO(payment);
-    }
-
-    public List<PaymentResponseDTO> findByName(String name){
-        List<PaymentEntity> payments = paymentRepository.findByNameContaining(name);
-        return payments.stream()
-                .map(paymentMapper::toDTO)
-                .toList();
-    }
-
-    public void existsByName(String name){
-        if(paymentRepository.existsByName(name)){
-            throw new ResourceAlreadyExistsException("name", name);
+    @Transactional
+    public PaymentDTO addPayment(OrderEntity order, PaymentDTO payment){
+        if (payment.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Amount must be greater than zero");
         }
+        BigDecimal totalPaid = getTotalPaid(order.getId());
+        BigDecimal remainingAmount = order.getFinalTotal().subtract(totalPaid);
+        if(payment.getAmount().compareTo(remainingAmount) > 0){
+            throw new BusinessException("Payment amount exceeds remaining balance");
+        }
+        PaymentMethodEntity paymentMethod = paymentMethodRepository.findById(payment.getPaymentMethodId())
+                .orElseThrow(() -> new ResourceNotFoundException("payment method ID", payment.getPaymentMethodId()));
+        OrderPaymentEntity paymentEntity = OrderPaymentEntity.builder()
+                .order(order)
+                .paymentMethod(paymentMethod)
+                .amount(payment.getAmount())
+                .build();
+        OrderPaymentEntity saved = orderPaymentRepository.save(paymentEntity);
+        if (totalPaid.add(paymentEntity.getAmount()).compareTo(order.getFinalTotal()) >= 0) {
+            orderStatusService.changeOrderStatus(order, "PAID");
+            order.setClosedAt(LocalDateTime.now());
+            orderRepository.save(order);
+        }
+        return PaymentDTO.builder()
+                .paymentMethodId(saved.getPaymentMethod().getId())
+                .amount(saved.getAmount())
+                .build();
     }
 
     @Transactional
-    public PaymentResponseDTO create(PaymentRequestDTO newPayment){
-        existsByName(newPayment.getName());
-        PaymentEntity payment = paymentMapper.toEntity(newPayment);
-        PaymentEntity saved = paymentRepository.save(payment);
-        return paymentMapper.toDTO(saved);
-    }
-
-    @Transactional
-    public PaymentResponseDTO update(Long id, PaymentRequestDTO newPayment){
-        existsByName(newPayment.getName());
-        PaymentEntity payment = getEntity(id);
-        payment.setName(newPayment.getName());
-        PaymentEntity saved = paymentRepository.save(payment);
-        return paymentMapper.toDTO(saved);
-    }
-
-    @Transactional
-    public void delete(Long id){
-        PaymentEntity payment = getEntity(id);
-        paymentRepository.delete(payment);
+    public OrderEntity applyDiscount(OrderEntity order, DiscountRequestDTO discount){
+        if(discount.getAmount().compareTo(BigDecimal.ZERO) <= 0){
+            throw new BusinessException("Discount must be greater than zero");
+        }
+        if(discount.getAmount().compareTo(order.getFinalTotal()) > 0){
+            throw new BusinessException("Discount cannot exceed final total");
+        }
+        BigDecimal totalPaid = getTotalPaid(order.getId());
+        BigDecimal maxDiscount = order.getFinalTotal().subtract(totalPaid);
+        if (discount.getAmount().compareTo(maxDiscount) > 0) {
+            throw new BusinessException("Discount cannot exceed remaining balance");
+        }
+        order.setDiscount(order.getDiscount().add(discount.getAmount()));
+        order.setFinalTotal(order.getFinalTotal().subtract(discount.getAmount()));
+        return orderRepository.save(order);
     }
 
 }

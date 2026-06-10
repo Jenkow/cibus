@@ -18,5 +18,7 @@ public class UserResponseDTO
     private String phoneNumber;
     private String email;
     private Long branchId;
+    private String branchName;
     private Long userRoleId;
+    private String userRoleName;
 }

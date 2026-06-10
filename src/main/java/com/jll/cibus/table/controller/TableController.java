@@ -37,33 +37,38 @@ public class TableController {
         return ResponseEntity.ok(tableService.findByBranchIdAndNumber(branchId, number));
     }
 
+    @GetMapping("/waiter/{waiterId}")
+    public ResponseEntity<List<TableResponseDTO>> getByBranchIdAndNumber(@PathVariable Long waiterId) {
+        return ResponseEntity.ok(tableService.findByWaiterId(waiterId));
+    }
+
     @PostMapping
     public ResponseEntity<TableResponseDTO> create(@PathVariable Long branchId, @Valid @RequestBody TableCreateDTO dto) {
         TableResponseDTO response = tableService.create(dto, branchId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/{tableId}/occupy")
-    public ResponseEntity<TableResponseDTO> occupy(@PathVariable Long branchId, @PathVariable Long tableId, @Valid @RequestBody TableUpdateDTO table) {
+    @PatchMapping("/{tableNumber}/occupy")
+    public ResponseEntity<TableResponseDTO> occupy(@PathVariable Long branchId, @PathVariable Integer tableNumber, @Valid @RequestBody TableUpdateDTO table) {
         if(table.getWaiterId() == null){
             throw new BusinessException("Waiter ID is needed to ocuppy a table");
         }
-        return ResponseEntity.ok(tableService.occupy(tableId, table.getWaiterId()));
+        return ResponseEntity.ok(tableService.occupy(branchId, tableNumber, table.getWaiterId()));
     }
 
-    @PatchMapping("/{tableId}/free")
-    public ResponseEntity<TableResponseDTO> free(@PathVariable Long branchId, @PathVariable Long tableId) {
-        return ResponseEntity.ok(tableService.free(tableId));
+    @PatchMapping("/{tableNumber}/free")
+    public ResponseEntity<TableResponseDTO> free(@PathVariable Long branchId, @PathVariable Integer tableNumber) {
+        return ResponseEntity.ok(tableService.free(branchId, tableNumber));
     }
 
-    @PutMapping("/{tableId}")
-    public ResponseEntity<TableResponseDTO> update(@PathVariable Long branchId, @PathVariable Long tableId, @Valid @RequestBody TableUpdateDTO table) {
-        return ResponseEntity.ok(tableService.update(tableId, table));
+    @PutMapping("/{tableNumber}")
+    public ResponseEntity<TableResponseDTO> update(@PathVariable Long branchId, @PathVariable Integer tableNumber, @Valid @RequestBody TableUpdateDTO table) {
+        return ResponseEntity.ok(tableService.update(branchId, tableNumber, table));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long branchId, @PathVariable Long id) {
-        tableService.delete(id);
+    @DeleteMapping("/{tableNumber}")
+    public ResponseEntity<Void> delete(@PathVariable Long branchId, @PathVariable Integer tableNumber) {
+        tableService.delete(branchId, tableNumber);
         return ResponseEntity.noContent().build();
     }
 }

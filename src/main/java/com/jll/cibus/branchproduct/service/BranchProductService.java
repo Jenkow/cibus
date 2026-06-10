@@ -1,7 +1,6 @@
 package com.jll.cibus.branchproduct.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.branchproduct.dto.BranchProductRequestDTO;
 import com.jll.cibus.branchproduct.dto.BranchProductResponseDTO;
@@ -9,19 +8,24 @@ import com.jll.cibus.branchproduct.dto.BranchProductUpdateDTO;
 import com.jll.cibus.branchproduct.entity.BranchProductEntity;
 import com.jll.cibus.branchproduct.mapper.BranchProductMapper;
 import com.jll.cibus.branchproduct.repository.BranchProductRepository;
+import com.jll.cibus.branchproduct.specification.BranchProductSpecification;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.product.entity.ProductEntity;
-import com.jll.cibus.product.repository.ProductRepository;
 import com.jll.cibus.product.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class BranchProductService {
 
     private final BranchProductRepository branchProductRepository;
@@ -29,57 +33,20 @@ public class BranchProductService {
     private final BranchService branchService;
     private final ProductService productService;
 
-    public BranchProductService(BranchProductRepository branchProductRepository, BranchProductMapper branchProductMapper, BranchService branchService, ProductService productService) {
-        this.branchProductRepository = branchProductRepository;
-        this.branchProductMapper = branchProductMapper;
-        this.branchService = branchService;
-        this.productService = productService;
-    }
 
-    public List<BranchProductResponseDTO> getByBranchId(Long branchId){
-        if(!branchService.existsById(branchId)){
-            throw new ResourceNotFoundException("branch", branchId);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_Id(branchId);
-        return products.stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
+    public Page<BranchProductResponseDTO> findAll(Pageable pageable, Long branchId, Long productId, String productName, Long categoryId, Boolean available, BigDecimal minPrice, BigDecimal maxPrice){
+        Specification<BranchProductEntity> spec = Specification.allOf(
+                BranchProductSpecification.equalsBranchId(branchId),
+                BranchProductSpecification.equalsProductId(productId),
+                BranchProductSpecification.containsProductName(productName),
+                BranchProductSpecification.equalsCategoryId(categoryId),
+                BranchProductSpecification.isAvailable(available),
+                BranchProductSpecification.priceGreaterThanOrEqualTo(minPrice),
+                BranchProductSpecification.priceLessThanOrEqualTo(maxPrice)
+        );
 
-    public List<BranchProductResponseDTO> getByBranchName(String branchName){
-        if(!branchService.existsByName(branchName)){
-            throw new ResourceNotFoundException("branch", branchName);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_Name(branchName);
-        return products.stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
-
-    public List<BranchProductResponseDTO> findAvailableByBranchId(Long branchId){
-        if(!branchService.existsById(branchId)){
-            throw new ResourceNotFoundException("branch", branchId);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_IdAndAvailableTrue(branchId);
-        return products.stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
-
-    public List<BranchProductResponseDTO> findAvailableByBranchName(String branchName){
-        if(!branchService.existsByName(branchName)){
-            throw new ResourceNotFoundException("branch", branchName);
-        }
-        List<BranchProductEntity> products = branchProductRepository.findAllByBranch_NameAndAvailableTrue(branchName);
-        return products.stream()
-                .map(branchProductMapper::toDTO)
-                .toList();
-    }
-
-    public BranchProductResponseDTO getById(Long id){
-        BranchProductEntity product = branchProductRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Menu Item", id));
-        return branchProductMapper.toDTO(product);
+        return branchProductRepository.findAll(spec, pageable)
+                .map(branchProductMapper::toDTO);
     }
 
     public BranchProductEntity getEntity(Long id){
@@ -95,17 +62,15 @@ public class BranchProductService {
     }
 
     public BranchProductResponseDTO getByBranchAndProduct(Long branchId, Long productId){
-        branchService.getEntity(branchId);
-        productService.getEntity(productId);
-        BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
-        return branchProductMapper.toDTO(entity);
+        BranchProductEntity product = getEntityByBranchAndProduct(branchId, productId);
+        return branchProductMapper.toDTO(product);
     }
 
-    public BranchProductResponseDTO create (BranchProductRequestDTO dto){
-        BranchEntity branch = branchService.getEntity(dto.getBranchId());
+    public BranchProductResponseDTO create (Long branchId, BranchProductRequestDTO dto){
+        BranchEntity branch = branchService.getEntity(branchId);
         ProductEntity product = productService.getEntity(dto.getProductId());
-        if(branchProductRepository.existsByBranch_IdAndProduct_Id(dto.getBranchId(), dto.getProductId())){
-            throw new ResourceAlreadyExistsException("El producto con id"+dto.getProductId()+" ya existe en la sucursal con id"+dto.getBranchId());
+        if(branchProductRepository.existsByBranch_IdAndProduct_Id(branchId, dto.getProductId())){
+            throw new ResourceAlreadyExistsException("El producto con id"+dto.getProductId()+" ya existe en la sucursal con id"+branchId);
         }
         BranchProductEntity entity = branchProductMapper.toEntity(dto);
         entity.setBranch(branch);
@@ -115,8 +80,8 @@ public class BranchProductService {
         return branchProductMapper.toDTO(saved);
     }
 
-    public BranchProductResponseDTO update(Long id, BranchProductUpdateDTO dto){
-        BranchProductEntity entity = getEntity(id);
+    public BranchProductResponseDTO update(Long branchId, Long productId, BranchProductUpdateDTO dto){
+        BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         if(dto.getPrice() != null){
             entity.setPrice(dto.getPrice());
         }
@@ -141,8 +106,9 @@ public class BranchProductService {
         changeAvailability(id, Boolean.FALSE);
     }
 
-    public void delete(Long id){
-        BranchProductEntity entity = getEntity(id);
+    public void delete(Long branchId, Long productId){
+        BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         branchProductRepository.delete(entity);
     }
+
 }

@@ -1,7 +1,11 @@
 package com.jll.cibus.common.config;
 
-import com.jll.cibus.payment.entity.PaymentEntity;
-import com.jll.cibus.payment.repository.PaymentRepository;
+import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.branch.repository.BranchRepository;
+import com.jll.cibus.order.entity.OrderStatusEntity;
+import com.jll.cibus.order.repository.OrderStatusRepository;
+import com.jll.cibus.payment.entity.PaymentMethodEntity;
+import com.jll.cibus.payment.repository.PaymentMethodRepository;
 import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
 import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.product.entity.ProductEntity;
@@ -23,7 +27,10 @@ public class DataLoader {
             ProductRepository productRepository,
             ProductCategoryRepository categoryRepository,
             UserRoleRepository userRoleRepository,
-            PaymentRepository paymentRepository) {
+            PaymentMethodRepository paymentMethodRepository,
+            OrderStatusRepository orderStatusRepository,
+            BranchRepository branchRepository
+    ) {
 
         return args -> {
 
@@ -169,31 +176,86 @@ public class DataLoader {
                 System.out.println("Roles cargados correctamente.");
             }
 
-            if (paymentRepository.count() == 0) {
+            if (paymentMethodRepository.count() == 0) {
 
-                List<PaymentEntity> payments = List.of(
+                List<PaymentMethodEntity> payments = List.of(
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("EFECTIVO")
                                 .build(),
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("CREDITO")
                                 .build(),
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("DEBITO")
                                 .build(),
 
-                        PaymentEntity.builder()
+                        PaymentMethodEntity.builder()
                                 .name("MERCADO PAGO")
                                 .build()
                 );
 
-                paymentRepository.saveAll(payments);
+                paymentMethodRepository.saveAll(payments);
 
                 System.out.println("Medios de pago cargados correctamente.");
             }
+            if (orderStatusRepository.count() == 0)
+            {
+                List<OrderStatusEntity> orderStatus = List.of(
+                        OrderStatusEntity.builder()
+                                .name("PENDING")
+                                .build(),
+                        OrderStatusEntity.builder()
+                                .name("PREPARING")
+                                .build(),
+                        OrderStatusEntity.builder()
+                                        .name("READY")
+                                        .build(),
+                        OrderStatusEntity.builder()
+                                .name("SERVED")
+                                .build(),
+                        OrderStatusEntity.builder()
+                                .name("PAID")
+                                .build(),
+                        OrderStatusEntity.builder()
+                                .name("CANCELLED")
+                                .build()
+                );
+
+                orderStatusRepository.saveAll(orderStatus);
+
+                System.out.println("Estados de orden cargados correctamente.");
+            }
+            if (branchRepository.count() == 0) {
+
+                List<BranchEntity> branches = List.of(
+
+                        BranchEntity.builder()
+                                .name("Sucursal Centro")
+                                .street("San Martín")
+                                .number(1234)
+                                .build(),
+
+                        BranchEntity.builder()
+                                .name("Sucursal Norte")
+                                .street("Independencia")
+                                .number(567)
+                                .build(),
+
+                        BranchEntity.builder()
+                                .name("Sucursal Sur")
+                                .street("Belgrano")
+                                .number(890)
+                                .build()
+                );
+
+                branchRepository.saveAll(branches);
+
+                System.out.println("Sucursales cargadas correctamente.");
+            }
+
         };
     }
 }

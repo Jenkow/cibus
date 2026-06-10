@@ -36,6 +36,18 @@ public class TableService {
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
     }
 
+    public TableEntity getTableByBranchIdAndNumber(Long branchId, Integer number) {
+        return tableRepository.findByBranch_IdAndNumber(branchId, number)
+                .orElseThrow(() -> new ResourceNotFoundException("table number", number));
+    }
+
+    public List<TableResponseDTO> findByWaiterId(Long waiterId){
+        List<TableEntity> tables = tableRepository.findByWaiter_id(waiterId);
+        return tables.stream()
+                .map(tableMapper::toResponse)
+                .toList();
+    }
+
     public List<TableResponseDTO> findByBranchId(Long branchId) {
         List<TableEntity> tables = tableRepository.findByBranchId(branchId);
         return tables.stream()
@@ -45,6 +57,10 @@ public class TableService {
 
     public Boolean existsById(Long id) {
         return tableRepository.existsById(id);
+    }
+
+    public Boolean existsByBranchIdAndNumber(Long branchId, Integer number){
+        return tableRepository.existsByBranchIdAndNumber(branchId, number);
     }
 
     public Boolean existsByTableIdAndBranchId(Long tableId, Long branchId) {
@@ -70,14 +86,14 @@ public class TableService {
     }
 
     public TableResponseDTO findByBranchIdAndNumber(Long branchId, Integer number) {
-        TableEntity table = tableRepository.findByBranchIdAndNumber(branchId, number)
+        TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, number)
                 .orElseThrow(() -> new ResourceNotFoundException("There is no table "+number+ " in branch "+branchId));
         return tableMapper.toResponse(table);
     }
 
     @Transactional
-    public TableResponseDTO occupy(Long tableId, Long waiterId) {
-        TableEntity table = getTableById(tableId);
+    public TableResponseDTO occupy(Long branchId, Integer tableNumber, Long waiterId) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
 
         if (!table.getAvailable())
             throw new BusinessException("The table is already occupied");
@@ -95,8 +111,8 @@ public class TableService {
     }
 
     @Transactional
-    public TableResponseDTO free(Long tableId) {
-        TableEntity table = getTableById(tableId);
+    public TableResponseDTO free(Long branchId, Integer tableNumber) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
 
         if (table.getAvailable()) {
             throw new BusinessException("The table is already free");
@@ -109,8 +125,8 @@ public class TableService {
     }
 
     @Transactional
-    public TableResponseDTO update(Long id, TableUpdateDTO newTable) {
-        TableEntity table = getTableById(id);
+    public TableResponseDTO update(Long branchId, Integer tableNumber, TableUpdateDTO newTable) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         if(newTable.getNumber() != null){
             table.setNumber(newTable.getNumber());
         }
@@ -121,7 +137,7 @@ public class TableService {
             table.setCapacity(newTable.getCapacity());
         }
         if (newTable.getWaiterId() != null) {
-            UserEntity waiter = userService.getEntityByDni(newTable.getWaiterId());           //   FALTA getEntityById en UserService
+            UserEntity waiter = userService.getEntityById(newTable.getWaiterId());           //   FALTA getEntityById en UserService
             table.setWaiter(waiter);
         }
 
@@ -130,8 +146,8 @@ public class TableService {
     }
 
     @Transactional
-    public void delete(Long tableId) {
-        TableEntity table = getTableById(tableId);
+    public void delete(Long branchId, Integer tableNumber) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         tableRepository.delete(table);
     }
 
