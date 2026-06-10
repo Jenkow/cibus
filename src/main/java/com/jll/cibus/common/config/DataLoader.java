@@ -152,6 +152,23 @@ public class DataLoader {
                 System.out.println("Menú cargado correctamente.");
             }
 
+            if (roleRepository.count() == 0) {
+                Map<Permits, PermitEntity> permits = new EnumMap<>(Permits.class);
+                for (Permits p : Permits.values()) {
+                    PermitEntity pe = PermitEntity.builder().permit(p).build();
+                    permitRepository.save(pe);
+                    permits.put(p, pe);
+                }
+                for (Roles role : Roles.values()) {
+                    RoleEntity roleEntity = new RoleEntity(role);
+                    role.getPermits().forEach(permit ->
+                            roleEntity.addPermit(permits.get(permit))
+                    );
+                    roleRepository.save(roleEntity);
+                }
+                System.out.println("Roles y permisos cargados correctamente.");
+            }
+
             if(userRepository.count() == 0){
                 UserEntity admin = UserEntity.builder()
                         .dni(0L)
@@ -163,66 +180,6 @@ public class DataLoader {
                         .build();
                 userRepository.save(admin);
                 System.out.println("Admin cargado correctamente");
-            }
-
-            if (roleRepository.count() == 0) {
-
-                // 1. Crear todos los permisos
-                Map<Permits, PermitEntity> permisos = new EnumMap<>(Permits.class);
-                for (Permits p : Permits.values()) {
-                    PermitEntity pe = PermitEntity.builder().permit(p).build();
-                    permitRepository.save(pe);
-                    permisos.put(p, pe);
-                }
-
-                // 2. Helper para construir un RoleEntity con sus permisos
-                // (lambda o método privado)
-
-                // 3. ROLE_ADMIN — todo
-                RoleEntity admin = new RoleEntity(Roles.ADMIN);
-                Arrays.stream(Permits.values()).forEach(p -> admin.addPermit(permisos.get(p)));
-
-                // 4. ROLE_MANAGER
-                RoleEntity manager = new RoleEntity(Roles.MANAGER);
-                List.of(
-                        Permits.USER_READ, Permits.USER_UPDATE,
-                        Permits.PRODUCT_READ,
-                        Permits.CATEGORY_READ,
-                        Permits.TABLE_READ, Permits.ORDER_READ, Permits.ORDER_STATUS_READ,
-                        Permits.PAYMENT_READ
-                ).forEach(p -> manager.addPermit(permisos.get(p)));
-
-                // 5. ROLE_HOST
-                RoleEntity host = new RoleEntity(Roles.HOST);
-                List.of(
-                        Permits.TABLE_READ,  Permits.TABLE_UPDATE,
-                        Permits.TABLE_OPEN, Permits.TABLE_CLOSE,
-                        Permits.ORDER_READ, Permits.ORDER_CREATE, Permits.ORDER_UPDATE,
-                        Permits.ORDER_CANCEL, Permits.ORDER_CLOSE,
-                        Permits.ORDER_STATUS_READ,
-                        Permits.PAYMENT_READ, Permits.PAYMENT_CREATE
-                ).forEach(p -> host.addPermit(permisos.get(p)));
-
-                // 6. ROLE_WAITER
-                RoleEntity waiter = new RoleEntity(Roles.WAITER);
-                List.of(
-                        Permits.TABLE_READ,
-                        Permits.ORDER_READ, Permits.ORDER_CREATE, Permits.ORDER_UPDATE,
-                        Permits.ORDER_CANCEL, Permits.ORDER_CLOSE,
-                        Permits.ORDER_STATUS_READ,
-                        Permits.PAYMENT_READ, Permits.PAYMENT_CREATE
-                ).forEach(p -> waiter.addPermit(permisos.get(p)));
-
-                // 7. ROLE_KITCHEN
-                RoleEntity kitchen = new RoleEntity(Roles.KITCHEN);
-                List.of(
-                        Permits.ORDER_READ, Permits.ORDER_CHANGE_STATUS,
-                        Permits.ORDER_STATUS_READ,
-                        Permits.ORDER_STATUS_UPDATE
-                ).forEach(p -> kitchen.addPermit(permisos.get(p)));
-
-                roleRepository.saveAll(List.of(admin, manager, host, waiter, kitchen));
-                System.out.println("Roles y permisos cargados correctamente.");
             }
 
 
