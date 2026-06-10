@@ -4,14 +4,13 @@ import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.role.Roles;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.dto.UserUpdateDTO;
 import com.jll.cibus.user.entity.UserEntity;
-import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.mapper.UserMapper;
 import com.jll.cibus.user.repository.UserRepository;
-import com.jll.cibus.user.repository.UserRoleRepository;
 import com.jll.cibus.user.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -29,8 +29,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final BranchService branchService;
-    private final UserRoleService userRoleService;
-    private final UserRoleRepository userRoleRepository;
 
     @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
@@ -38,11 +36,9 @@ public class UserService {
         if (userRepository.existsByEmail(requestDTO.getEmail())) throw new ResourceAlreadyExistsException("Email", requestDTO.getEmail());
 
         BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
-        UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());
 
         UserEntity user = userMapper.toEntity(requestDTO);
         user.setBranch(branch);
-        user.setRole(userRole);
         UserEntity created = userRepository.save(user);
         return userMapper.toResponse(created);
     }
@@ -69,10 +65,6 @@ public class UserService {
         if (updateDTO.getBranchId() != null) {
             BranchEntity branch = branchService.getEntity(updateDTO.getBranchId());
             user.setBranch(branch);
-        }
-        if (updateDTO.getUserRoleId() != null) {
-            UserRoleEntity userRole = userRoleService.getEntity(updateDTO.getUserRoleId());
-            user.setRole(userRole);
         }
         UserEntity updated = userRepository.save(user);
         return userMapper.toResponse(updated);
@@ -132,9 +124,9 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("ID", id));
     }
 
-    public List<String> getUserRoles(){
-        return userRoleRepository.findAll().stream()
-                .map(UserRoleEntity::getName)
+    public List<String> getUserRoles() {
+        return Arrays.stream(Roles.values())
+                .map(Roles::name)
                 .toList();
     }
 
