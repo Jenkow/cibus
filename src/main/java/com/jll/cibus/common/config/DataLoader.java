@@ -2,6 +2,7 @@ package com.jll.cibus.common.config;
 
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.payment.entity.PaymentMethodEntity;
@@ -171,7 +172,7 @@ public class DataLoader {
 
             if (!credentialsRepository.existsByUsername("admin") && !userRepository.existsByDni(0L)){
                 RoleEntity adminRole = roleRepository.findByRole(Roles.ADMIN)
-                        .orElseThrow(() -> new RuntimeException("Error: create admin user failed"));
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: create admin user failed"));
                 UserEntity admin = UserEntity.builder()
                         .dni(0L)
                         .role(adminRole)

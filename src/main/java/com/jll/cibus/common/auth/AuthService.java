@@ -1,6 +1,7 @@
 package com.jll.cibus.common.auth;
 
 import com.jll.cibus.common.config.JwtService;
+import com.jll.cibus.common.exception.InvalidCredentialsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.role.CredentialsEntity;
 import com.jll.cibus.role.CredentialsRepository;
@@ -36,10 +37,10 @@ public class AuthService {
         CredentialsEntity user = credentialsRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (!user.getRefreshToken().equals(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token does not match");
+            throw new InvalidCredentialsException();
         }
         if (!jwtService.validateRefreshToken(refreshToken, user)) {
-            throw new IllegalArgumentException("Refresh token expired or invalid");
+            throw new InvalidCredentialsException();
         }
         String newAccessToken = jwtService.generateToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);
