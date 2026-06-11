@@ -1,14 +1,12 @@
 package com.jll.cibus.table.service;
 
-import com.jll.cibus.branch.entity.BranchEntity;
+
 import com.jll.cibus.branch.repository.BranchRepository;
-import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.common.service.RoleValidatorService;
-import com.jll.cibus.product.dto.ProductResponseDTO;
-import com.jll.cibus.product.entity.ProductEntity;
-import com.jll.cibus.product.specification.ProductSpecification;
+import com.jll.cibus.role.CredentialsEntity;
+import com.jll.cibus.role.CredentialsRepository;
+import com.jll.cibus.role.Roles;
 import com.jll.cibus.table.dto.TableCreateDTO;
 import com.jll.cibus.table.dto.TableUpdateDTO;
 import com.jll.cibus.table.dto.TableResponseDTO;
@@ -21,14 +19,12 @@ import com.jll.cibus.user.repository.UserRepository;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.boot.model.source.spi.TableSpecificationSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +33,7 @@ public class TableService {
     private final TableRepository tableRepository;
     private final TableMapper tableMapper;
     private final BranchRepository branchRepository;
-    private final RoleValidatorService roleValidatorService;
+    private final CredentialsRepository credentialsRepository;
     private final UserService userService;
     private final UserRepository userRepository;
 
@@ -65,7 +61,7 @@ public class TableService {
                 .map(tableMapper::toResponse)
                 .toList();
     }
-    public Page<TableResponseDTO> findAll(Pageable pageable, Integer tableNumber, Integer capacity, Boolean available, Long waiterId){
+    public Page<TableResponseDTO> findAll( Pageable pageable, Integer tableNumber, Integer capacity, Boolean available, Long waiterId){
         Specification<TableEntity> spec = Specification.allOf(
                 TableSpecification.equalsTableNumber(tableNumber),
                 TableSpecification.equalsCapacity(capacity),
@@ -118,12 +114,16 @@ public class TableService {
 
         if (!table.getAvailable())
             throw new BusinessException("The table is already occupied");
-        if (!roleValidatorService.isWaiter(waiterId))
-            throw new BusinessException("The user is not a waiter");
-
         UserEntity waiter = userRepository.findById(waiterId)
-                        .orElseThrow(()->new ResourceNotFoundException("waiter", waiterId));
+                .orElseThrow(()->new ResourceNotFoundException("waiter", waiterId));
+        CredentialsEntity waiterCredentials = credentialsRepository
+                .findByUser_Id(waiterId)
+                .orElseThrow(() -> new BusinessException("The user with id " + waiterId + " has no credentials"));
 
+        boolean isWaiter = waiterCredentials.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(Roles.WAITER.name()));
+        if (!isWaiter)
+            throw new BusinessException("The user is not a waiter");
         table.setAvailable(false);
         table.setWaiter(waiter);
 

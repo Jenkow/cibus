@@ -1,6 +1,7 @@
 package com.jll.cibus.user.entity;
 
 import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.role.RoleEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -21,10 +22,6 @@ public class UserEntity {
     @Column(name = "dni", nullable = false, unique = true)
     private Long dni;
 
-    @Pattern(regexp = "\\d{6}", message = "PIN must have six digits")
-    @Column(name = "pin", nullable = false, unique = true, length = 6)
-    private String pin;
-
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
@@ -38,10 +35,11 @@ public class UserEntity {
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    private BranchEntity branch;
+    @JoinColumn(name = "role")
+    private RoleEntity role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", nullable = false)
-    private UserRoleEntity role;
+    @JoinColumn(name = "branch_id")
+    private BranchEntity branch;
+
 }
