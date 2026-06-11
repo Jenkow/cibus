@@ -16,11 +16,9 @@ import com.jll.cibus.user.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 public class DataLoader {
@@ -35,7 +33,9 @@ public class DataLoader {
             PaymentMethodRepository paymentMethodRepository,
             OrderStatusRepository orderStatusRepository,
             BranchRepository branchRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            CredentialsRepository credentialsRepository,
+            PasswordEncoder passwordEncoder
     ) {
 
         return args -> {
@@ -169,7 +169,7 @@ public class DataLoader {
                 System.out.println("Roles y permisos cargados correctamente.");
             }
 
-            if(userRepository.count() == 0){
+            if (!credentialsRepository.existsByUsername("admin") && !userRepository.existsByDni(0L)){
                 RoleEntity adminRole = roleRepository.findByRole(Roles.ADMIN)
                         .orElseThrow(() -> new RuntimeException("Error: create admin user failed"));
                 UserEntity admin = UserEntity.builder()
@@ -181,6 +181,14 @@ public class DataLoader {
                         .email("admin@gmail.com")
                         .build();
                 userRepository.save(admin);
+                CredentialsEntity credentials = CredentialsEntity.builder()
+                        .username("admin")
+                        .password(passwordEncoder.encode("111111"))
+                        .enabled(Boolean.TRUE)
+                        .user(admin)
+                        .roles(Set.of(adminRole))
+                        .build();
+                credentialsRepository.save(credentials);
                 System.out.println("Admin cargado correctamente");
             }
 

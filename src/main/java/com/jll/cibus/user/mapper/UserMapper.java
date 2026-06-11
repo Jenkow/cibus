@@ -18,8 +18,10 @@ public class UserMapper {
 
     public UserResponseDTO toResponse (UserEntity entity) {
         UserResponseDTO dto =  modelMapper.map(entity, UserResponseDTO.class);
-        dto.setBranchId(entity.getBranch().getId());
-        dto.setBranchName(entity.getBranch().getName());
+        if(entity.getBranch() != null){
+            dto.setBranchId(entity.getBranch().getId());
+            dto.setBranchName(entity.getBranch().getName());
+        }
         return dto;
     }
 }

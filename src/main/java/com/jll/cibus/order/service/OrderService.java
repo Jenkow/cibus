@@ -107,7 +107,7 @@ public class OrderService {
             throw new ResourceNotFoundException("User ID" + dto.getWaiterId());
 
         CredentialsEntity waiterCredentials = credentialsRepository
-                .findByUsuarioId(dto.getWaiterId())
+                .findByUser_Id(dto.getWaiterId())
                 .orElseThrow(() -> new BusinessException("The user with id " + dto.getWaiterId() + " has no credentials"));
 
         boolean isWaiter = waiterCredentials.getAuthorities().stream()

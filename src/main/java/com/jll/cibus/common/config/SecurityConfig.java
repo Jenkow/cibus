@@ -32,11 +32,12 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+
     @Bean
     public SecurityFilterChain filterChain (HttpSecurity http) throws
             Exception {
         http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/branches/**").hasRole("ADMIN")
                         .requestMatchers("/api/products/**").hasRole("ADMIN")

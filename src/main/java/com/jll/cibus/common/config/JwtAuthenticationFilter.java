@@ -21,8 +21,8 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter
-{
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
 
     @Override
@@ -31,8 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
                                     FilterChain filterChain) throws
             ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-        {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -41,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
             final String username = jwtService.extractUsername(jwt);
             Authentication authentication =
                     SecurityContextHolder.getContext().getAuthentication();
-            if (username != null && authentication == null){
+            if (username != null && authentication == null) {
                 List<GrantedAuthority> authorities =
                         jwtService.extractAuthorities(jwt);
                 UsernamePasswordAuthenticationToken authToken = new

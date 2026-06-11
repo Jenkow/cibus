@@ -4,7 +4,7 @@ import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.role.Roles;
+import com.jll.cibus.role.*;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.dto.UserUpdateDTO;
@@ -16,9 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,15 +29,34 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final BranchService branchService;
+    private final RoleRepository roleRepository;
+    private final CredentialsRepository credentialsRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
         if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
         if (userRepository.existsByEmail(requestDTO.getEmail())) throw new ResourceAlreadyExistsException("Email", requestDTO.getEmail());
-        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
         UserEntity user = userMapper.toEntity(requestDTO);
+        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
         user.setBranch(branch);
+        Roles role = Roles.valueOf(requestDTO.getRole().toUpperCase());
+        RoleEntity roleEntity = roleRepository.findByRole(role)
+                .orElseThrow(() -> new ResourceNotFoundException("role", requestDTO.getRole()));
+        user.setRole(roleEntity);
+        String cleanPhone = user.getPhoneNumber().replaceAll("\\D", "");             // saca todos los caracteres que no sean numeros
+        String pin = cleanPhone.substring(cleanPhone.length() - 6);                         // se queda con los ulitmos 6
+        CredentialsEntity credentials = CredentialsEntity.builder()
+                .user(user)
+                .build();
+        if (role == Roles.ADMIN || role == Roles.MANAGER) {
+            credentials.setUsername(user.getEmail());
+        } else {
+            credentials.setUsername(pin);
+        }
+        credentials.setPassword(passwordEncoder.encode(pin));
+        credentialsRepository.save(credentials);
         UserEntity created = userRepository.save(user);
         return userMapper.toResponse(created);
     }

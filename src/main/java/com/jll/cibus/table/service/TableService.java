@@ -99,7 +99,7 @@ public class TableService {
             throw new BusinessException("The table is already occupied");
         UserEntity waiter = userService.getEntityById(waiterId);
         CredentialsEntity waiterCredentials = credentialsRepository
-                .findByUsuarioId(waiterId)
+                .findByUser_Id(waiterId)
                 .orElseThrow(() -> new BusinessException("The user with id " + waiterId + " has no credentials"));
 
         boolean isWaiter = waiterCredentials.getAuthorities().stream()

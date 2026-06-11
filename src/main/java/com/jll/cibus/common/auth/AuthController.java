@@ -31,6 +31,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token,
                 user.getRefreshToken()));
     }
+
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request){
         AuthResponse response =
@@ -38,10 +39,4 @@ public class AuthController {
         return ResponseEntity.ok(response);
         }
 
-
-//    @PostMapping("/register")
-//    public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRequestDTO newUser){
-//        return new ResponseEntity<>(userService.create(newUser),
-//                HttpStatus.CREATED);
-//    }
 }
