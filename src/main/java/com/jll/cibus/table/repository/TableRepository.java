@@ -28,17 +28,4 @@ public interface TableRepository extends JpaRepository<TableEntity, Long>, JpaSp
 
     boolean existsByBranchIdAndNumber(Long branchId, Integer number);
 
-
-    /* No se usan pero estaban (implementar o borrar):
-
-    List<TableEntity> findByBranch(BranchEntity branch);
-
-    List<TableEntity> findByBranchAndAvailable(BranchEntity branch, Boolean available);
-
-    List<TableEntity> findByBranchIdAndAvailable(Long branchId, Boolean available);
-
-    List<TableEntity> findByBranchAndWaiter(BranchEntity branch, UserEntity waiter);
-
-    List<TableEntity> findByBranchIdAndWaiterId(Long branchId, Long userId);
-     */
 }

@@ -1,7 +1,5 @@
 package com.jll.cibus.table.controller;
 
-
-import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.table.dto.TableCreateDTO;
 import com.jll.cibus.table.dto.TableUpdateDTO;
 import com.jll.cibus.table.dto.TableResponseDTO;
@@ -12,8 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RestController
@@ -34,7 +30,7 @@ public class TableController {
 
                                                            @PathVariable Long branchId)
     {
-       return ResponseEntity.ok(tableService.findAll(pageable,tableNumber,capacity,available,waiterId));
+       return ResponseEntity.ok(tableService.findAll(pageable,branchId,tableNumber,capacity,available,waiterId));
     }
 
 
@@ -51,9 +47,6 @@ public class TableController {
 
     @PatchMapping("/occupy/{tableNumber}")
     public ResponseEntity<TableResponseDTO> occupy(@PathVariable Long branchId, @PathVariable Integer tableNumber, @Valid @RequestBody TableUpdateDTO table) {
-        if(table.getWaiterId() == null){
-            throw new BusinessException("Waiter ID is needed to ocuppy a table");
-        }
         return ResponseEntity.ok(tableService.occupy(branchId, tableNumber, table.getWaiterId()));
     }
 

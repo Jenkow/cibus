@@ -1,6 +1,7 @@
 package com.jll.cibus.table.service;
 
-import com.jll.cibus.branch.service.BranchService;
+
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.role.CredentialsEntity;
@@ -14,7 +15,7 @@ import com.jll.cibus.table.mapper.TableMapper;
 import com.jll.cibus.table.repository.TableRepository;
 import com.jll.cibus.table.specification.TableSpecification;
 import com.jll.cibus.user.entity.UserEntity;
-import com.jll.cibus.user.service.UserService;
+import com.jll.cibus.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,20 +23,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class TableService {
 
     private final TableRepository tableRepository;
     private final TableMapper tableMapper;
-    private final BranchService branchService;
+    private final BranchRepository branchRepository;
     private final CredentialsRepository credentialsRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
 
-    public TableEntity getTableById(Long id) {
+    private TableEntity getTableById(Long id) {
         return tableRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
     }
@@ -45,21 +44,9 @@ public class TableService {
                 .orElseThrow(() -> new ResourceNotFoundException("table number", number));
     }
 
-    public List<TableResponseDTO> findByWaiterId(Long waiterId){
-        List<TableEntity> tables = tableRepository.findByWaiter_id(waiterId);
-        return tables.stream()
-                .map(tableMapper::toResponse)
-                .toList();
-    }
-
-    public List<TableResponseDTO> findByBranchId(Long branchId) {
-        List<TableEntity> tables = tableRepository.findByBranchId(branchId);
-        return tables.stream()
-                .map(tableMapper::toResponse)
-                .toList();
-    }
-    public Page<TableResponseDTO> findAll(Pageable pageable, Integer tableNumber, Integer capacity, Boolean available, Long waiterId){
+    public Page<TableResponseDTO> findAll( Pageable pageable,Long branchId, Integer tableNumber, Integer capacity, Boolean available, Long waiterId){
         Specification<TableEntity> spec = Specification.allOf(
+                TableSpecification.equalsBranchId(branchId),
                 TableSpecification.equalsTableNumber(tableNumber),
                 TableSpecification.equalsCapacity(capacity),
                 TableSpecification.isAvailable(available),
@@ -86,7 +73,8 @@ public class TableService {
             throw new BusinessException("A table with number "+ dto.getNumber() +" already exists in the branch.");
         }
         TableEntity table = tableMapper.toEntity(dto);
-        table.setBranch(branchService.getEntity(branchId));
+        table.setBranch(branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("branch", branchId)));
         table.setAvailable(Boolean.TRUE);
         table.setWaiter(null);
         TableEntity saved = tableRepository.save(table);
@@ -103,14 +91,7 @@ public class TableService {
                 .orElseThrow(() -> new ResourceNotFoundException("There is no table "+number+ " in branch "+branchId));
         return tableMapper.toResponse(table);
     }
-
-    @Transactional
-    public TableResponseDTO occupy(Long branchId, Integer tableNumber, Long waiterId) {
-        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
-
-        if (!table.getAvailable())
-            throw new BusinessException("The table is already occupied");
-        UserEntity waiter = userService.getEntityById(waiterId);
+    private void validateWaiterRole(Long waiterId) {
         CredentialsEntity waiterCredentials = credentialsRepository
                 .findByUser_Id(waiterId)
                 .orElseThrow(() -> new BusinessException("The user with id " + waiterId + " has no credentials"));
@@ -119,7 +100,19 @@ public class TableService {
                 .anyMatch(a -> a.getAuthority().equals(Roles.WAITER.name()));
         if (!isWaiter)
             throw new BusinessException("The user is not a waiter");
+    }
 
+    @Transactional
+    public TableResponseDTO occupy(Long branchId, Integer tableNumber, Long waiterId) {
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
+        if (waiterId == null)
+            throw new BusinessException("Waiter ID is required to occupy a table");
+
+        if (!table.getAvailable())
+            throw new BusinessException("The table is already occupied");
+        UserEntity waiter = userRepository.findById(waiterId)
+                .orElseThrow(()->new ResourceNotFoundException("waiter", waiterId));
+        validateWaiterRole(waiterId);
         table.setAvailable(false);
         table.setWaiter(waiter);
 
@@ -155,7 +148,9 @@ public class TableService {
             table.setCapacity(newTable.getCapacity());
         }
         if (newTable.getWaiterId() != null) {
-            UserEntity waiter = userService.getEntityById(newTable.getWaiterId());           //   FALTA getEntityById en UserService
+            UserEntity waiter = userRepository.findById(newTable.getWaiterId())
+                            .orElseThrow(()-> new ResourceNotFoundException("user",newTable.getWaiterId()));
+            validateWaiterRole(waiter.getId());
             table.setWaiter(waiter);
         }
 

@@ -27,12 +27,12 @@ public class PaymentMethodService {
                 .toList();
     }
 
-    public PaymentMethodEntity getEntity(Long id){
+    private PaymentMethodEntity getEntity(Long id){
         return paymentMethodRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("id",id));
     }
 
-    public PaymentMethodEntity getEntityByName(String name){
+    private PaymentMethodEntity getEntityByName(String name){
         return paymentMethodRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("name",name));
     }

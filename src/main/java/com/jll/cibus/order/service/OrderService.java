@@ -1,7 +1,7 @@
 package com.jll.cibus.order.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.branch.service.BranchService;
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.order.dto.OrderStatusDTO;
@@ -24,6 +24,7 @@ import com.jll.cibus.role.Roles;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.repository.UserRepository;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -45,9 +46,11 @@ public class OrderService {
     private final OrderStatusService orderStatusService;
     private final UserService userService;
     private final TableService tableService;
-    private final BranchService branchService;
+    private final BranchRepository branchRepository;
     private final PaymentService paymentService;
+    private final UserRepository userRepository;
     private final CredentialsRepository credentialsRepository;
+
 
 
     public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
@@ -74,7 +77,7 @@ public class OrderService {
                 .toList();
     }
 
-    public OrderEntity getEntity(Long orderId) {
+    private OrderEntity getEntity(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
     }
@@ -128,9 +131,11 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
         validateOrderRequest(branchId, dto);
-        BranchEntity branch = branchService.getEntity(branchId);
+        BranchEntity branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("branch", branchId));
         TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
-        UserEntity waiter = userService.getEntityById(dto.getWaiterId());
+        UserEntity waiter = userRepository.findById(dto.getWaiterId())
+                        .orElseThrow(()->new ResourceNotFoundException("user",dto.getWaiterId()));
         //VERIFICO QUE SEA WAITER
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
         if (table.getWaiter() == null || !table.getWaiter().getId().equals(waiter.getId())) {
@@ -155,7 +160,8 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO update(Long branchId, Long orderId, OrderUpdateDTO dto) {
         OrderEntity order = getEntity(orderId);
-        UserEntity waiter = userService.getEntityById(order.getWaiter().getId());
+        UserEntity waiter = userRepository.findById(order.getWaiter().getId())
+                        .orElseThrow(()->new ResourceNotFoundException("user", order.getWaiter().getId()));
         if (dto.getTableNumber() != null) {
             TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
             if (!table.isAvailable()) {

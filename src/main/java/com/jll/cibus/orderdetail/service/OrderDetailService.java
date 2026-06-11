@@ -4,6 +4,7 @@ import com.jll.cibus.branchproduct.entity.BranchProductEntity;
 import com.jll.cibus.branchproduct.service.BranchProductService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.order.service.OrderService;
 import com.jll.cibus.order.entity.OrderEntity;
 import com.jll.cibus.orderdetail.dto.OrderDetailRequestDTO;
@@ -13,6 +14,7 @@ import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
 import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.product.entity.ProductEntity;
+import com.jll.cibus.product.repository.ProductRepository;
 import com.jll.cibus.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,9 @@ public class OrderDetailService {
     private final OrderDetailMapper orderDetailMapper;
     private final ProductService productService;
     private final OrderService orderService;
+    private final OrderRepository orderRepository;
     private final BranchProductService branchProductService;
+    private final ProductRepository productRepository;
 
     private void validateAvailability(BranchProductEntity productInBranch){
         if(!productInBranch.isAvailable()){
@@ -45,7 +49,8 @@ public class OrderDetailService {
     }
 
     public List<OrderDetailResponseDTO> getByOrderId (Long orderId){
-        orderService.getEntity(orderId);
+        orderRepository.findById(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException("order",orderId));
         List<OrderDetailEntity> entities = orderDetailRepository.findByOrderId(orderId);
         return entities.stream()
                 .map(orderDetailMapper::toDTO)
@@ -69,7 +74,8 @@ public class OrderDetailService {
 
     @Transactional
     public OrderDetailResponseDTO create(Long orderId, OrderDetailRequestDTO dto) {
-        OrderEntity order = orderService.getEntity(orderId);
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException("order",orderId));
         if(orderService.productExistsInDetails(orderId, dto.getProductId())){
             if(order.getStatus().getName().equalsIgnoreCase("CANCELLED") || order.getStatus().getName().equalsIgnoreCase("PAID")){
                 throw new BusinessException("The order "+orderId+" is already closed");
@@ -81,7 +87,8 @@ public class OrderDetailService {
             return orderDetailMapper.toDTO(saved);
         }
         OrderDetailEntity entity = orderDetailMapper.toEntity(dto);
-        ProductEntity product = productService.getEntity(dto.getProductId());
+        ProductEntity product = productRepository.findById(dto.getProductId())
+                        .orElseThrow(()->new ResourceNotFoundException("product",dto.getProductId()));
         BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(order.getBranch().getId(), product.getId());
         validateAvailability(productInBranch);
         entity.setUnitPrice(productInBranch.getPrice());
@@ -99,7 +106,8 @@ public class OrderDetailService {
     @Transactional
     public OrderDetailResponseDTO update (Long orderId, Long productId, OrderDetailUpdateDTO dto){
         OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, productId);
-        OrderEntity order = orderService.getEntity(orderId);
+        OrderEntity order = orderRepository.findById(orderId)
+                        .orElseThrow(()->new ResourceNotFoundException("order", orderId));
         entity.setOrder(order);
         /*
         if(dto.getProductId() != null){

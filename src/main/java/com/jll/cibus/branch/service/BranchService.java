@@ -32,7 +32,7 @@ public class BranchService {
                 .toList();
     }
 
-    public BranchEntity getEntity(Long id) {
+    private BranchEntity getEntity(Long id) {
         return branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("branch", id));
     }
