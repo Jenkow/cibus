@@ -43,8 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().getAuthentication();
             if (username != null && (authentication == null || !authentication.isAuthenticated()
                     || authentication instanceof AnonymousAuthenticationToken)) {
-                List<GrantedAuthority> authorities =
-                        jwtService.extractAuthorities(jwt);
+                List<GrantedAuthority> authorities = jwtService.extractAuthorities(jwt);
                 UsernamePasswordAuthenticationToken authToken = new
                         UsernamePasswordAuthenticationToken(
                         username,

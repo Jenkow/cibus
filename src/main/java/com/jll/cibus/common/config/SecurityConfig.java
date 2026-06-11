@@ -40,9 +40,9 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         // Users
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("USER_READ")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("USER_UPDATE")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
                         // Tables
                         .requestMatchers(HttpMethod.GET, "/api/branches/*/tables/**").hasAuthority("TABLE_READ")
                         .requestMatchers(HttpMethod.POST, "/api/branches/*/tables/**").hasAuthority("TABLE_CREATE")
@@ -50,20 +50,20 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/branches/*/tables/**").hasAnyAuthority("TABLE_OPEN", "TABLE_CLOSE")
                         .requestMatchers(HttpMethod.DELETE, "/api/branches/*/tables/**").hasRole("ADMIN")
                         // Orders
-                        .requestMatchers(HttpMethod.GET, "/api/branches/*/orders/*").hasAuthority("ORDER_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/*").hasAuthority("ORDER_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/orders/*").hasAuthority("ORDER_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/orders/*").hasAuthority("ORDER_CANCEL")
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/orders/**").hasAuthority("ORDER_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/**").hasAuthority("ORDER_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/orders/**").hasAuthority("ORDER_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/orders/**").hasAuthority("ORDER_CANCEL")
                         // Order items
-                        .requestMatchers(HttpMethod.GET, "/api/orders/*/items/*").hasAuthority("ORDER_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/orders/*/items/*").hasAuthority("ORDER_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/items/*").hasAuthority("ORDER_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/orders/*/items/*").hasAuthority("ORDER_CANCEL")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*/items/**").hasAuthority("ORDER_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/orders/*/items/**").hasAuthority("ORDER_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/items/**").hasAuthority("ORDER_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/orders/*/items/**").hasAuthority("ORDER_CANCEL")
                         // Products por branch
-                        .requestMatchers(HttpMethod.GET, "/api/branches/*/products/*").hasAuthority("PRODUCT_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/branches/*/products/*").hasAuthority("PRODUCT_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/products/*").hasAuthority("PRODUCT_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/products/*").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/products/**").hasAuthority("PRODUCT_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/products/**").hasAuthority("PRODUCT_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/products/**").hasAuthority("PRODUCT_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/products/**").hasAnyRole("ADMIN", "MANAGER")
                         // Branches
                         .requestMatchers(HttpMethod.GET, "/api/branches/**").hasAuthority("BRANCH_READ")
                         .requestMatchers(HttpMethod.POST, "/api/branches/**").hasAuthority("BRANCH_CREATE")
