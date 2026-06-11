@@ -38,11 +38,6 @@ public class TableController {
     }
 
 
-    @GetMapping
-    public ResponseEntity<List<TableResponseDTO>> getAll(@PathVariable Long branchId) {
-        return ResponseEntity.ok(tableService.findByBranchId(branchId));
-    }
-
     @GetMapping("/{tableId}")
     public ResponseEntity<TableResponseDTO> getById(@PathVariable Long branchId, @PathVariable Long tableId) {
         return ResponseEntity.ok(tableService.findById(tableId));
