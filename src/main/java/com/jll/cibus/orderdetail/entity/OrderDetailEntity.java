@@ -25,11 +25,10 @@ public class OrderDetailEntity {
     @Column(name = "observation")
     private String observation;
 
-    @Min(1)
+
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @DecimalMin("0.0")
     @Column(name = "unit_price", nullable = false, precision=10, scale=2)
     private BigDecimal unitPrice;
 
