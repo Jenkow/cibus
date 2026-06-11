@@ -28,8 +28,7 @@ public enum Roles {
             Permits.ORDER_CANCEL,
             Permits.ORDER_CLOSE,
             Permits.ORDER_STATUS_READ,
-            Permits.PAYMENT_READ,
-            Permits.PAYMENT_CREATE
+            Permits.PAYMENT_READ
     ),
     WAITER(
             Permits.TABLE_READ,
@@ -39,8 +38,7 @@ public enum Roles {
             Permits.ORDER_CANCEL,
             Permits.ORDER_CLOSE,
             Permits.ORDER_STATUS_READ,
-            Permits.PAYMENT_READ,
-            Permits.PAYMENT_CREATE
+            Permits.PAYMENT_READ
     ),
     KITCHEN(
             Permits.ORDER_READ,
