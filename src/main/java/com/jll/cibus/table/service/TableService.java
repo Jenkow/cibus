@@ -12,10 +12,14 @@ import com.jll.cibus.table.dto.TableResponseDTO;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.table.mapper.TableMapper;
 import com.jll.cibus.table.repository.TableRepository;
+import com.jll.cibus.table.specification.TableSpecification;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -53,6 +57,15 @@ public class TableService {
         return tables.stream()
                 .map(tableMapper::toResponse)
                 .toList();
+    }
+    public Page<TableResponseDTO> findAll(Pageable pageable, Integer tableNumber, Integer capacity, Boolean available, Long waiterId){
+        Specification<TableEntity> spec = Specification.allOf(
+                TableSpecification.equalsTableNumber(tableNumber),
+                TableSpecification.equalsCapacity(capacity),
+                TableSpecification.isAvailable(available),
+                TableSpecification.equalsWaiterId(waiterId));
+        return tableRepository.findAll(spec,pageable)
+                .map(tableMapper::toResponse);
     }
 
     public Boolean existsById(Long id) {

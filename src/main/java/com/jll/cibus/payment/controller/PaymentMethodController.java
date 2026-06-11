@@ -23,9 +23,9 @@ public class PaymentMethodController {
         return ResponseEntity.ok(paymentMethodService.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PaymentMethodResponseDTO> findById(@PathVariable Long id){
-        return ResponseEntity.ok(paymentMethodService.findById(id));
+    @GetMapping("/{paymentMethodId}")
+    public ResponseEntity<PaymentMethodResponseDTO> findById(@PathVariable Long paymentMethodId){
+        return ResponseEntity.ok(paymentMethodService.findById(paymentMethodId));
     }
 
     @GetMapping("/name/{name}")
@@ -39,14 +39,14 @@ public class PaymentMethodController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PaymentMethodResponseDTO> update(@PathVariable Long id, @Valid @RequestBody PaymentMethodRequestDTO dto) {
-        return ResponseEntity.ok(paymentMethodService.update(id, dto));
+    @PutMapping("/{paymentMethodId}")
+    public ResponseEntity<PaymentMethodResponseDTO> update(@PathVariable Long paymentMethodId, @Valid @RequestBody PaymentMethodRequestDTO dto) {
+        return ResponseEntity.ok(paymentMethodService.update(paymentMethodId, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        paymentMethodService.delete(id);
+    @DeleteMapping("/{paymentMethodId}")
+    public ResponseEntity<Void> delete(@PathVariable Long paymentMethodId) {
+        paymentMethodService.delete(paymentMethodId);
         return ResponseEntity.noContent().build();
     }
 
