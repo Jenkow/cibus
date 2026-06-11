@@ -20,7 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -44,11 +46,11 @@ public class UserService {
         Roles role = Roles.valueOf(requestDTO.getRole().toUpperCase());
         RoleEntity roleEntity = roleRepository.findByRole(role)
                 .orElseThrow(() -> new ResourceNotFoundException("role", requestDTO.getRole()));
-        user.setRole(roleEntity);
         String cleanPhone = user.getPhoneNumber().replaceAll("\\D", "");             // saca todos los caracteres que no sean numeros
         String pin = cleanPhone.substring(cleanPhone.length() - 6);                         // se queda con los ulitmos 6
         CredentialsEntity credentials = CredentialsEntity.builder()
                 .user(user)
+                .roles(new HashSet<>(Set.of(roleEntity)))
                 .build();
         if (role == Roles.ADMIN || role == Roles.MANAGER) {
             credentials.setUsername(user.getEmail());
