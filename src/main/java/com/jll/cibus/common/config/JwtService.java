@@ -49,9 +49,6 @@ public class JwtService {
         if (rawAuthorities == null) {
             return java.util.Collections.emptyList();
         }
-        System.out.println("------------------------------------\n\n\n");
-        System.out.println("AUTHORITIES:\n "+rawAuthorities);
-        System.out.println("------------------------------------\n\n\n");
         return rawAuthorities.stream()
                 .map(Object::toString)
                 .map(SimpleGrantedAuthority::new)

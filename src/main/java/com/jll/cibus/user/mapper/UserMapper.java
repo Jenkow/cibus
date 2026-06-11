@@ -22,6 +22,7 @@ public class UserMapper {
             dto.setBranchId(entity.getBranch().getId());
             dto.setBranchName(entity.getBranch().getName());
         }
+        dto.setRole(entity.getRole().getRole().name());
         return dto;
     }
 }

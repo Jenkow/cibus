@@ -12,8 +12,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoleEntity
-{
+public class RoleEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,11 +23,7 @@ public class RoleEntity
     private Roles role;
 
     @ManyToMany (cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    @JoinTable(
-            name= "role_permits",
-            joinColumns = @JoinColumn (name = "role_id"),
-            inverseJoinColumns = @JoinColumn (name = "permit_id")
-    )
+    @JoinTable(name= "role_permits", joinColumns = @JoinColumn (name = "role_id"), inverseJoinColumns = @JoinColumn (name = "permit_id"))
     private final Set<PermitEntity> permits = new HashSet<>();
 
     public RoleEntity (Roles name)

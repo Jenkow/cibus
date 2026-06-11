@@ -43,6 +43,27 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("USER_READ")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("USER_UPDATE")
+                        // Tables
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/tables/**").hasAuthority("TABLE_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/tables/**").hasAuthority("TABLE_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/tables/**").hasAuthority("TABLE_UPDATE")
+                        .requestMatchers(HttpMethod.PATCH, "/api/branches/*/tables/**").hasAnyAuthority("TABLE_OPEN", "TABLE_CLOSE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/tables/**").hasRole("ADMIN")
+                        // Orders
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/orders/*").hasAuthority("ORDER_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/*").hasAuthority("ORDER_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/orders/*").hasAuthority("ORDER_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/orders/*").hasAuthority("ORDER_CANCEL")
+                        // Order items
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*/items/*").hasAuthority("ORDER_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/orders/*/items/*").hasAuthority("ORDER_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/items/*").hasAuthority("ORDER_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/orders/*/items/*").hasAuthority("ORDER_CANCEL")
+                        // Products por branch
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/products/*").hasAuthority("PRODUCT_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/products/*").hasAuthority("PRODUCT_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/products/*").hasAuthority("PRODUCT_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/products/*").hasAnyRole("ADMIN", "MANAGER")
                         // Branches
                         .requestMatchers(HttpMethod.GET, "/api/branches/**").hasAuthority("BRANCH_READ")
                         .requestMatchers(HttpMethod.POST, "/api/branches/**").hasAuthority("BRANCH_CREATE")
@@ -53,11 +74,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/products/**").hasAuthority("PRODUCT_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasAuthority("PRODUCT_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
-                        // Products por branch
-                        .requestMatchers(HttpMethod.GET, "/api/branches//products/*").hasAuthority("PRODUCT_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/branches//products/*").hasAuthority("PRODUCT_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/branches//products/*").hasAuthority("PRODUCT_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/branches//products/*").hasAnyRole("ADMIN", "MANAGER")
                         // Categories
                         .requestMatchers(HttpMethod.GET, "/api/product-categories/**").hasAuthority("CATEGORY_READ")
                         .requestMatchers(HttpMethod.POST, "/api/product-categories/**").hasAuthority("CATEGORY_CREATE")
@@ -71,22 +87,6 @@ public class SecurityConfig {
                         // Statistics
                         .requestMatchers("/api/statistics/global/**").hasRole("ADMIN")
                         .requestMatchers("/api/statistics/branch/**").hasAnyRole("ADMIN", "MANAGER")
-                        // Tables
-                        .requestMatchers(HttpMethod.GET, "/api/branches//tables/*").hasAuthority("TABLE_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/branches//tables/*").hasAuthority("TABLE_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/branches//tables/*").hasAuthority("TABLE_UPDATE")
-                        .requestMatchers(HttpMethod.PATCH, "/api/branches//tables/*").hasAnyAuthority("TABLE_OPEN", "TABLE_CLOSE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/branches//tables/*").hasRole("ADMIN")
-                        // Orders
-                        .requestMatchers(HttpMethod.GET, "/api/branches//orders/*").hasAuthority("ORDER_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/branches//orders/*").hasAuthority("ORDER_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/branches//orders/*").hasAuthority("ORDER_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/branches//orders/*").hasAuthority("ORDER_CANCEL")
-                        // Order items
-                        .requestMatchers(HttpMethod.GET, "/api/orders//items/*").hasAuthority("ORDER_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/orders//items/*").hasAuthority("ORDER_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/orders//items/*").hasAuthority("ORDER_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/orders//items/*").hasAuthority("ORDER_CANCEL")
 
                         .anyRequest().authenticated()
                 )

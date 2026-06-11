@@ -41,14 +41,18 @@ public class UserService {
         if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
         if (userRepository.existsByEmail(requestDTO.getEmail())) throw new ResourceAlreadyExistsException("Email", requestDTO.getEmail());
         UserEntity user = userMapper.toEntity(requestDTO);
-        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
-        user.setBranch(branch);
+        if(requestDTO.getBranchId() != null){
+            BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
+            user.setBranch(branch);
+        }
         Roles role = Roles.valueOf(requestDTO.getRole().toUpperCase());
         RoleEntity roleEntity = roleRepository.findByRole(role)
                 .orElseThrow(() -> new ResourceNotFoundException("role", requestDTO.getRole()));
+        user.setRole(roleEntity);
         String cleanPhone = user.getPhoneNumber().replaceAll("\\D", "");             // saca todos los caracteres que no sean numeros
         String pin = cleanPhone.substring(cleanPhone.length() - 6);                         // se queda con los ulitmos 6
         CredentialsEntity credentials = CredentialsEntity.builder()
+                .enabled(Boolean.TRUE)
                 .user(user)
                 .roles(new HashSet<>(Set.of(roleEntity)))
                 .build();
