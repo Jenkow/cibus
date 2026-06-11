@@ -7,6 +7,11 @@ public class TableSpecification {
 
     private TableSpecification (){}
 
+        public static Specification<TableEntity> equalsBranchId(Long branchId) {
+            return (root, query, cb) -> branchId == null
+                    ? cb.conjunction()
+                    : cb.equal(root.get("branch").get("id"), branchId);
+        }
         public static Specification<TableEntity> equalsTableNumber(Integer tableNumber) {
             return (root, query, cb) -> tableNumber == null || tableNumber <= 0
                     ? cb.conjunction()
