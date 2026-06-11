@@ -99,7 +99,12 @@ public class UserService {
 
     public void delete(Long id) {
         UserEntity user = getEntityById(id);
-        userRepository.delete(user);
+        CredentialsEntity credentials = credentialsRepository.findByUser_Id(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("There are no credentials for user "+id));
+        credentials.disable();
+        user.setBranch(null);
+        credentialsRepository.save(credentials);
+        userRepository.save(user);
     }
 
     public Page<UserResponseDTO> findAll(Pageable pageable) {

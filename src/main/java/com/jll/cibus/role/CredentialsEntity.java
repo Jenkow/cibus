@@ -78,6 +78,10 @@ public class CredentialsEntity implements UserDetails {
         this.refreshToken = refreshToken;
     }
 
+    public void enable(){this.enabled = Boolean.TRUE;}
+
+    public void disable(){this.enabled = Boolean.FALSE;}
+
     @Override
     public boolean isEnabled() {
         return Boolean.TRUE.equals(this.enabled);
