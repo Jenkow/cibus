@@ -24,18 +24,12 @@ public class AuthController {
 
     @PostMapping()
     public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest authRequest){
-        CredentialsEntity user = authService.authenticate(authRequest);
-        System.out.println(user);
-        String token = jwtService.generateToken(user);
-        System.out.println(token);
-        return ResponseEntity.ok(new AuthResponse(token,
-                user.getRefreshToken()));
+        return ResponseEntity.ok(authService.authenticate(authRequest));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request){
-        AuthResponse response =
-                authService.refreshAccessToken(request.refreshToken());
+        AuthResponse response = authService.refreshAccessToken(request.refreshToken());
         return ResponseEntity.ok(response);
         }
 

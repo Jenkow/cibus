@@ -19,16 +19,15 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    public CredentialsEntity authenticate(AuthRequest input) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        input.getUsername(),
-                        input.getPassword()
-                )
-        );
-        return credentialsRepository.findByUsername(input.getUsername())
+    public AuthResponse authenticate(AuthRequest input) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.getUsername(), input.getPassword()));
+        CredentialsEntity user = credentialsRepository.findByUsername(input.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        user.setRefreshToken(refreshToken);
+        credentialsRepository.save(user);
+        return new AuthResponse(accessToken, refreshToken);
     }
 
     @Transactional
