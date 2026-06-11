@@ -1,7 +1,7 @@
 package com.jll.cibus.branchproduct.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.branch.service.BranchService;
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.branchproduct.dto.BranchProductRequestDTO;
 import com.jll.cibus.branchproduct.dto.BranchProductResponseDTO;
 import com.jll.cibus.branchproduct.dto.BranchProductUpdateDTO;
@@ -12,11 +12,10 @@ import com.jll.cibus.branchproduct.specification.BranchProductSpecification;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.product.entity.ProductEntity;
-import com.jll.cibus.product.service.ProductService;
+import com.jll.cibus.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +29,8 @@ public class BranchProductService {
 
     private final BranchProductRepository branchProductRepository;
     private final BranchProductMapper branchProductMapper;
-    private final BranchService branchService;
-    private final ProductService productService;
+    private final BranchRepository branchRepository;
+    private final ProductRepository productRepository;
 
 
     public Page<BranchProductResponseDTO> findAll(Pageable pageable, Long branchId, Long productId, String productName, Long categoryId, Boolean available, BigDecimal minPrice, BigDecimal maxPrice){
@@ -49,14 +48,16 @@ public class BranchProductService {
                 .map(branchProductMapper::toDTO);
     }
 
-    public BranchProductEntity getEntity(Long id){
+    private BranchProductEntity getEntity(Long id){
         return branchProductRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Menu Item", id));
     }
 
     public BranchProductEntity getEntityByBranchAndProduct(Long branchId, Long productId){
-        branchService.getEntity(branchId);
-        productService.getEntity(productId);
+        branchRepository.findById(branchId)
+                .orElseThrow(()-> new ResourceNotFoundException("branch", branchId));
+        productRepository.findById(productId)
+                        .orElseThrow(()-> new ResourceNotFoundException("product",productId));
         return branchProductRepository.findByBranch_IdAndProduct_Id(branchId, productId).
                 orElseThrow(() -> new ResourceNotFoundException("Menu Item", productId));
     }
@@ -67,8 +68,10 @@ public class BranchProductService {
     }
 
     public BranchProductResponseDTO create (Long branchId, BranchProductRequestDTO dto){
-        BranchEntity branch = branchService.getEntity(branchId);
-        ProductEntity product = productService.getEntity(dto.getProductId());
+        BranchEntity branch = branchRepository.findById(branchId)
+                .orElseThrow(()-> new ResourceNotFoundException("branch", branchId));
+        ProductEntity product =productRepository.findById(dto.getProductId())
+                        .orElseThrow(()-> new ResourceNotFoundException("product", dto.getProductId()));
         if(branchProductRepository.existsByBranch_IdAndProduct_Id(branchId, dto.getProductId())){
             throw new ResourceAlreadyExistsException("El producto con id"+dto.getProductId()+" ya existe en la sucursal con id"+branchId);
         }

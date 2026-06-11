@@ -1,6 +1,7 @@
 package com.jll.cibus.table.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import com.jll.cibus.table.mapper.TableMapper;
 import com.jll.cibus.table.repository.TableRepository;
 import com.jll.cibus.table.specification.TableSpecification;
 import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.repository.UserRepository;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +36,13 @@ public class TableService {
 
     private final TableRepository tableRepository;
     private final TableMapper tableMapper;
-    private final BranchService branchService;
+    private final BranchRepository branchRepository;
     private final RoleValidatorService roleValidatorService;
     private final UserService userService;
+    private final UserRepository userRepository;
 
 
-    public TableEntity getTableById(Long id) {
+    private TableEntity getTableById(Long id) {
         return tableRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("table", id));
     }
@@ -90,7 +93,8 @@ public class TableService {
             throw new BusinessException("A table with number "+ dto.getNumber() +" already exists in the branch.");
         }
         TableEntity table = tableMapper.toEntity(dto);
-        table.setBranch(branchService.getEntity(branchId));
+        table.setBranch(branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("branch", branchId)));
         table.setAvailable(Boolean.TRUE);
         table.setWaiter(null);
         TableEntity saved = tableRepository.save(table);
@@ -117,7 +121,8 @@ public class TableService {
         if (!roleValidatorService.isWaiter(waiterId))
             throw new BusinessException("The user is not a waiter");
 
-        UserEntity waiter = userService.getEntityByDni(waiterId);
+        UserEntity waiter = userRepository.findById(waiterId)
+                        .orElseThrow(()->new ResourceNotFoundException("waiter", waiterId));
 
         table.setAvailable(false);
         table.setWaiter(waiter);
@@ -154,7 +159,8 @@ public class TableService {
             table.setCapacity(newTable.getCapacity());
         }
         if (newTable.getWaiterId() != null) {
-            UserEntity waiter = userService.getEntityById(newTable.getWaiterId());           //   FALTA getEntityById en UserService
+            UserEntity waiter = userRepository.findById(newTable.getWaiterId())
+                            .orElseThrow(()-> new ResourceNotFoundException("user",newTable.getWaiterId()));
             table.setWaiter(waiter);
         }
 

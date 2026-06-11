@@ -1,13 +1,12 @@
 package com.jll.cibus.order.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.branch.service.BranchService;
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.service.RoleValidatorService;
 import com.jll.cibus.order.dto.OrderStatusDTO;
 import com.jll.cibus.order.dto.OrderUpdateDTO;
-import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.order.dto.OrderRequestDTO;
 import com.jll.cibus.order.dto.OrderResponseDTO;
 import com.jll.cibus.order.entity.OrderEntity;
@@ -19,12 +18,11 @@ import com.jll.cibus.orderdetail.mapper.OrderDetailMapper;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.payment.dto.DiscountRequestDTO;
 import com.jll.cibus.payment.dto.PaymentDTO;
-import com.jll.cibus.payment.repository.OrderPaymentRepository;
-import com.jll.cibus.payment.repository.PaymentMethodRepository;
 import com.jll.cibus.payment.service.PaymentService;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.repository.UserRepository;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,9 +44,10 @@ public class OrderService {
     private final OrderStatusService orderStatusService;
     private final UserService userService;
     private final TableService tableService;
-    private final BranchService branchService;
+    private final BranchRepository branchRepository;
     private final RoleValidatorService roleValidatorService;
     private final PaymentService paymentService;
+    private final UserRepository userRepository;
 
 
     public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
@@ -75,7 +74,7 @@ public class OrderService {
                 .toList();
     }
 
-    public OrderEntity getEntity(Long orderId) {
+    private OrderEntity getEntity(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
     }
@@ -120,9 +119,11 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
         validateOrderRequest(branchId, dto);
-        BranchEntity branch = branchService.getEntity(branchId);
+        BranchEntity branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("branch", branchId));
         TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
-        UserEntity waiter = userService.getEntityById(dto.getWaiterId());
+        UserEntity waiter = userRepository.findById(dto.getWaiterId())
+                        .orElseThrow(()->new ResourceNotFoundException("user",dto.getWaiterId()));
         //VERIFICO QUE SEA WAITER
         if (!waiter.getRole().getName().equalsIgnoreCase("waiter")) {
             throw new BusinessException("The user " + waiter.getId() + " is not a waiter");
@@ -150,7 +151,8 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO update(Long branchId, Long orderId, OrderUpdateDTO dto) {
         OrderEntity order = getEntity(orderId);
-        UserEntity waiter = userService.getEntityById(order.getWaiter().getId());
+        UserEntity waiter = userRepository.findById(order.getWaiter().getId())
+                        .orElseThrow(()->new ResourceNotFoundException("user", order.getWaiter().getId()));
         if (dto.getTableNumber() != null) {
             TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
             if (!table.isAvailable()) {

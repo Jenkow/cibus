@@ -1,6 +1,7 @@
 package com.jll.cibus.user.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
@@ -30,7 +31,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final BranchService branchService;
+    private final BranchRepository branchRepository;
     private final UserRoleService userRoleService;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -39,7 +40,8 @@ public class UserService {
     public UserResponseDTO create(UserRequestDTO requestDTO) {
         if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
         if (userRepository.existsByEmail(requestDTO.getEmail())) throw new ResourceAlreadyExistsException("Email", requestDTO.getEmail());
-        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
+        BranchEntity branch = branchRepository.findById(requestDTO.getBranchId())
+                .orElseThrow(() -> new ResourceNotFoundException("branch", requestDTO.getBranchId()));
         UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());
         UserEntity user = userMapper.toEntity(requestDTO);
         user.setBranch(branch);
@@ -68,7 +70,8 @@ public class UserService {
             user.setEmail(updateDTO.getEmail());
         }
         if (updateDTO.getBranchId() != null) {
-            BranchEntity branch = branchService.getEntity(updateDTO.getBranchId());
+            BranchEntity branch = branchRepository.findById(updateDTO.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("branch", updateDTO.getBranchId()));
             user.setBranch(branch);
         }
         if (updateDTO.getUserRoleId() != null) {
@@ -128,12 +131,12 @@ public class UserService {
         return userRepository.existsByDniAndBranchId(dni, branchId);
     }
 
-    public UserEntity getEntityByDni(Long dni) {
+    private UserEntity getEntityByDni(Long dni) {
         return userRepository.findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
     }
 
-    public UserEntity getEntityById(Long id) {
+    private UserEntity getEntityById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", id));
     }
