@@ -28,7 +28,7 @@ public class BranchService {
     public List<BranchResponseDTO> getAllBranches() {
         return branchRepository.findAll()
                 .stream()
-                .map(branchMapper::toResponseDTO)
+                .map(branchMapper::toDTO)
                 .toList();
     }
 
@@ -39,7 +39,7 @@ public class BranchService {
 
     public BranchResponseDTO getBranchById(Long id) {
         BranchEntity entity = getEntity(id);
-        return branchMapper.toResponseDTO(entity);
+        return branchMapper.toDTO(entity);
     }
 
     private BranchEntity getEntityByAddress(String street, Integer number) {
@@ -49,7 +49,7 @@ public class BranchService {
 
     public BranchResponseDTO getBranchByAddress(String street, Integer number) {
         BranchEntity entity = getEntityByAddress(street, number);
-        return branchMapper.toResponseDTO(entity);
+        return branchMapper.toDTO(entity);
     }
 
     public Boolean existsByName(String name) {
@@ -76,7 +76,7 @@ public class BranchService {
         BranchEntity entity = branchMapper.toEntity(requestDTO);
         BranchEntity saved = branchRepository.save(entity);
 
-        return branchMapper.toResponseDTO(saved);
+        return branchMapper.toDTO(saved);
     }
 
     @Transactional
@@ -92,7 +92,7 @@ public class BranchService {
             branchBase.setNumber(dto.getNumber());
         }
         BranchEntity saved = branchRepository.save(branchBase);
-        return branchMapper.toResponseDTO(saved);
+        return branchMapper.toDTO(saved);
     }
 
     @Transactional
