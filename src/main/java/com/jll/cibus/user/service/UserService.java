@@ -2,10 +2,13 @@ package com.jll.cibus.user.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
-import com.jll.cibus.branch.service.BranchService;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.role.*;
+import com.jll.cibus.credential.entity.CredentialsEntity;
+import com.jll.cibus.credential.repository.CredentialsRepository;
+import com.jll.cibus.role.entity.RoleEntity;
+import com.jll.cibus.role.enums.Roles;
+import com.jll.cibus.role.repository.RoleRepository;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.dto.UserUpdateDTO;

@@ -1,14 +1,9 @@
 package com.jll.cibus.common.auth;
 
-import com.jll.cibus.common.config.JwtService;
-import com.jll.cibus.role.CredentialsEntity;
-import com.jll.cibus.user.dto.UserRequestDTO;
-import com.jll.cibus.user.dto.UserResponseDTO;
+import com.jll.cibus.common.config.security.JwtService;
 import com.jll.cibus.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

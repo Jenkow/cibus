@@ -1,5 +1,6 @@
-package com.jll.cibus.role;
+package com.jll.cibus.role.entity;
 
+import com.jll.cibus.role.enums.Permits;
 import jakarta.persistence.*;
 import lombok.*;
 

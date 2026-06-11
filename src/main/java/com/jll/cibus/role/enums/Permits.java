@@ -1,4 +1,4 @@
-package com.jll.cibus.role;
+package com.jll.cibus.role.enums;
 
 public enum Permits {
 

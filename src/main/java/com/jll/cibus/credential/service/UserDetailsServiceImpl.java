@@ -1,5 +1,6 @@
-package com.jll.cibus.role;
+package com.jll.cibus.credential.service;
 
+import com.jll.cibus.credential.repository.CredentialsRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

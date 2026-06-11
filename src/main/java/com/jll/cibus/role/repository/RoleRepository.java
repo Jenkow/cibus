@@ -1,5 +1,7 @@
-package com.jll.cibus.role;
+package com.jll.cibus.role.repository;
 
+import com.jll.cibus.role.enums.Roles;
+import com.jll.cibus.role.entity.RoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

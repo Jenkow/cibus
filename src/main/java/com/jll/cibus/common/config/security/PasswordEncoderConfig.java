@@ -1,4 +1,4 @@
-package com.jll.cibus.common.config;
+package com.jll.cibus.common.config.security;
 
 import org.springframework.context.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

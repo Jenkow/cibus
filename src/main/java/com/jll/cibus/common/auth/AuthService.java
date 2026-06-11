@@ -1,16 +1,14 @@
 package com.jll.cibus.common.auth;
 
-import com.jll.cibus.common.config.JwtService;
+import com.jll.cibus.common.config.security.JwtService;
 import com.jll.cibus.common.exception.InvalidCredentialsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.role.CredentialsEntity;
-import com.jll.cibus.role.CredentialsRepository;
+import com.jll.cibus.credential.entity.CredentialsEntity;
+import com.jll.cibus.credential.repository.CredentialsRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service

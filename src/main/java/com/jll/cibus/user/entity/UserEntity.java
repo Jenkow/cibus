@@ -1,9 +1,8 @@
 package com.jll.cibus.user.entity;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.role.RoleEntity;
+import com.jll.cibus.role.entity.RoleEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 @Entity

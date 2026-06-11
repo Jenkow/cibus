@@ -1,8 +1,8 @@
-package com.jll.cibus.role;
+package com.jll.cibus.credential.entity;
 
+import com.jll.cibus.role.entity.RoleEntity;
 import com.jll.cibus.user.entity.UserEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

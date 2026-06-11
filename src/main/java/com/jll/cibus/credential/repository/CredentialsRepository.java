@@ -1,5 +1,6 @@
-package com.jll.cibus.role;
+package com.jll.cibus.credential.repository;
 
+import com.jll.cibus.credential.entity.CredentialsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

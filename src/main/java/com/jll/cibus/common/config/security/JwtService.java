@@ -1,4 +1,4 @@
-package com.jll.cibus.common.config;
+package com.jll.cibus.common.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
