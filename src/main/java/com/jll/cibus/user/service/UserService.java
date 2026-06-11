@@ -67,7 +67,7 @@ public class UserService {
         credentials.setPassword(passwordEncoder.encode(pin));
         credentialsRepository.save(credentials);
         UserEntity created = userRepository.save(user);
-        return userMapper.toResponse(created);
+        return userMapper.toDTO(created);
     }
 
     @Transactional
@@ -94,7 +94,7 @@ public class UserService {
             user.setBranch(branch);
         }
         UserEntity updated = userRepository.save(user);
-        return userMapper.toResponse(updated);
+        return userMapper.toDTO(updated);
     }
 
     public void delete(Long id) {
@@ -109,7 +109,7 @@ public class UserService {
 
     public Page<UserResponseDTO> findAll(Pageable pageable) {
         return userRepository.findAll(pageable)
-                .map(userMapper::toResponse);
+                .map(userMapper::toDTO);
     }
 
     public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
@@ -122,13 +122,13 @@ public class UserService {
                 UserSpecification.userRoleIdEquals(userRoleId)
         );
         return userRepository.findAll(spec, pageable)
-                .map(userMapper::toResponse);
+                .map(userMapper::toDTO);
     }
 
     public UserResponseDTO findById(Long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
-        return userMapper.toResponse(user);
+        return userMapper.toDTO(user);
     }
 
     public boolean existsByDni(Long dni) {

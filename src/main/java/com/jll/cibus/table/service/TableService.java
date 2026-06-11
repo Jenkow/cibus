@@ -52,7 +52,7 @@ public class TableService {
                 TableSpecification.isAvailable(available),
                 TableSpecification.equalsWaiterId(waiterId));
         return tableRepository.findAll(spec,pageable)
-                .map(tableMapper::toResponse);
+                .map(tableMapper::toDTO);
     }
 
     public Boolean existsById(Long id) {
@@ -78,18 +78,18 @@ public class TableService {
         table.setAvailable(Boolean.TRUE);
         table.setWaiter(null);
         TableEntity saved = tableRepository.save(table);
-        return tableMapper.toResponse(saved);
+        return tableMapper.toDTO(saved);
     }
 
     public TableResponseDTO findById(Long tableId) {
         TableEntity table = getTableById(tableId);
-        return tableMapper.toResponse(table);
+        return tableMapper.toDTO(table);
     }
 
     public TableResponseDTO findByBranchIdAndNumber(Long branchId, Integer number) {
         TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, number)
                 .orElseThrow(() -> new ResourceNotFoundException("There is no table "+number+ " in branch "+branchId));
-        return tableMapper.toResponse(table);
+        return tableMapper.toDTO(table);
     }
     private void validateWaiterRole(Long waiterId) {
         CredentialsEntity waiterCredentials = credentialsRepository
@@ -118,7 +118,7 @@ public class TableService {
 
         TableEntity updatedTable = tableRepository.save(table);
 
-        return tableMapper.toResponse(updatedTable);
+        return tableMapper.toDTO(updatedTable);
     }
 
     @Transactional
@@ -132,7 +132,7 @@ public class TableService {
         table.setWaiter(null);
 
         TableEntity updatedTable = tableRepository.save(table);
-        return tableMapper.toResponse(updatedTable);
+        return tableMapper.toDTO(updatedTable);
     }
 
     @Transactional
@@ -155,7 +155,7 @@ public class TableService {
         }
 
         TableEntity updatedTable = tableRepository.save(table);
-        return tableMapper.toResponse(updatedTable);
+        return tableMapper.toDTO(updatedTable);
     }
 
     @Transactional
