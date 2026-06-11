@@ -63,13 +63,6 @@ public class OrderController {
         return ResponseEntity.ok(orderService.applyDiscount(orderId, discount));
     }
 
-    //PROBABLEMENTE SEA MEJOR EL CAMBIAR A ESTADO CANCELADO ASI QUEDA GUARDADO
-    @DeleteMapping("/{orderId}")
-    public ResponseEntity<Void> delete(@PathVariable Long orderId) {
-        orderService.delete(orderId);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/statuses")
     public ResponseEntity<List<OrderStatusDTO>> getStatuses(){
         return ResponseEntity.ok(orderService.getStatuses());
