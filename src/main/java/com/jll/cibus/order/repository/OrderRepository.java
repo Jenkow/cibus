@@ -1,6 +1,7 @@
 package com.jll.cibus.order.repository;
 
 import com.jll.cibus.order.entity.OrderEntity;
+import com.jll.cibus.statistics.dto.product.ProductMetricDTO;
 import com.jll.cibus.statistics.dto.table.TableMetricDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -24,7 +25,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     FROM OrderEntity o
     JOIN o.table t
     WHERE o.branch.id = :branchId
-    AND o.createdAt BETWEEN :start AND :end
+    AND o.closedAt BETWEEN :start AND :end
     GROUP BY t.id, t.number
     ORDER BY COUNT(o) DESC
     """)
@@ -35,7 +36,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     FROM OrderEntity o
     JOIN o.table t
     WHERE o.branch.id = :branchId
-    AND o.createdAt BETWEEN :start AND :end
+    AND o.closedAt BETWEEN :start AND :end
     GROUP BY t.id, t.number
     ORDER BY COUNT(o) ASC
     """)
@@ -47,8 +48,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT COUNT(DISTINCT o.table.id)
     FROM OrderEntity o
     WHERE o.branch.id = :branchId
-    AND o.createdAt BETWEEN :start AND :end
+    AND o.closedAt BETWEEN :start AND :end
     """)
     Long countOccupiedTables(Long branchId, LocalDateTime start, LocalDateTime end);
+
 
 }
