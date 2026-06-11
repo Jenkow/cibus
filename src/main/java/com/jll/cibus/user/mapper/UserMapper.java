@@ -1,4 +1,5 @@
 package com.jll.cibus.user.mapper;
+import com.jll.cibus.common.model.IMapper;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.entity.UserEntity;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class UserMapper {
+public class UserMapper implements IMapper<UserEntity,UserRequestDTO,UserResponseDTO> {
 
     private final ModelMapper modelMapper;
 
@@ -16,7 +17,7 @@ public class UserMapper {
         return modelMapper.map(dto, UserEntity.class);
     }
 
-    public UserResponseDTO toResponse (UserEntity entity) {
+    public UserResponseDTO toDTO (UserEntity entity) {
         UserResponseDTO dto =  modelMapper.map(entity, UserResponseDTO.class);
         if(entity.getBranch() != null){
             dto.setBranchId(entity.getBranch().getId());

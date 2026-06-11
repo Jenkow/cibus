@@ -44,12 +44,12 @@ public class ProductService {
                 ProductSpecification.equalsCategoryId(categoryId),
                 ProductSpecification.equalsCategoryName(categoryName));
         return productRepository.findAll(spec, pageable)
-                .map(productMapper::toResponseDTO);
+                .map(productMapper::toDTO);
     }
 
     public ProductResponseDTO findById(Long id){
         ProductEntity product = getEntity(id);
-        return productMapper.toResponseDTO(product);
+        return productMapper.toDTO(product);
     }
 
     @Transactional
@@ -59,7 +59,7 @@ public class ProductService {
         entity.setCategory(productCategoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(()->new ResourceNotFoundException("category", dto.getCategoryId())));
         ProductEntity saved = productRepository.save(entity);
-        return productMapper.toResponseDTO(saved);
+        return productMapper.toDTO(saved);
     }
 
     @Transactional
@@ -70,7 +70,7 @@ public class ProductService {
         product.setCategory(productCategoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(()->new ResourceNotFoundException("category",dto.getCategoryId())));
         ProductEntity updated = productRepository.save(product);
-        return productMapper.toResponseDTO(updated);
+        return productMapper.toDTO(updated);
     }
 
     @Transactional
