@@ -47,11 +47,16 @@ public class CredentialsEntity implements UserDetails {
     @JoinTable(name = "credentials_roles", joinColumns = @JoinColumn(name = "credential_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<RoleEntity> roles = new HashSet<>();
 
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<GrantedAuthority> authorities = new HashSet<>();
-        roles.forEach(rol -> authorities.add(
-                new SimpleGrantedAuthority("ROLE_"+rol.getRole().name())));
+        roles.forEach(role -> {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRole().name()));
+
+            role.getRole().getPermits().forEach(permit ->
+                    authorities.add(new SimpleGrantedAuthority(permit.name())));
+        });
         return authorities;
     }
 

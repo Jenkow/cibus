@@ -36,20 +36,23 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        List<String> roles = userDetails.getAuthorities().stream()
+        List<String> authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-        claims.put("roles", roles);
+                .toList();
+        claims.put("authorities", authorities);
         return buildToken(claims, userDetails, jwtExpiration);
     }
 
     public List<GrantedAuthority> extractAuthorities(String token) {
         Claims claims = extractAllClaims(token);
-        List<?> rawRoles = claims.get("roles", List.class);
-        if (rawRoles == null) {
+        List<?> rawAuthorities = claims.get("authorities", List.class);
+        if (rawAuthorities == null) {
             return java.util.Collections.emptyList();
         }
-        return rawRoles.stream()
+        System.out.println("------------------------------------\n\n\n");
+        System.out.println("AUTHORITIES:\n "+rawAuthorities);
+        System.out.println("------------------------------------\n\n\n");
+        return rawAuthorities.stream()
                 .map(Object::toString)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
