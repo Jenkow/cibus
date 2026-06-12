@@ -5,6 +5,7 @@ import com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO;
 import com.jll.cibus.statistics.dto.product.ProductMetricDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +27,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) DESC
     """)
-    List<ProductMetricDTO> findMostPopularProducts(Long branchId, LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findMostPopularProducts(@Param("branchId") Long branchId,
+                                                   @Param("start") LocalDateTime start,
+                                                   @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
@@ -37,7 +40,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) ASC
     """)
-    List<ProductMetricDTO> findLessPopularProducts(Long branchId, LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findLessPopularProducts(@Param("branchId") Long branchId,
+                                                   @Param("start") LocalDateTime start,
+                                                   @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
@@ -48,7 +53,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice DESC
     """)
-    List<ProductMetricDTO> findMostExpensiveProducts(Long branchId, LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findMostExpensiveProducts(@Param("branchId") Long branchId,
+                                                     @Param("start") LocalDateTime start,
+                                                     @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
@@ -59,7 +66,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice ASC
     """)
-    List<ProductMetricDTO> findCheapestProducts(Long branchId, LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findCheapestProducts(@Param("branchId") Long branchId,
+                                                @Param("start") LocalDateTime start,
+                                                @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO(od.product.category.name, SUM(od.quantity))
@@ -70,7 +79,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) DESC
     """)
-    List<ProductCategoryMetricDTO> findMostPopularCategories(Long branchId, LocalDateTime start, LocalDateTime end);
+    List<ProductCategoryMetricDTO> findMostPopularCategories(@Param("branchId") Long branchId,
+                                                             @Param("start") LocalDateTime start,
+                                                             @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO(od.product.category.name, SUM(od.quantity))
@@ -81,7 +92,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) ASC
     """)
-    List<ProductCategoryMetricDTO> findLessPopularCategories(Long branchId, LocalDateTime start, LocalDateTime end);
+    List<ProductCategoryMetricDTO> findLessPopularCategories(@Param("branchId") Long branchId,
+                                                             @Param("start") LocalDateTime start,
+                                                             @Param("end") LocalDateTime end);
 
 
     // QUERY's DE ESTADISTICAS GLOBALES
@@ -93,7 +106,8 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) DESC
     """)
-    List<ProductMetricDTO> findGlobalMostPopularProducts(LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findGlobalMostPopularProducts(@Param("start") LocalDateTime start,
+                                                         @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
@@ -103,7 +117,8 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) ASC
     """)
-    List<ProductMetricDTO> findGlobalLessPopularProducts(LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findGlobalLessPopularProducts(@Param("start") LocalDateTime start,
+                                                         @Param("end") LocalDateTime end);
 
 
     @Query("""
@@ -114,7 +129,8 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice DESC
     """)
-    List<ProductMetricDTO> findGlobalMostExpensiveProducts(LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findGlobalMostExpensiveProducts(@Param("start") LocalDateTime start,
+                                                           @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
@@ -124,7 +140,8 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice ASC
     """)
-    List<ProductMetricDTO> findGlobalCheapestProducts(LocalDateTime start, LocalDateTime end);
+    List<ProductMetricDTO> findGlobalCheapestProducts(@Param("start") LocalDateTime start,
+                                                      @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO(od.product.category.name, SUM(od.quantity))
@@ -134,7 +151,8 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) DESC
     """)
-    List<ProductCategoryMetricDTO> findGlobalMostPopularCategories(LocalDateTime start, LocalDateTime end);
+    List<ProductCategoryMetricDTO> findGlobalMostPopularCategories(@Param("start") LocalDateTime start,
+                                                                   @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO(od.product.category.name, SUM(od.quantity))
@@ -144,6 +162,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) ASC
     """)
-    List<ProductCategoryMetricDTO> findGlobalLessPopularCategories(LocalDateTime start, LocalDateTime end);
+    List<ProductCategoryMetricDTO> findGlobalLessPopularCategories(@Param("start") LocalDateTime start,
+                                                                   @Param("end") LocalDateTime end);
 
 }
