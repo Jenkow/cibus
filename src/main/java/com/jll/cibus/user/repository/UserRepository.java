@@ -43,4 +43,13 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>, JpaSpeci
     List<UserEntity> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
 
     boolean existsByEmail (String email);
+
+    @Query("""
+    SELECT COUNT (u)
+        FROM UserEntity u
+        WHERE u.branch.id = :branchId
+        AND u.role.name = :role
+    """)
+    Long countByUserRoleAndBranchId (@Param("role") String role,
+                                     @Param("branchId") Long branchId);
 }
