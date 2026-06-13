@@ -3,6 +3,7 @@ package com.jll.cibus.orderdetail.repository;
 import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
 import com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO;
 import com.jll.cibus.statistics.dto.product.ProductMetricDTO;
+import com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -164,5 +165,4 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
     """)
     List<ProductCategoryMetricDTO> findGlobalLessPopularCategories(@Param("start") LocalDateTime start,
                                                                    @Param("end") LocalDateTime end);
-
 }
