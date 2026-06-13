@@ -5,7 +5,6 @@ import com.jll.cibus.statistics.dto.overview.OverviewInsightDTO;
 import com.jll.cibus.statistics.dto.product.ProductInsightDTO;
 import com.jll.cibus.statistics.dto.table.TableInsightDTO;
 import com.jll.cibus.statistics.dto.waiter.WaiterInsightDTO;
-import com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO;
 import com.jll.cibus.statistics.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

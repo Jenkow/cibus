@@ -2,7 +2,6 @@ package com.jll.cibus.order.repository;
 
 import com.jll.cibus.order.entity.OrderEntity;
 import com.jll.cibus.statistics.dto.order.OrderMetricDTO;
-import com.jll.cibus.statistics.dto.product.ProductMetricDTO;
 import com.jll.cibus.statistics.dto.table.TableMetricDTO;
 import com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 @Repository
