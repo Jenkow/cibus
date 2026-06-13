@@ -1,5 +1,6 @@
 package com.jll.cibus.user.controller;
 
+import com.jll.cibus.user.dto.ChangePasswordRequestDTO;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.dto.UserUpdateDTO;
@@ -40,9 +41,13 @@ public class UserController {
     }
 
     @PostMapping ()
-    public ResponseEntity<UserResponseDTO> create (@Valid @RequestBody UserRequestDTO dto) {
-        UserResponseDTO user = userService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    public ResponseEntity<UserResponseDTO> create (@Valid @RequestBody UserRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<UserResponseDTO> changePassword(@Valid @RequestBody ChangePasswordRequestDTO request){
+        return ResponseEntity.ok(userService.changePassword(request));
     }
 
     @PutMapping ("/{userId}")

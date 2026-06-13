@@ -2,13 +2,16 @@ package com.jll.cibus.user.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
+import com.jll.cibus.common.exception.InvalidCredentialsException;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.common.exception.UnauthorizedOperationException;
 import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.credential.repository.CredentialsRepository;
 import com.jll.cibus.role.entity.RoleEntity;
 import com.jll.cibus.role.enums.Roles;
 import com.jll.cibus.role.repository.RoleRepository;
+import com.jll.cibus.user.dto.ChangePasswordRequestDTO;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.dto.UserUpdateDTO;
@@ -20,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,6 +117,30 @@ public class UserService {
         credentialsRepository.save(credentials);
         UserEntity created = userRepository.save(user);
         return userMapper.toDTO(created);
+    }
+
+    @Transactional
+    public UserResponseDTO changePassword(ChangePasswordRequestDTO request){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedOperationException("User not authenticated");
+        }
+        CredentialsEntity credentials = (CredentialsEntity) authentication.getPrincipal();
+        UserEntity user = credentials.getUser();
+        if(user == null){
+            throw new ResourceNotFoundException("There is no user related to credentials");
+        }
+        if(!passwordEncoder.matches(request.getCurrentPassword(), credentials.getPassword())){
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+        if(user.getRole().getRole() != Roles.ADMIN && user.getRole().getRole() != Roles.MANAGER){
+            if (!request.getNewPassword().matches("\\d{6}")) {
+                throw new InvalidCredentialsException("Password must be exactly 6 numeric digits");
+            }
+        }
+        credentials.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        credentialsRepository.save(credentials);
+        return userMapper.toDTO(user);
     }
 
     @Transactional
