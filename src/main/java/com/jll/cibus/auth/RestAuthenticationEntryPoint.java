@@ -1,4 +1,4 @@
-package com.jll.cibus.common.auth;
+package com.jll.cibus.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

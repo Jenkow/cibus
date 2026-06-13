@@ -1,4 +1,4 @@
-package com.jll.cibus.common.auth;
+package com.jll.cibus.auth;
 
 public record RefreshTokenRequest (String refreshToken) {
 }

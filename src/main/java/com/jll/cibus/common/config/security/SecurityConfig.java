@@ -1,6 +1,6 @@
 package com.jll.cibus.common.config.security;
 
-import com.jll.cibus.common.auth.RestAuthenticationEntryPoint;
+import com.jll.cibus.auth.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
