@@ -1,7 +1,10 @@
 package com.jll.cibus.role.enums;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public enum Roles {
 
     ADMIN(

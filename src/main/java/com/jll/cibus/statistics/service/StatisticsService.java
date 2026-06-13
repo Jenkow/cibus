@@ -2,6 +2,8 @@ package com.jll.cibus.statistics.service;
 
 import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
+import com.jll.cibus.role.enums.Roles;
+import com.jll.cibus.role.repository.RoleRepository;
 import com.jll.cibus.statistics.dto.order.OrderInsightDTO;
 import com.jll.cibus.statistics.dto.order.OrderMetricDTO;
 import com.jll.cibus.statistics.dto.overview.OverviewInsightDTO;
@@ -14,7 +16,6 @@ import com.jll.cibus.statistics.dto.waiter.WaiterInsightDTO;
 import com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO;
 import com.jll.cibus.table.repository.TableRepository;
 import com.jll.cibus.user.repository.UserRepository;
-import com.jll.cibus.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,7 @@ public class StatisticsService {
     private final TableRepository tableRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
 
 
     public TableInsightDTO getTableInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
@@ -244,7 +245,7 @@ public class StatisticsService {
         List<WaiterMetricDTO> ordersQuantityRanking = orderRepository.getOrdersQuantityRanking(branchId, start, end);
 
         // Promedio de órdenes por mozo
-        Long totalWaiters = userRepository.countByUserRoleAndBranchId("WAITER", branchId);
+        Long totalWaiters = userRepository.countByUserRoleAndBranchId(Roles.WAITER, branchId);
         Long totalOrders = orderRepository.getTotalOrdersBetweenTime(branchId, start, end);
         Double averageOrdersPerWaiter = totalWaiters == 0 ? 0.0 : totalOrders.doubleValue() / totalWaiters;
 
@@ -264,7 +265,7 @@ public class StatisticsService {
         List<WaiterMetricDTO> ordersQuantityRanking = orderRepository.getGlobalOrdersQuantityRanking(start, end);
 
         // Promedio de órdenes por mozo
-        Long totalWaiters = userRoleRepository.countByUserRole("WAITER");
+        Long totalWaiters = roleRepository.countByRole(Roles.WAITER);
         Long totalOrders = orderRepository.getGlobalTotalOrdersBetweenTime(start, end);
         Double averageOrdersPerWaiter = totalWaiters == 0 ? 0.0 : totalOrders.doubleValue() / totalWaiters;
 
