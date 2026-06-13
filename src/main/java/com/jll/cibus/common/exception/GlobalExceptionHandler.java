@@ -58,4 +58,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDetails);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorDetails> iIllegalArgumentExceptionHandler(IllegalArgumentException ex){
+        ErrorDetails errorDetails = new ErrorDetails("IllegalArgumentException", ex.getMessage(), HttpStatus.BAD_REQUEST.value());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
+    }
 }
