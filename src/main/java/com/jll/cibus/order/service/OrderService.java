@@ -4,6 +4,7 @@ import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.common.exception.UnauthorizedOperationException;
 import com.jll.cibus.order.dto.OrderStatusDTO;
 import com.jll.cibus.order.dto.OrderUpdateDTO;
 import com.jll.cibus.order.dto.OrderRequestDTO;
@@ -21,6 +22,7 @@ import com.jll.cibus.payment.service.PaymentService;
 import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.credential.repository.CredentialsRepository;
 import com.jll.cibus.role.enums.Roles;
+import com.jll.cibus.table.repository.TableRepository;
 import com.jll.cibus.table.service.TableService;
 import com.jll.cibus.table.entity.TableEntity;
 import com.jll.cibus.user.entity.UserEntity;
@@ -29,6 +31,8 @@ import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -46,14 +50,40 @@ public class OrderService {
     private final OrderStatusService orderStatusService;
     private final UserService userService;
     private final TableService tableService;
+    private final TableRepository tableRepository;
     private final BranchRepository branchRepository;
     private final PaymentService paymentService;
     private final UserRepository userRepository;
     private final CredentialsRepository credentialsRepository;
 
 
+    private UserEntity getAuthenticatedUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedOperationException("User not authenticated");
+        }
+        String username = (String) authentication.getPrincipal();
+        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
+        UserEntity user = credentials.getUser();
+        if(user == null){
+            throw new ResourceNotFoundException("There is no user related to credentials");
+        }
+        return user;
+    }
+
+    private void authenticateUserBelongsInBranch(Long branchId){
+        UserEntity user = getAuthenticatedUser();
+        if(user.getRole().getRole() != Roles.ADMIN){
+            if(!user.getBranch().getId().equals(branchId)){
+                throw new BusinessException("Waiter assigned to a different branch");
+            }
+        }
+    }
+
 
     public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
+        authenticateUserBelongsInBranch(branchId);
         if (from != null && to != null && from.isAfter(to)) {
             throw new BusinessException("The start date cannot be after the end date");
         }
@@ -130,10 +160,12 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
+        authenticateUserBelongsInBranch(branchId);
         validateOrderRequest(branchId, dto);
         BranchEntity branch = branchRepository.findById(branchId)
                 .orElseThrow(() -> new ResourceNotFoundException("branch", branchId));
-        TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
+        TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, dto.getTableNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("There is no table number "+dto.getTableNumber()+"in this branch"));
         UserEntity waiter = userRepository.findById(dto.getWaiterId())
                         .orElseThrow(()->new ResourceNotFoundException("user",dto.getWaiterId()));
         //VERIFICO QUE SEA WAITER
@@ -159,11 +191,13 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO update(Long branchId, Long orderId, OrderUpdateDTO dto) {
+        authenticateUserBelongsInBranch(branchId);
         OrderEntity order = getEntity(orderId);
         UserEntity waiter = userRepository.findById(order.getWaiter().getId())
                         .orElseThrow(()->new ResourceNotFoundException("user", order.getWaiter().getId()));
         if (dto.getTableNumber() != null) {
-            TableEntity table = tableService.getTableByBranchIdAndNumber(branchId, dto.getTableNumber());
+            TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, dto.getTableNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException("There is no table number "+dto.getTableNumber()+"in this branch"));
             if (!table.isAvailable()) {
                 throw new BusinessException("The table " + table.getNumber() + " is occupied");
             }

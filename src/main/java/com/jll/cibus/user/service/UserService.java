@@ -126,9 +126,6 @@ public class UserService {
             throw new UnauthorizedOperationException("User not authenticated");
         }
         String username = (String) authentication.getPrincipal();
-        System.out.println("------------------------------------------------------\n\n");
-        System.out.println("USERNAME : "+username);
-        System.out.println("------------------------------------------------------\n\n");
         CredentialsEntity credentials = credentialsRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
         UserEntity user = credentials.getUser();

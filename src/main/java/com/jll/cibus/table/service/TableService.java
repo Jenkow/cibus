@@ -4,6 +4,7 @@ package com.jll.cibus.table.service;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.common.exception.UnauthorizedOperationException;
 import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.credential.repository.CredentialsRepository;
 import com.jll.cibus.role.enums.Roles;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,17 +37,37 @@ public class TableService {
     private final UserRepository userRepository;
 
 
-    private TableEntity getTableById(Long id) {
-        return tableRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("table", id));
-    }
-
-    public TableEntity getTableByBranchIdAndNumber(Long branchId, Integer number) {
+    private TableEntity getTableByBranchIdAndNumber(Long branchId, Integer number) {
         return tableRepository.findByBranch_IdAndNumber(branchId, number)
                 .orElseThrow(() -> new ResourceNotFoundException("table number", number));
     }
 
+    private UserEntity getAuthenticatedUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedOperationException("User not authenticated");
+        }
+        String username = (String) authentication.getPrincipal();
+        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
+        UserEntity user = credentials.getUser();
+        if(user == null){
+            throw new ResourceNotFoundException("There is no user related to credentials");
+        }
+        return user;
+    }
+
+    private void authenticateUserBelongsInBranch(Long branchId){
+        UserEntity user = getAuthenticatedUser();
+        if(user.getRole().getRole() != Roles.ADMIN){
+            if(!user.getBranch().getId().equals(branchId)){
+                throw new BusinessException("Waiter assigned to a different branch");
+            }
+        }
+    }
+
     public Page<TableResponseDTO> findAll( Pageable pageable,Long branchId, Integer tableNumber, Integer capacity, Boolean available, Long waiterId){
+        authenticateUserBelongsInBranch(branchId);
         Specification<TableEntity> spec = Specification.allOf(
                 TableSpecification.equalsBranchId(branchId),
                 TableSpecification.equalsTableNumber(tableNumber),
@@ -55,20 +78,19 @@ public class TableService {
                 .map(tableMapper::toDTO);
     }
 
-    public Boolean existsById(Long id) {
-        return tableRepository.existsById(id);
+    public TableResponseDTO findByNumber(Long branchId, Integer tableNumber) {
+        authenticateUserBelongsInBranch(branchId);
+        TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
+        return tableMapper.toDTO(table);
     }
 
-    public Boolean existsByBranchIdAndNumber(Long branchId, Integer number){
-        return tableRepository.existsByBranchIdAndNumber(branchId, number);
-    }
-
-    public Boolean existsByTableIdAndBranchId(Long tableId, Long branchId) {
-        return tableRepository.existsByIdAndBranchId(tableId, branchId);
+    public Boolean existsByBranchIdAndNumber(Long branchId, Integer tableNumber){
+        return tableRepository.existsByBranchIdAndNumber(branchId, tableNumber);
     }
 
     @Transactional
     public TableResponseDTO create(TableCreateDTO dto, Long branchId) {
+        authenticateUserBelongsInBranch(branchId);
         if(tableRepository.existsByBranchIdAndNumber(branchId, dto.getNumber())){
             throw new BusinessException("A table with number "+ dto.getNumber() +" already exists in the branch.");
         }
@@ -81,16 +103,6 @@ public class TableService {
         return tableMapper.toDTO(saved);
     }
 
-    public TableResponseDTO findById(Long tableId) {
-        TableEntity table = getTableById(tableId);
-        return tableMapper.toDTO(table);
-    }
-
-    public TableResponseDTO findByBranchIdAndNumber(Long branchId, Integer number) {
-        TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, number)
-                .orElseThrow(() -> new ResourceNotFoundException("There is no table "+number+ " in branch "+branchId));
-        return tableMapper.toDTO(table);
-    }
     private void validateWaiterRole(Long waiterId) {
         CredentialsEntity waiterCredentials = credentialsRepository
                 .findByUser_Id(waiterId)
@@ -104,6 +116,7 @@ public class TableService {
 
     @Transactional
     public TableResponseDTO occupy(Long branchId, Integer tableNumber, Long waiterId) {
+        authenticateUserBelongsInBranch(branchId);
         TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         if (waiterId == null)
             throw new BusinessException("Waiter ID is required to occupy a table");
@@ -123,8 +136,8 @@ public class TableService {
 
     @Transactional
     public TableResponseDTO free(Long branchId, Integer tableNumber) {
+        authenticateUserBelongsInBranch(branchId);
         TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
-
         if (table.getAvailable()) {
             throw new BusinessException("The table is already free");
         }
@@ -137,6 +150,7 @@ public class TableService {
 
     @Transactional
     public TableResponseDTO update(Long branchId, Integer tableNumber, TableUpdateDTO newTable) {
+        authenticateUserBelongsInBranch(branchId);
         TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         if(newTable.getNumber() != null){
             table.setNumber(newTable.getNumber());
@@ -160,64 +174,9 @@ public class TableService {
 
     @Transactional
     public void delete(Long branchId, Integer tableNumber) {
+        authenticateUserBelongsInBranch(branchId);
         TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         tableRepository.delete(table);
     }
-
-
-    //------------------------------------------------------------- TODOS ESTOS METODOS ESTABAN HECHOS PERO NO PENSAMOS NINGUN ENDPOINT PARA ELLOS, BORRARLOS O APLICAR ENDPONTS   ---------------------------------------------------------------------------------------
-
-/*
-    public List<TableResponseDTO> findAll() {
-        List<TableEntity> tables = tableRepository.findAll();
-        return tables.stream()
-                .map(tableMapper::toResponse)
-                .toList();
-    }
-
-    private List<TableEntity> findByBranch(BranchEntity branch) {
-            return tableRepository.findByBranch(branch);
-        }
-
-        public List<TableResponseDTO> findByBranchId(Long branchId) {
-            BranchEntity branch = branchService.getEntity(branchId);
-
-            List<TableEntity> tables = findByBranch(branch);
-
-            return tables.stream()
-                    .map(tableMapper::toResponse)
-                    .toList();
-        }
-
-    private List<TableEntity> findByBranchAndAvailable(BranchEntity branch, boolean available) {
-        return tableRepository.findByBranchAndAvailable(branch, available);
-    }
-
-    public List<TableResponseDTO> findByBranchIdAndAvailable(Long branchId, boolean available) {
-        BranchEntity branch = branchService.getEntity(branchId);
-        List<TableEntity> tables = findByBranchAndAvailable(branch, available);
-        return tables.stream()
-                .map(tableMapper::toResponse)
-                .toList();
-    }
-
-    private List<TableEntity> findByBranchAndWaiter(BranchEntity branch, UserEntity waiter) {
-        return tableRepository.findByBranchAndWaiter(branch, waiter);
-    }
-
-    public List<TableResponseDTO> findByBranchIdAndWaiterId(Long branchId, Long waiterId) {
-        BranchEntity branch = branchService.getEntity(branchId);
-
-        if (!roleValidatorService.isWaiter(waiterId))
-            throw new BusinessException("The user is not a waiter");
-        UserEntity waiter = userService.getEntityByDni(waiterId);
-
-        List<TableEntity> tables = findByBranchAndWaiter(branch, waiter);
-
-        return tables.stream()
-                .map(tableMapper::toResponse)
-                .toList();
-    }
-*/
 
 }

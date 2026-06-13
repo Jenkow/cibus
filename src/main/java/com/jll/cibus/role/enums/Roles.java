@@ -38,6 +38,8 @@ public enum Roles {
             Permits.ORDER_CANCEL,
             Permits.ORDER_CLOSE,
             Permits.ORDER_STATUS_READ,
+            Permits.ORDER_CHANGE_STATUS,
+            Permits.ORDER_STATUS_UPDATE,
             Permits.PAYMENT_READ
     ),
     KITCHEN(
