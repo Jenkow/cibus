@@ -1,4 +1,4 @@
-package com.jll.cibus.common.auth;
+package com.jll.cibus.auth;
 
 import com.jll.cibus.common.config.security.JwtService;
 import com.jll.cibus.common.exception.InvalidCredentialsException;
