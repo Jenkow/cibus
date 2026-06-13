@@ -2,6 +2,9 @@ package com.jll.cibus.common.config;
 
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.credential.entity.CredentialsEntity;
+import com.jll.cibus.credential.repository.CredentialsRepository;
 import com.jll.cibus.order.entity.OrderStatusEntity;
 import com.jll.cibus.order.repository.OrderStatusRepository;
 import com.jll.cibus.payment.entity.PaymentMethodEntity;
@@ -10,13 +13,20 @@ import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
 import com.jll.cibus.productcategory.repository.ProductCategoryRepository;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.repository.ProductRepository;
-import com.jll.cibus.user.entity.UserRoleEntity;
-import com.jll.cibus.user.repository.UserRoleRepository;
+import com.jll.cibus.role.entity.PermitEntity;
+import com.jll.cibus.role.entity.RoleEntity;
+import com.jll.cibus.role.enums.Permits;
+import com.jll.cibus.role.enums.Roles;
+import com.jll.cibus.role.repository.PermitRepository;
+import com.jll.cibus.role.repository.RoleRepository;
+import com.jll.cibus.user.entity.UserEntity;
+import com.jll.cibus.user.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
+import java.util.*;
 
 @Configuration
 public class DataLoader {
@@ -26,10 +36,14 @@ public class DataLoader {
 
             ProductRepository productRepository,
             ProductCategoryRepository categoryRepository,
-            UserRoleRepository userRoleRepository,
+            RoleRepository roleRepository,
+            PermitRepository permitRepository,
             PaymentMethodRepository paymentMethodRepository,
             OrderStatusRepository orderStatusRepository,
-            BranchRepository branchRepository
+            BranchRepository branchRepository,
+            UserRepository userRepository,
+            CredentialsRepository credentialsRepository,
+            PasswordEncoder passwordEncoder
     ) {
 
         return args -> {
@@ -146,35 +160,46 @@ public class DataLoader {
                 System.out.println("Menú cargado correctamente.");
             }
 
-            if (userRoleRepository.count() == 0) {
-
-                List<UserRoleEntity> roles = List.of(
-
-                        UserRoleEntity.builder()
-                                .name("ADMIN")
-                                .build(),
-
-                        UserRoleEntity.builder()
-                                .name("MANAGER")
-                                .build(),
-
-                        UserRoleEntity.builder()
-                                .name("HOST")
-                                .build(),
-
-                        UserRoleEntity.builder()
-                                .name("WAITER")
-                                .build(),
-
-                        UserRoleEntity.builder()
-                                .name("KITCHEN")
-                                .build()
-                );
-
-                userRoleRepository.saveAll(roles);
-
-                System.out.println("Roles cargados correctamente.");
+            if (roleRepository.count() == 0) {
+                Map<Permits, PermitEntity> permits = new EnumMap<>(Permits.class);
+                for (Permits p : Permits.values()) {
+                    PermitEntity pe = PermitEntity.builder().permit(p).build();
+                    permitRepository.save(pe);
+                    permits.put(p, pe);
+                }
+                for (Roles role : Roles.values()) {
+                    RoleEntity roleEntity = new RoleEntity(role);
+                    role.getPermits().forEach(permit ->
+                            roleEntity.addPermit(permits.get(permit))
+                    );
+                    roleRepository.save(roleEntity);
+                }
+                System.out.println("Roles y permisos cargados correctamente.");
             }
+
+            if (!credentialsRepository.existsByUsername("admin") && !userRepository.existsByDni(0L)){
+                RoleEntity adminRole = roleRepository.findByRole(Roles.ADMIN)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: create admin user failed"));
+                UserEntity admin = UserEntity.builder()
+                        .dni(0L)
+                        .role(adminRole)
+                        .firstName("admin")
+                        .lastName("master")
+                        .phoneNumber("1111111111")
+                        .email("admin@gmail.com")
+                        .build();
+                userRepository.save(admin);
+                CredentialsEntity credentials = CredentialsEntity.builder()
+                        .username("admin")
+                        .password(passwordEncoder.encode("111111"))
+                        .enabled(Boolean.TRUE)
+                        .user(admin)
+                        .roles(Set.of(adminRole))
+                        .build();
+                credentialsRepository.save(credentials);
+                System.out.println("Admin cargado correctamente");
+            }
+
 
             if (paymentMethodRepository.count() == 0) {
 

@@ -1,17 +1,16 @@
 package com.jll.cibus.table.controller;
 
-
-import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.table.dto.TableCreateDTO;
 import com.jll.cibus.table.dto.TableUpdateDTO;
 import com.jll.cibus.table.dto.TableResponseDTO;
 import com.jll.cibus.table.service.TableService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/branches/{branchId}/tables")
@@ -23,23 +22,21 @@ public class TableController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TableResponseDTO>> getAll(@PathVariable Long branchId) {
-        return ResponseEntity.ok(tableService.findByBranchId(branchId));
+    public ResponseEntity<Page<TableResponseDTO>> findAll (Pageable pageable,
+                                                            @RequestParam(required = false) Integer tableNumber,
+                                                            @RequestParam (required = false)  Integer capacity,
+                                                            @RequestParam (required = false) Boolean available,
+                                                            @RequestParam(required = false) Long waiterId,
+
+                                                           @PathVariable Long branchId)
+    {
+       return ResponseEntity.ok(tableService.findAll(pageable,branchId,tableNumber,capacity,available,waiterId));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TableResponseDTO> getById(@PathVariable Long branchId, @PathVariable Long id) {
-        return ResponseEntity.ok(tableService.findById(id));
-    }
 
-    @GetMapping("/number/{number}")
-    public ResponseEntity<TableResponseDTO> getByBranchIdAndNumber(@PathVariable Long branchId, @PathVariable Integer number) {
-        return ResponseEntity.ok(tableService.findByBranchIdAndNumber(branchId, number));
-    }
-
-    @GetMapping("/waiter/{waiterId}")
-    public ResponseEntity<List<TableResponseDTO>> getByBranchIdAndNumber(@PathVariable Long waiterId) {
-        return ResponseEntity.ok(tableService.findByWaiterId(waiterId));
+    @GetMapping("/{tableId}")
+    public ResponseEntity<TableResponseDTO> getById(@PathVariable Long branchId, @PathVariable Long tableId) {
+        return ResponseEntity.ok(tableService.findById(tableId));
     }
 
     @PostMapping
@@ -48,15 +45,12 @@ public class TableController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/{tableNumber}/occupy")
+    @PatchMapping("/occupy/{tableNumber}")
     public ResponseEntity<TableResponseDTO> occupy(@PathVariable Long branchId, @PathVariable Integer tableNumber, @Valid @RequestBody TableUpdateDTO table) {
-        if(table.getWaiterId() == null){
-            throw new BusinessException("Waiter ID is needed to ocuppy a table");
-        }
         return ResponseEntity.ok(tableService.occupy(branchId, tableNumber, table.getWaiterId()));
     }
 
-    @PatchMapping("/{tableNumber}/free")
+    @PatchMapping("/free/{tableNumber}")
     public ResponseEntity<TableResponseDTO> free(@PathVariable Long branchId, @PathVariable Integer tableNumber) {
         return ResponseEntity.ok(tableService.free(branchId, tableNumber));
     }

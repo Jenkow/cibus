@@ -33,7 +33,7 @@ public class ProductService {
         return productRepository.existsById(id);
     }
 
-    public ProductEntity getEntity (Long id){
+    private ProductEntity getEntity (Long id){
         return productRepository.findById(id)
                 .orElseThrow( () -> new ResourceNotFoundException("Product", id));
     }
@@ -44,21 +44,22 @@ public class ProductService {
                 ProductSpecification.equalsCategoryId(categoryId),
                 ProductSpecification.equalsCategoryName(categoryName));
         return productRepository.findAll(spec, pageable)
-                .map(productMapper::toResponseDTO);
+                .map(productMapper::toDTO);
     }
 
     public ProductResponseDTO findById(Long id){
         ProductEntity product = getEntity(id);
-        return productMapper.toResponseDTO(product);
+        return productMapper.toDTO(product);
     }
 
     @Transactional
     public ProductResponseDTO create(ProductRequestDTO dto){
         if(productRepository.findByNameIgnoreCase(dto.getName()).isPresent()) throw new ResourceAlreadyExistsException("Product", dto.getName());
         ProductEntity entity = productMapper.toEntity(dto);
-        entity.setCategory(productCategoryService.getEntity(dto.getCategoryId()));
+        entity.setCategory(productCategoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(()->new ResourceNotFoundException("category", dto.getCategoryId())));
         ProductEntity saved = productRepository.save(entity);
-        return productMapper.toResponseDTO(saved);
+        return productMapper.toDTO(saved);
     }
 
     @Transactional
@@ -66,9 +67,10 @@ public class ProductService {
         ProductEntity product = getEntity(id);
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
-        product.setCategory(productCategoryService.getEntity(dto.getCategoryId()));
+        product.setCategory(productCategoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(()->new ResourceNotFoundException("category",dto.getCategoryId())));
         ProductEntity updated = productRepository.save(product);
-        return productMapper.toResponseDTO(updated);
+        return productMapper.toDTO(updated);
     }
 
     @Transactional

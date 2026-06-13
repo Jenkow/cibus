@@ -1,5 +1,6 @@
 package com.jll.cibus.payment.mapper;
 
+import com.jll.cibus.common.model.IMapper;
 import com.jll.cibus.payment.dto.PaymentMethodRequestDTO;
 import com.jll.cibus.payment.dto.PaymentMethodResponseDTO;
 import com.jll.cibus.payment.entity.PaymentMethodEntity;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PaymentMethodMapper {
+public class PaymentMethodMapper implements IMapper<PaymentMethodEntity,PaymentMethodRequestDTO, PaymentMethodResponseDTO> {
 
     private final ModelMapper modelMapper;
 

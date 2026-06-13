@@ -1,0 +1,107 @@
+package com.jll.cibus.common.config.security;
+
+import com.jll.cibus.common.auth.RestAuthenticationEntryPoint;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
+@Configuration
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final PasswordEncoder passwordEncoder;
+
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws
+            Exception {
+        http.authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Users
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("USER_READ")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("USER_UPDATE")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        // Tables
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/tables/**").hasAuthority("TABLE_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/tables/**").hasAuthority("TABLE_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/tables/**").hasAuthority("TABLE_UPDATE")
+                        .requestMatchers(HttpMethod.PATCH, "/api/branches/*/tables/**").hasAnyAuthority("TABLE_OPEN", "TABLE_CLOSE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/tables/**").hasRole("ADMIN")
+                        // Orders
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/orders/**").hasAuthority("ORDER_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/**").hasAuthority("ORDER_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/orders/**").hasAuthority("ORDER_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/orders/**").hasAuthority("ORDER_CANCEL")
+                        // Order items
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*/items/**").hasAuthority("ORDER_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/orders/*/items/**").hasAuthority("ORDER_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/items/**").hasAuthority("ORDER_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/orders/*/items/**").hasAuthority("ORDER_CANCEL")
+                        // Products por branch
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/products/**").hasAuthority("PRODUCT_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/products/**").hasAuthority("PRODUCT_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/products/**").hasAuthority("PRODUCT_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/products/**").hasAnyRole("ADMIN", "MANAGER")
+                        // Branches
+                        .requestMatchers(HttpMethod.GET, "/api/branches/**").hasAuthority("BRANCH_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/**").hasAuthority("BRANCH_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/**").hasAuthority("BRANCH_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/**").hasRole("ADMIN")
+                        // Products (globales)
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").hasAuthority("PRODUCT_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/products/**").hasAuthority("PRODUCT_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasAuthority("PRODUCT_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                        // Categories
+                        .requestMatchers(HttpMethod.GET, "/api/product-categories/**").hasAuthority("CATEGORY_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/product-categories/**").hasAuthority("CATEGORY_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/product-categories/**").hasAuthority("CATEGORY_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/product-categories/**").hasRole("ADMIN")
+                        // Payment methods
+                        .requestMatchers(HttpMethod.GET, "/api/payment-methods/**").hasAuthority("PAYMENT_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/payment-methods/**").hasAuthority("PAYMENT_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/payment-methods/**").hasAuthority("PAYMENT_UPDATE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/payment-methods/**").hasRole("ADMIN")
+                        // Statistics
+                        .requestMatchers("/api/statistics/global/**").hasRole("ADMIN")
+                        .requestMatchers("/api/statistics/branch/**").hasAnyRole("ADMIN", "MANAGER")
+
+                        .anyRequest().authenticated()
+                )
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
+                .headers(headers
+                        -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
+                .sessionManagement(manager ->
+                        manager.sessionCreationPolicy(STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(e ->
+                        e.authenticationEntryPoint(restAuthenticationEntryPoint));
+        return http.build();
+    }
+
+
+}
+

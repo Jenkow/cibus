@@ -26,10 +26,10 @@ public class ProductCategoryController {
         return ResponseEntity.ok(productCategoryService.findAll());
     }
 
-    @GetMapping ("/{id}")
-    public ResponseEntity<ProductCategoryResponseDTO> getById (@PathVariable Long id)
+    @GetMapping ("/{productCategoryId}")
+    public ResponseEntity<ProductCategoryResponseDTO> getById (@PathVariable Long productCategoryId)
     {
-        return ResponseEntity.ok(productCategoryService.findById(id));
+        return ResponseEntity.ok(productCategoryService.findById(productCategoryId));
     }
     @GetMapping ("/name/{name}")
     public ResponseEntity<ProductCategoryResponseDTO> getByName (@PathVariable String name)
@@ -43,15 +43,15 @@ public class ProductCategoryController {
         ProductCategoryResponseDTO response = productCategoryService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    @PutMapping ("/{id}")
-    public ResponseEntity<ProductCategoryResponseDTO> updateProductCategory (@PathVariable Long id,@Valid @RequestBody ProductCategoryRequestDTO dto)
+    @PutMapping ("/{productCategoryId}")
+    public ResponseEntity<ProductCategoryResponseDTO> updateProductCategory (@PathVariable Long productCategoryId,@Valid @RequestBody ProductCategoryRequestDTO dto)
     {
-        return ResponseEntity.ok(productCategoryService.update(id,dto));
+        return ResponseEntity.ok(productCategoryService.update(productCategoryId,dto));
     }
-    @DeleteMapping ("/{id}")
-    public ResponseEntity<Void> deleteProductCategory (@PathVariable Long id)
+    @DeleteMapping ("/{productCategoryId}")
+    public ResponseEntity<Void> deleteProductCategory (@PathVariable Long productCategoryId)
     {
-        productCategoryService.delete(id);
+        productCategoryService.delete(productCategoryId);
         return ResponseEntity.noContent().build();
     }
 

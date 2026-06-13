@@ -1,6 +1,7 @@
 package com.jll.cibus.user.entity;
 
 import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.role.entity.RoleEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,10 +34,11 @@ public class UserEntity {
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    private BranchEntity branch;
+    @JoinColumn(name = "role")
+    private RoleEntity role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", nullable = false)
-    private UserRoleEntity role;
+    @JoinColumn(name = "branch_id")
+    private BranchEntity branch;
+
 }

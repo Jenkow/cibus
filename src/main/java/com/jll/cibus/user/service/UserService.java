@@ -1,26 +1,32 @@
 package com.jll.cibus.user.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
-import com.jll.cibus.branch.service.BranchService;
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.credential.entity.CredentialsEntity;
+import com.jll.cibus.credential.repository.CredentialsRepository;
+import com.jll.cibus.role.entity.RoleEntity;
+import com.jll.cibus.role.enums.Roles;
+import com.jll.cibus.role.repository.RoleRepository;
 import com.jll.cibus.user.dto.UserRequestDTO;
 import com.jll.cibus.user.dto.UserResponseDTO;
 import com.jll.cibus.user.dto.UserUpdateDTO;
 import com.jll.cibus.user.entity.UserEntity;
-import com.jll.cibus.user.entity.UserRoleEntity;
 import com.jll.cibus.user.mapper.UserMapper;
 import com.jll.cibus.user.repository.UserRepository;
-import com.jll.cibus.user.repository.UserRoleRepository;
 import com.jll.cibus.user.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -28,29 +34,48 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final BranchService branchService;
-    private final UserRoleService userRoleService;
-    private final UserRoleRepository userRoleRepository;
+    private final BranchRepository branchRepository;
+    private final RoleRepository roleRepository;
+    private final CredentialsRepository credentialsRepository;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
         if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
         if (userRepository.existsByEmail(requestDTO.getEmail())) throw new ResourceAlreadyExistsException("Email", requestDTO.getEmail());
 
-        BranchEntity branch = branchService.getEntity(requestDTO.getBranchId());
-        UserRoleEntity userRole = userRoleService.getEntity(requestDTO.getUserRoleId());
-
         UserEntity user = userMapper.toEntity(requestDTO);
-        user.setBranch(branch);
-        user.setRole(userRole);
+        if(requestDTO.getBranchId() != null){
+            BranchEntity branch = branchRepository.findById(requestDTO.getBranchId())
+                    .orElseThrow(() -> new ResourceNotFoundException("branch", requestDTO.getBranchId()));
+            user.setBranch(branch);
+        }
+        Roles role = Roles.valueOf(requestDTO.getRole().toUpperCase());
+        RoleEntity roleEntity = roleRepository.findByRole(role)
+                .orElseThrow(() -> new ResourceNotFoundException("role", requestDTO.getRole()));
+        user.setRole(roleEntity);
+        String cleanPhone = user.getPhoneNumber().replaceAll("\\D", "");             // saca todos los caracteres que no sean numeros
+        String pin = cleanPhone.substring(cleanPhone.length() - 6);                         // se queda con los ulitmos 6
+        CredentialsEntity credentials = CredentialsEntity.builder()
+                .enabled(Boolean.TRUE)
+                .user(user)
+                .roles(new HashSet<>(Set.of(roleEntity)))
+                .build();
+        if (role == Roles.ADMIN || role == Roles.MANAGER) {
+            credentials.setUsername(user.getEmail());
+        } else {
+            credentials.setUsername(pin);
+        }
+        credentials.setPassword(passwordEncoder.encode(pin));
+        credentialsRepository.save(credentials);
         UserEntity created = userRepository.save(user);
-        return userMapper.toResponse(created);
+        return userMapper.toDTO(created);
     }
 
     @Transactional
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
+        UserEntity user = getEntityById(id);
         if (updateDTO.getDni() != null) {
             user.setDni(updateDTO.getDni());
         }
@@ -67,28 +92,27 @@ public class UserService {
             user.setEmail(updateDTO.getEmail());
         }
         if (updateDTO.getBranchId() != null) {
-            BranchEntity branch = branchService.getEntity(updateDTO.getBranchId());
+            BranchEntity branch = branchRepository.findById(updateDTO.getBranchId())
+                    .orElseThrow(()-> new ResourceNotFoundException("branch", updateDTO.getBranchId()));
             user.setBranch(branch);
         }
-        if (updateDTO.getUserRoleId() != null) {
-            UserRoleEntity userRole = userRoleService.getEntity(updateDTO.getUserRoleId());
-            user.setRole(userRole);
-        }
         UserEntity updated = userRepository.save(user);
-        return userMapper.toResponse(updated);
+        return userMapper.toDTO(updated);
     }
 
     public void delete(Long id) {
-        UserEntity toDelete = userRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
-
-        userRepository.delete(toDelete);
+        UserEntity user = getEntityById(id);
+        CredentialsEntity credentials = credentialsRepository.findByUser_Id(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("There are no credentials for user "+id));
+        credentials.disable();
+        user.setBranch(null);
+        credentialsRepository.save(credentials);
+        userRepository.save(user);
     }
 
     public Page<UserResponseDTO> findAll(Pageable pageable) {
         return userRepository.findAll(pageable)
-                .map(userMapper::toResponse);
+                .map(userMapper::toDTO);
     }
 
     public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
@@ -101,13 +125,13 @@ public class UserService {
                 UserSpecification.userRoleIdEquals(userRoleId)
         );
         return userRepository.findAll(spec, pageable)
-                .map(userMapper::toResponse);
+                .map(userMapper::toDTO);
     }
 
     public UserResponseDTO findById(Long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
-        return userMapper.toResponse(user);
+        return userMapper.toDTO(user);
     }
 
     public boolean existsByDni(Long dni) {
@@ -122,19 +146,19 @@ public class UserService {
         return userRepository.existsByDniAndBranchId(dni, branchId);
     }
 
-    public UserEntity getEntityByDni(Long dni) {
+    private UserEntity getEntityByDni(Long dni) {
         return userRepository.findByDni(dni)
                 .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
     }
 
-    public UserEntity getEntityById(Long id) {
+    private UserEntity getEntityById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", id));
     }
 
-    public List<String> getUserRoles(){
-        return userRoleRepository.findAll().stream()
-                .map(UserRoleEntity::getName)
+    public List<String> getUserRoles() {
+        return Arrays.stream(Roles.values())
+                .map(Roles::name)
                 .toList();
     }
 

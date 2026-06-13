@@ -14,11 +14,9 @@ public class UserResponseDTO
     private Long dni;
     private String firstName;
     private String lastName;
-    private Integer clave;
     private String phoneNumber;
     private String email;
     private Long branchId;
     private String branchName;
-    private Long userRoleId;
-    private String userRoleName;
+    private String role;
 }
