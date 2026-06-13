@@ -40,6 +40,47 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
 
+    public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
+        Specification<UserEntity> spec = Specification.allOf(
+                UserSpecification.nameContains(name),
+                UserSpecification.dniEquals(dni),
+                UserSpecification.emailEquals(email),
+                UserSpecification.phoneNumberEquals(phoneNumber),
+                UserSpecification.branchIdEquals(branchId),
+                UserSpecification.userRoleIdEquals(userRoleId)
+        );
+        return userRepository.findAll(spec, pageable)
+                .map(userMapper::toDTO);
+    }
+
+    public UserResponseDTO findById(Long id) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
+        return userMapper.toDTO(user);
+    }
+
+    private UserEntity getEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ID", id));
+    }
+
+    private UserEntity getEntityByDni(Long dni) {
+        return userRepository.findByDni(dni)
+                .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
+    }
+
+    public boolean existsByDni(Long dni) {
+        return userRepository.existsByDni(dni);
+    }
+
+    public boolean existsById(Long id) {
+        return userRepository.existsById(id);
+    }
+
+    public boolean existsByDniAndBranch(Long dni, Long branchId) {
+        return userRepository.existsByDniAndBranchId(dni, branchId);
+    }
+
     @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
         if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
@@ -96,6 +137,12 @@ public class UserService {
                     .orElseThrow(()-> new ResourceNotFoundException("branch", updateDTO.getBranchId()));
             user.setBranch(branch);
         }
+        if(!updateDTO.getRole().isBlank()){
+            Roles role = Roles.valueOf(updateDTO.getRole().toUpperCase());
+            RoleEntity roleEntity = roleRepository.findByRole(role)
+                    .orElseThrow(() -> new ResourceNotFoundException("role", role.name()));
+            user.setRole(roleEntity);
+        }
         UserEntity updated = userRepository.save(user);
         return userMapper.toDTO(updated);
     }
@@ -108,52 +155,6 @@ public class UserService {
         user.setBranch(null);
         credentialsRepository.save(credentials);
         userRepository.save(user);
-    }
-
-    public Page<UserResponseDTO> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable)
-                .map(userMapper::toDTO);
-    }
-
-    public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
-        Specification<UserEntity> spec = Specification.allOf(
-                UserSpecification.nameContains(name),
-                UserSpecification.dniEquals(dni),
-                UserSpecification.emailEquals(email),
-                UserSpecification.phoneNumberEquals(phoneNumber),
-                UserSpecification.branchIdEquals(branchId),
-                UserSpecification.userRoleIdEquals(userRoleId)
-        );
-        return userRepository.findAll(spec, pageable)
-                .map(userMapper::toDTO);
-    }
-
-    public UserResponseDTO findById(Long id) {
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
-        return userMapper.toDTO(user);
-    }
-
-    public boolean existsByDni(Long dni) {
-        return userRepository.existsByDni(dni);
-    }
-
-    public boolean existsById(Long id) {
-        return userRepository.existsById(id);
-    }
-
-    public boolean existsByDniAndBranch(Long dni, Long branchId) {
-        return userRepository.existsByDniAndBranchId(dni, branchId);
-    }
-
-    private UserEntity getEntityByDni(Long dni) {
-        return userRepository.findByDni(dni)
-                .orElseThrow(() -> new ResourceNotFoundException("DNI", dni));
-    }
-
-    private UserEntity getEntityById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ID", id));
     }
 
     public List<String> getUserRoles() {
