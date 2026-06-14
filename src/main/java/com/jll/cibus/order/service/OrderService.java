@@ -143,8 +143,8 @@ public class OrderService {
                 .findByUser_Id(dto.getWaiterId())
                 .orElseThrow(() -> new BusinessException("The user with id " + dto.getWaiterId() + " has no credentials"));
 
-        boolean isWaiter = waiterCredentials.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(Roles.WAITER.name()));
+        boolean isWaiter = waiterCredentials.getUser() != null
+                && waiterCredentials.getUser().getRole().getRole() == Roles.WAITER;
 
         if (!isWaiter)
             throw new BusinessException("The user with id " + dto.getWaiterId() + " is not a waiter");
