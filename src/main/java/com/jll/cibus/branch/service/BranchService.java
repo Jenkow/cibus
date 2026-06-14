@@ -8,22 +8,20 @@ import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.table.repository.TableRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class BranchService {
 
     private final BranchRepository branchRepository;
+    private final TableRepository tableRepository;
     private final BranchMapper branchMapper;
-
-    public BranchService(BranchRepository branchRepository, BranchMapper branchMapper) {
-        this.branchRepository = branchRepository;
-        this.branchMapper = branchMapper;
-    }
 
     public List<BranchResponseDTO> getAllBranches() {
         return branchRepository.findAll()
@@ -98,7 +96,8 @@ public class BranchService {
     @Transactional
     public void delete(Long id) {
         BranchEntity branch = getEntity(id);
+        if (tableRepository.hasActiveTables(branch.getId())) throw new BusinessException("Cannot delete branch which has active tables");
+
         branchRepository.delete(branch);
     }
-
 }
