@@ -73,7 +73,7 @@ public class BranchProductService {
         ProductEntity product =productRepository.findById(dto.getProductId())
                         .orElseThrow(()-> new ResourceNotFoundException("product", dto.getProductId()));
         if(branchProductRepository.existsByBranch_IdAndProduct_Id(branchId, dto.getProductId())){
-            throw new ResourceAlreadyExistsException("El producto con id"+dto.getProductId()+" ya existe en la sucursal con id"+branchId);
+            throw new ResourceAlreadyExistsException("The product with ID "+dto.getProductId()+" already exists in  branch with id "+branchId);
         }
         BranchProductEntity entity = branchProductMapper.toEntity(dto);
         entity.setBranch(branch);
