@@ -37,7 +37,7 @@ public class OrderDetailService {
 
     private void validateAvailability(BranchProductEntity productInBranch){
         if(!productInBranch.isAvailable()){
-            throw new BusinessException("El producto no está disponible en esta sucursal");
+            throw new BusinessException("The product is not available in this branch.");
         }
     }
 
