@@ -34,7 +34,7 @@ public class TableController {
     }
 
 
-    @GetMapping("/{tableId}")
+    @GetMapping("/{tableNumber}")
     public ResponseEntity<TableResponseDTO> getByNumber(@PathVariable Long branchId, @PathVariable Integer tableNumber) {
         return ResponseEntity.ok(tableService.findByNumber(branchId, tableNumber));
     }
