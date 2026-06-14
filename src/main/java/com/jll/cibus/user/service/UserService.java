@@ -121,25 +121,18 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO changePassword(ChangePasswordRequestDTO request){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedOperationException("User not authenticated");
-        }
-        String username = (String) authentication.getPrincipal();
-        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
+    public UserResponseDTO changePassword(Long userId, ChangePasswordRequestDTO request){
+        UserEntity user = getEntityById(userId);
+        CredentialsEntity credentials = credentialsRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
-        UserEntity user = credentials.getUser();
-        if(user == null){
-            throw new ResourceNotFoundException("There is no user related to credentials");
-        }
         if(!passwordEncoder.matches(request.getCurrentPassword(), credentials.getPassword())){
             throw new InvalidCredentialsException("Current password is incorrect");
         }
         if(user.getRole().getRole() != Roles.ADMIN && user.getRole().getRole() != Roles.MANAGER){
-            if (!request.getNewPassword().matches("\\d{6}")) {
-                throw new InvalidCredentialsException("Password must be exactly 6 numeric digits");
+            if (!request.getNewPassword().matches("\\d{4}")) {
+                throw new InvalidCredentialsException("Password must be exactly 4 numeric digits");
             }
+            credentials.setUsername(request.getNewPassword());
         }
         credentials.setPassword(passwordEncoder.encode(request.getNewPassword()));
         credentialsRepository.save(credentials);

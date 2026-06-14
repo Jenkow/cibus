@@ -45,9 +45,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));
     }
 
-    @PutMapping("/change-password")
-    public ResponseEntity<UserResponseDTO> changePassword(@Valid @RequestBody ChangePasswordRequestDTO request){
-        return ResponseEntity.ok(userService.changePassword(request));
+    @PutMapping("/{userId}/change-password")
+    public ResponseEntity<UserResponseDTO> changePassword(@PathVariable Long userId, @Valid @RequestBody ChangePasswordRequestDTO request){
+        return ResponseEntity.ok(userService.changePassword(userId, request));
     }
 
     @PutMapping ("/{userId}")
