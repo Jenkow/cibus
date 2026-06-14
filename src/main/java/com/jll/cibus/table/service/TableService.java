@@ -60,8 +60,11 @@ public class TableService {
     private void authenticateUserBelongsInBranch(Long branchId){
         UserEntity user = getAuthenticatedUser();
         if(user.getRole().getRole() != Roles.ADMIN){
+            if(user.getBranch() == null){
+                throw new BusinessException("User has no branch assigned");
+            }
             if(!user.getBranch().getId().equals(branchId)){
-                throw new BusinessException("Waiter assigned to a different branch");
+                throw new BusinessException("User assigned to a different branch");
             }
         }
     }
