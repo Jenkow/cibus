@@ -1,6 +1,5 @@
 package com.jll.cibus.statistics.controller;
 
-import com.jll.cibus.role.enums.Roles;
 import com.jll.cibus.statistics.dto.order.OrderInsightDTO;
 import com.jll.cibus.statistics.dto.overview.OverviewInsightDTO;
 import com.jll.cibus.statistics.dto.product.ProductInsightDTO;
@@ -21,77 +20,74 @@ public class StatisticsController {
     private final StatisticsService statisticsService;
 
 
-    @GetMapping("/overview/global")
-    public ResponseEntity<OverviewInsightDTO> getGlobalOverviewInsights(@RequestParam LocalDateTime start,
-                                                                  @RequestParam LocalDateTime end){
+    @GetMapping("/global/overview")
+    public ResponseEntity<OverviewInsightDTO> getGlobalOverviewInsights(@RequestParam(required = false) LocalDateTime start,
+                                                                        @RequestParam(required = false) LocalDateTime end){
 
 
         return ResponseEntity.ok(statisticsService.getGlobalOverviewInsights(start, end));
     }
 
-    @GetMapping("/overview/branch/{branchId}")
+    @GetMapping("/branch/{branchId}/overview")
     public ResponseEntity<OverviewInsightDTO> getOverviewInsights(@PathVariable Long branchId,
-                                                                  @RequestParam LocalDateTime start,
-                                                                  @RequestParam LocalDateTime end){
+                                                                  @RequestParam(required = false) LocalDateTime start,
+                                                                  @RequestParam(required = false) LocalDateTime end){
 
         return ResponseEntity.ok(statisticsService.getOverviewInsights(branchId, start, end));
     }
 
-
-    @GetMapping("/tables/branch/{branchId}")
+    @GetMapping("/branch/{branchId}/tables")
     public ResponseEntity<TableInsightDTO> getTableInsights(@PathVariable Long branchId,
-                                                            @RequestParam LocalDateTime start,
-                                                            @RequestParam LocalDateTime end) {
+                                                            @RequestParam(required = false) LocalDateTime start,
+                                                            @RequestParam(required = false) LocalDateTime end) {
 
         return ResponseEntity.ok(statisticsService.getTableInsights(branchId, start, end));
     }
 
-    @GetMapping("/products/branch/{branchId}")
+    @GetMapping("/branch/{branchId}/products")
     public ResponseEntity<ProductInsightDTO> getProductInsights(@PathVariable Long branchId,
-                                                                @RequestParam LocalDateTime start,
-                                                                @RequestParam LocalDateTime end) {
+                                                                @RequestParam(required = false) LocalDateTime start,
+                                                                @RequestParam(required = false) LocalDateTime end) {
 
         return ResponseEntity.ok(statisticsService.getProductInsights(branchId, start, end));
     }
 
-    @GetMapping("/products/global")
-    public ResponseEntity<ProductInsightDTO> getGlobalProductInsights(@RequestParam LocalDateTime start,
-                                                                      @RequestParam LocalDateTime end) {
+    @GetMapping("/global/products")
+    public ResponseEntity<ProductInsightDTO> getGlobalProductInsights(@RequestParam(required = false) LocalDateTime start,
+                                                                      @RequestParam(required = false) LocalDateTime end) {
 
         return ResponseEntity.ok(statisticsService.getGlobalProductInsights(start, end));
     }
 
-    @GetMapping("/orders/branch/{branchId}")
+    @GetMapping("/branch/{branchId}/orders")
     public ResponseEntity<OrderInsightDTO> getOrderInsights(@PathVariable Long branchId,
-                                                            @RequestParam LocalDateTime start,
-                                                            @RequestParam LocalDateTime end){
+                                                            @RequestParam(required = false) LocalDateTime start,
+                                                            @RequestParam(required = false) LocalDateTime end){
 
         return ResponseEntity.ok(statisticsService.getOrderInsights(branchId, start, end));
     }
 
-    @GetMapping("/orders/global")
-    public ResponseEntity<OrderInsightDTO> getGlobalOrderInsights(@RequestParam LocalDateTime start,
-                                                                  @RequestParam LocalDateTime end){
+    @GetMapping("/global/orders")
+    public ResponseEntity<OrderInsightDTO> getGlobalOrderInsights(@RequestParam(required = false) LocalDateTime start,
+                                                                  @RequestParam(required = false) LocalDateTime end){
 
 
         return ResponseEntity.ok(statisticsService.getGlobalOrderInsights(start, end));
     }
 
-    @GetMapping("/waiters/branch/{branchId}")
+    @GetMapping("/branch/{branchId}/waiters")
     public ResponseEntity<WaiterInsightDTO> getWaiterInsights(@PathVariable Long branchId,
-                                                                  @RequestParam LocalDateTime start,
-                                                                  @RequestParam LocalDateTime end){
+                                                              @RequestParam(required = false) LocalDateTime start,
+                                                              @RequestParam(required = false) LocalDateTime end){
 
         return ResponseEntity.ok(statisticsService.getWaiterInsights(branchId, start, end));
     }
 
-    @GetMapping("/waiters/global")
-    public ResponseEntity<WaiterInsightDTO> getGlobalWaiterInsights(@RequestParam LocalDateTime start,
-                                                              @RequestParam LocalDateTime end){
+    @GetMapping("/global/waiters")
+    public ResponseEntity<WaiterInsightDTO> getGlobalWaiterInsights(@RequestParam(required = false) LocalDateTime start,
+                                                                    @RequestParam(required = false) LocalDateTime end){
 
 
         return ResponseEntity.ok(statisticsService.getGlobalWaiterInsights(start, end));
     }
-
-
 }
