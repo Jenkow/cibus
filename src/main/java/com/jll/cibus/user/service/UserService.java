@@ -145,7 +145,27 @@ public class UserService {
         credentialsRepository.save(credentials);
         return userMapper.toDTO(user);
     }
-
+    @Transactional
+    public UserResponseDTO resetPin (Long userId, String newPin)
+    {
+        CredentialsEntity credentials= credentialsRepository.findByUser_Id(userId)
+                .orElseThrow(()-> new ResourceNotFoundException("Credentials not found"));
+        UserEntity user = credentials.getUser();
+        if (user == null) {
+            throw new ResourceNotFoundException("There is no user related to credentials");
+        }
+        Roles role = user.getRole().getRole();
+        if (role != Roles.ADMIN && role != Roles.MANAGER) {
+            if (credentialsRepository.existsByUsername(newPin)
+                    && !newPin.equals(credentials.getUsername())) {
+                throw new ResourceAlreadyExistsException("PIN", newPin);
+            }
+            credentials.setUsername(newPin);
+        }
+        credentials.setPassword(passwordEncoder.encode(newPin));
+        credentialsRepository.save(credentials);
+        return userMapper.toDTO(user);
+    }
     @Transactional
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
         UserEntity user = getEntityById(id);
