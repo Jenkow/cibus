@@ -42,7 +42,35 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
 
+    private UserEntity getAuthenticatedUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedOperationException("User not authenticated");
+        }
+        String username = (String) authentication.getPrincipal();
+        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
+        UserEntity user = credentials.getUser();
+        if(user == null){
+            throw new ResourceNotFoundException("There is no user related to credentials");
+        }
+        return user;
+    }
+
+    private void authenticateUserBelongsInBranch(Long branchId){
+        UserEntity user = getAuthenticatedUser();
+        if(user.getRole().getRole() != Roles.ADMIN){
+            if(!user.getBranch().getId().equals(branchId)){
+                throw new BusinessException("Waiter assigned to a different branch");
+            }
+        }
+    }
+
     public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
+        UserEntity user = getAuthenticatedUser();
+        if(user.getRole().getRole() == Roles.MANAGER){
+            branchId = user.getBranch().getId();
+        }
         Specification<UserEntity> spec = Specification.allOf(
                 UserSpecification.nameContains(name),
                 UserSpecification.dniEquals(dni),
@@ -123,6 +151,15 @@ public class UserService {
     @Transactional
     public UserResponseDTO changePassword(Long userId, ChangePasswordRequestDTO request){
         UserEntity user = getEntityById(userId);
+        UserEntity authenticatedUser = getAuthenticatedUser();
+        if(authenticatedUser.getRole().getRole() == Roles.MANAGER){
+            if(authenticatedUser.getBranch() == null || user.getBranch() == null){
+                throw new BusinessException("User must be assigned to a branch");
+            }
+            if(!authenticatedUser.getBranch().getId().equals(user.getBranch().getId())){
+                throw new BusinessException("You can't modify users belonging to a different branch.");
+            }
+        }
         CredentialsEntity credentials = credentialsRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
         if(!passwordEncoder.matches(request.getCurrentPassword(), credentials.getPassword())){
