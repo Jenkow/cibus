@@ -37,11 +37,11 @@ public class OrderStatusService {
                     throw new BusinessException("Invalid status transition");
                 break;
             case "PREPARING":
-                if (!next.equalsIgnoreCase("READY") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
+                if (!next.equalsIgnoreCase("READY") && !next.equalsIgnoreCase("CANCELLED"))
                     throw new BusinessException("Invalid status transition");
                 break;
             case "READY":
-                if (!next.equalsIgnoreCase("SERVED") && !next.equalsIgnoreCase("PREPARING") && !next.equalsIgnoreCase("CANCELLED"))
+                if (!next.equalsIgnoreCase("SERVED") && !next.equalsIgnoreCase("CANCELLED"))
                     throw new BusinessException("Invalid status transition");
                 break;
             case "SERVED":
