@@ -39,9 +39,9 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         // Users
-                        .requestMatchers("/api/users/*/reset-pin").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("USER_READ")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("USER_UPDATE")
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAuthority("USER_UPDATE")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         // Tables
                         .requestMatchers(HttpMethod.GET, "/api/branches/*/tables/**").hasAuthority("TABLE_READ")

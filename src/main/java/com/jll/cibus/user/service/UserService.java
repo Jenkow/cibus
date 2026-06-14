@@ -148,17 +148,21 @@ public class UserService {
         return userMapper.toDTO(created);
     }
 
+    private void validateManagerCanModifyUser(UserEntity authenticatedUser, UserEntity userToModify){
+        if(authenticatedUser.getBranch() == null || userToModify.getBranch() == null){
+            throw new BusinessException("User must be assigned to a branch.");
+        }
+        if(!authenticatedUser.getBranch().getId().equals(userToModify.getBranch().getId())){
+            throw new BusinessException("You can't modify users belonging to a different branch.");
+        }
+    }
+
     @Transactional
     public UserResponseDTO changePassword(Long userId, ChangePasswordRequestDTO request){
         UserEntity user = getEntityById(userId);
         UserEntity authenticatedUser = getAuthenticatedUser();
         if(authenticatedUser.getRole().getRole() == Roles.MANAGER){
-            if(authenticatedUser.getBranch() == null || user.getBranch() == null){
-                throw new BusinessException("User must be assigned to a branch");
-            }
-            if(!authenticatedUser.getBranch().getId().equals(user.getBranch().getId())){
-                throw new BusinessException("You can't modify users belonging to a different branch.");
-            }
+            validateManagerCanModifyUser(authenticatedUser, user);
         }
         CredentialsEntity credentials = credentialsRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
@@ -169,25 +173,31 @@ public class UserService {
             if (!request.getNewPassword().matches("\\d{4}")) {
                 throw new InvalidCredentialsException("Password must be exactly 4 numeric digits");
             }
+            if (credentialsRepository.existsByUsername(request.getNewPassword())) {
+                throw new ResourceAlreadyExistsException("PIN", request.getNewPassword());
+            }
             credentials.setUsername(request.getNewPassword());
         }
         credentials.setPassword(passwordEncoder.encode(request.getNewPassword()));
         credentialsRepository.save(credentials);
         return userMapper.toDTO(user);
     }
+
     @Transactional
-    public UserResponseDTO resetPin (Long userId, String newPin)
-    {
+    public UserResponseDTO resetPin (Long userId, String newPin) {
         CredentialsEntity credentials= credentialsRepository.findByUser_Id(userId)
                 .orElseThrow(()-> new ResourceNotFoundException("Credentials not found"));
         UserEntity user = credentials.getUser();
         if (user == null) {
             throw new ResourceNotFoundException("There is no user related to credentials");
         }
+        UserEntity authenticatedUser = getAuthenticatedUser();
+        if(authenticatedUser.getRole().getRole() == Roles.MANAGER){
+            validateManagerCanModifyUser(authenticatedUser, user);
+        }
         Roles role = user.getRole().getRole();
         if (role != Roles.ADMIN && role != Roles.MANAGER) {
-            if (credentialsRepository.existsByUsername(newPin)
-                    && !newPin.equals(credentials.getUsername())) {
+            if (credentialsRepository.existsByUsername(newPin)) {
                 throw new ResourceAlreadyExistsException("PIN", newPin);
             }
             credentials.setUsername(newPin);
@@ -196,6 +206,7 @@ public class UserService {
         credentialsRepository.save(credentials);
         return userMapper.toDTO(user);
     }
+
     @Transactional
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
         UserEntity user = getEntityById(id);
