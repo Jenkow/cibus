@@ -31,7 +31,7 @@ public class UserController {
                                                          @RequestParam(required = false) Long branchId,
                                                          @RequestParam(required = false) Long userRoleId) {
 
-        return ResponseEntity.ok(userService.findAll(pageable, dni, name, phoneNumber, email, branchId, userRoleId));
+        return ResponseEntity.ok(userService.findAll(pageable, dni, name, email, phoneNumber, branchId, userRoleId));
     }
 
     @GetMapping("/{userId}")
