@@ -108,8 +108,8 @@ public class TableService {
                 .findByUser_Id(waiterId)
                 .orElseThrow(() -> new BusinessException("The user with id " + waiterId + " has no credentials"));
 
-        boolean isWaiter = waiterCredentials.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(Roles.WAITER.name()));
+        boolean isWaiter = waiterCredentials.getUser() != null
+                && waiterCredentials.getUser().getRole().getRole() == Roles.WAITER;
         if (!isWaiter)
             throw new BusinessException("The user is not a waiter");
     }
