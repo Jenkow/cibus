@@ -199,7 +199,11 @@ public class UserService {
     @Transactional
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
         UserEntity user = getEntityById(id);
-        if (updateDTO.getDni() != null) {
+        if (updateDTO.getDni() != null && !updateDTO.getDni().equals(user.getDni())) {
+            if (userRepository.existsByDni(updateDTO.getDni()))
+            {
+                throw new ResourceAlreadyExistsException("User", updateDTO.getDni());
+            }
             user.setDni(updateDTO.getDni());
         }
         if (updateDTO.getFirstName() != null && !updateDTO.getFirstName().isBlank()) {
@@ -211,7 +215,11 @@ public class UserService {
         if (updateDTO.getPhoneNumber() != null && !updateDTO.getPhoneNumber().isBlank()) {
             user.setPhoneNumber(updateDTO.getPhoneNumber());
         }
-        if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()) {
+        if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank() && !updateDTO.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(updateDTO.getEmail()))
+            {
+                throw new ResourceAlreadyExistsException("Email", updateDTO.getEmail());
+            }
             user.setEmail(updateDTO.getEmail());
         }
         if (updateDTO.getBranchId() != null) {
