@@ -1,9 +1,12 @@
 package com.jll.cibus.user.repository;
 
 import com.jll.cibus.branch.entity.BranchEntity;
+import com.jll.cibus.role.enums.Roles;
 import com.jll.cibus.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,4 +40,13 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>, JpaSpeci
     List<UserEntity> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
 
     boolean existsByEmail (String email);
+
+    @Query("""
+    SELECT COUNT (u)
+        FROM UserEntity u
+        WHERE u.branch.id = :branchId
+        AND u.role = :role
+    """)
+    Long countByUserRoleAndBranchId (@Param("role") Roles role,
+                                     @Param("branchId") Long branchId);
 }
