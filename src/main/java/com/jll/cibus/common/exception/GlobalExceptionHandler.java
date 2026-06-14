@@ -1,6 +1,7 @@
 package com.jll.cibus.common.exception;
 
 import com.jll.cibus.common.errordetails.ErrorDetails;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -64,5 +65,12 @@ public class GlobalExceptionHandler {
         ErrorDetails errorDetails = new ErrorDetails("IllegalArgumentException", ex.getMessage(), HttpStatus.BAD_REQUEST.value());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorDetails> jwtException(JwtException ex){
+        ErrorDetails errorDetails = new ErrorDetails("JwtException", ex.getMessage(), HttpStatus.UNAUTHORIZED.value());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDetails);
     }
 }

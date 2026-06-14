@@ -42,7 +42,35 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
 
+    private UserEntity getAuthenticatedUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedOperationException("User not authenticated");
+        }
+        String username = (String) authentication.getPrincipal();
+        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
+        UserEntity user = credentials.getUser();
+        if(user == null){
+            throw new ResourceNotFoundException("There is no user related to credentials");
+        }
+        return user;
+    }
+
+    private void authenticateUserBelongsInBranch(Long branchId){
+        UserEntity user = getAuthenticatedUser();
+        if(user.getRole().getRole() != Roles.ADMIN){
+            if(!user.getBranch().getId().equals(branchId)){
+                throw new BusinessException("Waiter assigned to a different branch");
+            }
+        }
+    }
+
     public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
+        UserEntity user = getAuthenticatedUser();
+        if(user.getRole().getRole() == Roles.MANAGER){
+            branchId = user.getBranch().getId();
+        }
         Specification<UserEntity> spec = Specification.allOf(
                 UserSpecification.nameContains(name),
                 UserSpecification.dniEquals(dni),
@@ -98,12 +126,8 @@ public class UserService {
         RoleEntity roleEntity = roleRepository.findByRole(role)
                 .orElseThrow(() -> new ResourceNotFoundException("role", requestDTO.getRole()));
         user.setRole(roleEntity);
-        String cleanPhone = user.getPhoneNumber().replaceAll("\\D", "");             // saca todos los caracteres que no sean numeros
-        if (cleanPhone.length()<6)
-        {
-            throw new BusinessException("Phone number must have at least 6 digits");
-        }
-        String pin = cleanPhone.substring(cleanPhone.length() - 6);                         // se queda con los ulitmos 6
+        String pin = requestDTO.getPin();
+
         CredentialsEntity credentials = CredentialsEntity.builder()
                 .enabled(Boolean.TRUE)
                 .user(user)
@@ -112,6 +136,10 @@ public class UserService {
         if (role == Roles.ADMIN || role == Roles.MANAGER) {
             credentials.setUsername(user.getEmail());
         } else {
+            if (credentialsRepository.existsByUsername(pin))
+            {
+                throw  new ResourceAlreadyExistsException("PIN", pin);
+            }
             credentials.setUsername(pin);
         }
         credentials.setPassword(passwordEncoder.encode(pin));
@@ -120,26 +148,35 @@ public class UserService {
         return userMapper.toDTO(created);
     }
 
+    private void validateManagerCanModifyUser(UserEntity authenticatedUser, UserEntity userToModify){
+        if(authenticatedUser.getBranch() == null || userToModify.getBranch() == null){
+            throw new BusinessException("User must be assigned to a branch.");
+        }
+        if(!authenticatedUser.getBranch().getId().equals(userToModify.getBranch().getId())){
+            throw new BusinessException("You can't modify users belonging to a different branch.");
+        }
+    }
+
     @Transactional
-    public UserResponseDTO changePassword(ChangePasswordRequestDTO request){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedOperationException("User not authenticated");
+    public UserResponseDTO changePassword(Long userId, ChangePasswordRequestDTO request){
+        UserEntity user = getEntityById(userId);
+        UserEntity authenticatedUser = getAuthenticatedUser();
+        if(authenticatedUser.getRole().getRole() == Roles.MANAGER){
+            validateManagerCanModifyUser(authenticatedUser, user);
         }
-        String username = (String) authentication.getPrincipal();
-        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
+        CredentialsEntity credentials = credentialsRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
-        UserEntity user = credentials.getUser();
-        if(user == null){
-            throw new ResourceNotFoundException("There is no user related to credentials");
-        }
         if(!passwordEncoder.matches(request.getCurrentPassword(), credentials.getPassword())){
             throw new InvalidCredentialsException("Current password is incorrect");
         }
         if(user.getRole().getRole() != Roles.ADMIN && user.getRole().getRole() != Roles.MANAGER){
-            if (!request.getNewPassword().matches("\\d{6}")) {
-                throw new InvalidCredentialsException("Password must be exactly 6 numeric digits");
+            if (!request.getNewPassword().matches("\\d{4}")) {
+                throw new InvalidCredentialsException("Password must be exactly 4 numeric digits");
             }
+            if (credentialsRepository.existsByUsername(request.getNewPassword())) {
+                throw new ResourceAlreadyExistsException("PIN", request.getNewPassword());
+            }
+            credentials.setUsername(request.getNewPassword());
         }
         credentials.setPassword(passwordEncoder.encode(request.getNewPassword()));
         credentialsRepository.save(credentials);
@@ -147,9 +184,37 @@ public class UserService {
     }
 
     @Transactional
+    public UserResponseDTO resetPin (Long userId, String newPin) {
+        CredentialsEntity credentials= credentialsRepository.findByUser_Id(userId)
+                .orElseThrow(()-> new ResourceNotFoundException("Credentials not found"));
+        UserEntity user = credentials.getUser();
+        if (user == null) {
+            throw new ResourceNotFoundException("There is no user related to credentials");
+        }
+        UserEntity authenticatedUser = getAuthenticatedUser();
+        if(authenticatedUser.getRole().getRole() == Roles.MANAGER){
+            validateManagerCanModifyUser(authenticatedUser, user);
+        }
+        Roles role = user.getRole().getRole();
+        if (role != Roles.ADMIN && role != Roles.MANAGER) {
+            if (credentialsRepository.existsByUsername(newPin)) {
+                throw new ResourceAlreadyExistsException("PIN", newPin);
+            }
+            credentials.setUsername(newPin);
+        }
+        credentials.setPassword(passwordEncoder.encode(newPin));
+        credentialsRepository.save(credentials);
+        return userMapper.toDTO(user);
+    }
+
+    @Transactional
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
         UserEntity user = getEntityById(id);
-        if (updateDTO.getDni() != null) {
+        if (updateDTO.getDni() != null && !updateDTO.getDni().equals(user.getDni())) {
+            if (userRepository.existsByDni(updateDTO.getDni()))
+            {
+                throw new ResourceAlreadyExistsException("User", updateDTO.getDni());
+            }
             user.setDni(updateDTO.getDni());
         }
         if (updateDTO.getFirstName() != null && !updateDTO.getFirstName().isBlank()) {
@@ -161,7 +226,11 @@ public class UserService {
         if (updateDTO.getPhoneNumber() != null && !updateDTO.getPhoneNumber().isBlank()) {
             user.setPhoneNumber(updateDTO.getPhoneNumber());
         }
-        if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()) {
+        if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank() && !updateDTO.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(updateDTO.getEmail()))
+            {
+                throw new ResourceAlreadyExistsException("Email", updateDTO.getEmail());
+            }
             user.setEmail(updateDTO.getEmail());
         }
         if (updateDTO.getBranchId() != null) {
