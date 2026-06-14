@@ -1,9 +1,6 @@
 package com.jll.cibus.user.controller;
 
-import com.jll.cibus.user.dto.ChangePasswordRequestDTO;
-import com.jll.cibus.user.dto.UserRequestDTO;
-import com.jll.cibus.user.dto.UserResponseDTO;
-import com.jll.cibus.user.dto.UserUpdateDTO;
+import com.jll.cibus.user.dto.*;
 import com.jll.cibus.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +45,11 @@ public class UserController {
     @PutMapping("/{userId}/change-password")
     public ResponseEntity<UserResponseDTO> changePassword(@PathVariable Long userId, @Valid @RequestBody ChangePasswordRequestDTO request){
         return ResponseEntity.ok(userService.changePassword(userId, request));
+    }
+    @PatchMapping ("/{userId}/reset-pin")
+    public ResponseEntity<UserResponseDTO> resetPin (@PathVariable Long userId, @Valid @RequestBody ResetPinRequestDTO request)
+    {
+        return ResponseEntity.ok(userService.resetPin(userId,request.getNewPin()));
     }
 
     @PutMapping ("/{userId}")
