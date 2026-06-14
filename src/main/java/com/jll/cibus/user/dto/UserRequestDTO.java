@@ -39,4 +39,8 @@ public class UserRequestDTO {
     @NotNull(message = "Role is mandatory")
     private String role;
 
+    @NotBlank (message = "PIN is mandatory")
+    @Pattern(regexp = "^[0-9]{4}$", message = "PIN must be exactly 4 digits" )
+    private String pin;
+
 }

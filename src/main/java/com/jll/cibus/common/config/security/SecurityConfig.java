@@ -41,6 +41,7 @@ public class SecurityConfig {
                         // Users
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("USER_READ")
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("USER_UPDATE")
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAuthority("USER_UPDATE")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         // Tables
                         .requestMatchers(HttpMethod.GET, "/api/branches/*/tables/**").hasAuthority("TABLE_READ")
