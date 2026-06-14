@@ -2,10 +2,7 @@ package com.jll.cibus.user.service;
 
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
-import com.jll.cibus.common.exception.InvalidCredentialsException;
-import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
-import com.jll.cibus.common.exception.ResourceNotFoundException;
-import com.jll.cibus.common.exception.UnauthorizedOperationException;
+import com.jll.cibus.common.exception.*;
 import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.credential.repository.CredentialsRepository;
 import com.jll.cibus.role.entity.RoleEntity;
@@ -102,6 +99,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("role", requestDTO.getRole()));
         user.setRole(roleEntity);
         String cleanPhone = user.getPhoneNumber().replaceAll("\\D", "");             // saca todos los caracteres que no sean numeros
+        if (cleanPhone.length()<6)
+        {
+            throw new BusinessException("Phone number must have at least 6 digits");
+        }
         String pin = cleanPhone.substring(cleanPhone.length() - 6);                         // se queda con los ulitmos 6
         CredentialsEntity credentials = CredentialsEntity.builder()
                 .enabled(Boolean.TRUE)
