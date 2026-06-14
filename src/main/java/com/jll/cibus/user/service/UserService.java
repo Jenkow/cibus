@@ -98,12 +98,8 @@ public class UserService {
         RoleEntity roleEntity = roleRepository.findByRole(role)
                 .orElseThrow(() -> new ResourceNotFoundException("role", requestDTO.getRole()));
         user.setRole(roleEntity);
-        String cleanPhone = user.getPhoneNumber().replaceAll("\\D", "");             // saca todos los caracteres que no sean numeros
-        if (cleanPhone.length()<6)
-        {
-            throw new BusinessException("Phone number must have at least 6 digits");
-        }
-        String pin = cleanPhone.substring(cleanPhone.length() - 6);                         // se queda con los ulitmos 6
+        String pin = requestDTO.getPin();
+
         CredentialsEntity credentials = CredentialsEntity.builder()
                 .enabled(Boolean.TRUE)
                 .user(user)
@@ -112,6 +108,10 @@ public class UserService {
         if (role == Roles.ADMIN || role == Roles.MANAGER) {
             credentials.setUsername(user.getEmail());
         } else {
+            if (credentialsRepository.existsByUsername(pin))
+            {
+                throw  new ResourceAlreadyExistsException("PIN", pin);
+            }
             credentials.setUsername(pin);
         }
         credentials.setPassword(passwordEncoder.encode(pin));
