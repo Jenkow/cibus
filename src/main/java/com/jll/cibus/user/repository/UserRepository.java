@@ -32,7 +32,7 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>, JpaSpeci
 
     List<UserEntity> findByBranchId (Long branchId);
 
-    
+
     boolean existsByDni (Long dni);
 
     boolean existsByDniAndBranchId(Long dni, Long branchId);
@@ -49,4 +49,11 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>, JpaSpeci
     """)
     Long countByUserRoleAndBranchId (@Param("role") Roles role,
                                      @Param("branchId") Long branchId);
+
+    @Query("""
+    SELECT COUNT (u)
+        FROM UserEntity u
+        WHERE u.role.role = :role
+    """)
+    Long countByUserRole(@Param("role") Roles roles);
 }
