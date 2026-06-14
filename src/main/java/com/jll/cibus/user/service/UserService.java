@@ -168,7 +168,7 @@ public class UserService {
                     .orElseThrow(()-> new ResourceNotFoundException("branch", updateDTO.getBranchId()));
             user.setBranch(branch);
         }
-        if(!updateDTO.getRole().isBlank()){
+        if(updateDTO.getRole()!=null && !updateDTO.getRole().isBlank()){
             Roles role = Roles.valueOf(updateDTO.getRole().toUpperCase());
             RoleEntity roleEntity = roleRepository.findByRole(role)
                     .orElseThrow(() -> new ResourceNotFoundException("role", role.name()));
