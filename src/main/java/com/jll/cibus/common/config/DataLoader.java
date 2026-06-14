@@ -5,8 +5,12 @@ import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.credential.repository.CredentialsRepository;
+import com.jll.cibus.order.entity.OrderEntity;
 import com.jll.cibus.order.entity.OrderStatusEntity;
+import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.order.repository.OrderStatusRepository;
+import com.jll.cibus.orderdetail.entity.OrderDetailEntity;
+import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.payment.entity.PaymentMethodEntity;
 import com.jll.cibus.payment.repository.PaymentMethodRepository;
 import com.jll.cibus.productcategory.entity.ProductCategoryEntity;
@@ -19,6 +23,8 @@ import com.jll.cibus.role.enums.Permits;
 import com.jll.cibus.role.enums.Roles;
 import com.jll.cibus.role.repository.PermitRepository;
 import com.jll.cibus.role.repository.RoleRepository;
+import com.jll.cibus.table.entity.TableEntity;
+import com.jll.cibus.table.repository.TableRepository;
 import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -26,6 +32,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Configuration
@@ -43,7 +51,10 @@ public class DataLoader {
             BranchRepository branchRepository,
             UserRepository userRepository,
             CredentialsRepository credentialsRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            OrderRepository orderRepository,
+            OrderDetailRepository orderDetailRepository,
+            TableRepository tableRepository
     ) {
 
         return args -> {
@@ -281,6 +292,108 @@ public class DataLoader {
                 System.out.println("Sucursales cargadas correctamente.");
             }
 
+            if (tableRepository.count() == 0) {
+                BranchEntity sucursalCentro = branchRepository.findAll().stream().findFirst().orElseThrow();
+                UserEntity adminMozo = userRepository.findAll().stream().findFirst().orElseThrow();
+
+                List<TableEntity> mesas = new ArrayList<>();
+                for (int i = 1; i <= 5; i++) {
+                    mesas.add(TableEntity.builder()
+                            .number(i)
+                            .capacity(i % 2 == 0 ? 4 : 2)
+                            .available(true)
+                            .waiter(adminMozo)
+                            .branch(sucursalCentro)
+                            .build());
+                }
+                tableRepository.saveAll(mesas);
+                System.out.println("Mesas cargadas correctamente.");
+            }
+
+            if (orderRepository.count() == 0) {
+
+                BranchEntity sucursal = branchRepository.findAll().get(0);
+                UserEntity mozo = userRepository.findAll().get(0);
+                List<TableEntity> mesas = tableRepository.findAll();
+                List<OrderStatusEntity> estados = orderStatusRepository.findAll();
+                List<ProductEntity> productos = productRepository.findAll();
+
+                List<OrderDetailEntity> todosLosDetalles = new ArrayList<>();
+                Random random = new Random();
+
+                for (int i = 1; i <= 10; i++) {
+                    TableEntity mesaAleatoria = mesas.get(random.nextInt(mesas.size()));
+                    OrderStatusEntity estadoAleatorio = estados.get(random.nextInt(estados.size()));
+
+                    ProductEntity producto1 = productos.get(random.nextInt(productos.size() / 2));
+                    ProductEntity producto2 = productos.get(productos.size() / 2 + random.nextInt(productos.size() / 2));
+
+                    BigDecimal precioP1 = BigDecimal.valueOf(3000 + random.nextInt(2000));
+                    BigDecimal precioP2 = BigDecimal.valueOf(1500 + random.nextInt(1500));
+                    int cant1 = 1 + random.nextInt(3);
+                    int cant2 = 1 + random.nextInt(2);
+
+                    BigDecimal subtotal1 = precioP1.multiply(BigDecimal.valueOf(cant1));
+                    BigDecimal subtotal2 = precioP2.multiply(BigDecimal.valueOf(cant2));
+                    BigDecimal subtotalOrden = subtotal1.add(subtotal2);
+
+                    BigDecimal descuento = (i % 2 == 0) ? new BigDecimal("1000.00") : BigDecimal.ZERO;
+                    BigDecimal totalFinal = subtotalOrden.subtract(descuento);
+
+                    int diasAtras = random.nextInt(30) + 1;
+                    int horaComida = 12 + random.nextInt(11);
+
+                    LocalDateTime fechaCreacion = LocalDateTime.now()
+                            .minusDays(diasAtras)
+                            .withHour(horaComida)
+                            .withMinute(random.nextInt(60))
+                            .withSecond(0)
+                            .withNano(0);
+
+                    LocalDateTime fechaCierre = null;
+                    String nombreEstado = estadoAleatorio.getName();
+
+                    if (nombreEstado.equals("PAID") || nombreEstado.equals("CANCELLED")) {
+                        int minutosMesa = 40 + random.nextInt(80);
+                        fechaCierre = fechaCreacion.plusMinutes(minutosMesa);
+                    }
+
+                    OrderEntity orden = OrderEntity.builder()
+                            .branch(sucursal)
+                            .table(mesaAleatoria)
+                            .waiter(mozo)
+                            .status(estadoAleatorio)
+                            .subtotal(subtotalOrden)
+                            .discount(descuento)
+                            .finalTotal(totalFinal)
+                            .createdAt(fechaCreacion)
+                            .closedAt(fechaCierre)
+                            .build();
+
+                    orderRepository.save(orden);
+
+                    OrderDetailEntity detalle1 = OrderDetailEntity.builder()
+                            .order(orden)
+                            .product(producto1)
+                            .quantity(cant1)
+                            .unitPrice(precioP1)
+                            .observation((i == 3 || i == 7) ? "Para compartir, por favor." : null)
+                            .build();
+
+                    OrderDetailEntity detalle2 = OrderDetailEntity.builder()
+                            .order(orden)
+                            .product(producto2)
+                            .quantity(cant2)
+                            .unitPrice(precioP2)
+                            .build();
+
+                    todosLosDetalles.add(detalle1);
+                    todosLosDetalles.add(detalle2);
+                }
+
+                orderDetailRepository.saveAll(todosLosDetalles);
+                System.out.println("10 Órdenes y sus detalles generados correctamente.");
+            }
         };
     }
 }
