@@ -24,6 +24,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +37,30 @@ public class StatisticsService {
     private final RoleRepository roleRepository;
 
 
+
+    /* Metodo que valida la coherencia de las fechas de inicio y fin.
+     En el hipotético caso que se llegase a dar que existe fecha de fin, pero no fecha de inicio,
+     en vez de devolver todos los registros históricos (muy caro en cuanto a consumo de recursos),
+     se devolverían únicamente los registros de un año de antigüedad partiendo desde la fecha final.
+     */
+    private Map<String, LocalDateTime> dateValidator(LocalDateTime start, LocalDateTime end) {
+
+        LocalDateTime resolvedEnd = end;
+        if (end == null) resolvedEnd = LocalDateTime.now();
+
+        LocalDateTime resolvedStart = start;
+        if (start == null) resolvedStart = resolvedEnd.minusYears(1);
+
+        return Map.of("resolvedEnd", resolvedEnd,
+                "resolvedStart", resolvedStart);
+    }
+
     public TableInsightDTO getTableInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
+
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
 
         //  Mesa más concurrida en el rango de tiempo solicitado.
         TableMetricDTO mostBusy =
@@ -70,6 +94,11 @@ public class StatisticsService {
     }
 
     public ProductInsightDTO getProductInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
+
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
 
         // Producto más vendido.
         ProductMetricDTO mostPopularProduct = orderDetailRepository.findMostPopularProducts(branchId, start, end)
@@ -118,6 +147,11 @@ public class StatisticsService {
     }
 
     public ProductInsightDTO getGlobalProductInsights(LocalDateTime start, LocalDateTime end) {
+
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
 
         // Producto global más vendido.
         ProductMetricDTO GlobalMostPopularProduct = orderDetailRepository.findGlobalMostPopularProducts(start, end)
@@ -168,13 +202,24 @@ public class StatisticsService {
 
     public OrderInsightDTO getOrderInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
+
         // Ganancia total.
         BigDecimal totalRevenue = orderRepository.getTotalRevenue(branchId, start, end);
         if (totalRevenue == null) totalRevenue = BigDecimal.ZERO; // evitamos NullPointerException si no encuentra registros
 
         // Valor final promedio de las órdenes.
         Long totalOrders = orderRepository.getTotalOrdersBetweenTime(branchId, start, end); // traemos el total de órdenes en el rango de tiempo.
-        BigDecimal averageTicket = totalRevenue.divide(new BigDecimal(totalOrders), 2, RoundingMode.HALF_UP); // Reutilizamos la ganancia total para calcular el average.
+        BigDecimal averageTicket = totalOrders == 0
+                ? BigDecimal.ZERO
+                : totalRevenue.divide(
+                BigDecimal.valueOf(totalOrders),
+                2,
+                RoundingMode.HALF_UP
+        ); // Reutilizamos la ganancia total para calcular el average.
 
         // Promedio de ganancia por dia.
         long days = ChronoUnit.DAYS.between(start, end); // conseguimos la cantidad de dias que se busca
@@ -203,13 +248,24 @@ public class StatisticsService {
 
     public OrderInsightDTO getGlobalOrderInsights(LocalDateTime start, LocalDateTime end) {
 
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
+
         // Ganancia total.
         BigDecimal totalRevenue = orderRepository.getGlobalTotalRevenue(start, end);
         if (totalRevenue == null) totalRevenue = BigDecimal.ZERO; // evitamos NullPointerException si no encuentra registros
 
         // Valor final promedio de las órdenes.
         Long totalOrders = orderRepository.getGlobalTotalOrdersBetweenTime(start, end); // traemos el total de órdenes en el rango de tiempo.
-        BigDecimal averageTicket = totalRevenue.divide(new BigDecimal(totalOrders), 2, RoundingMode.HALF_UP); // Reutilizamos la ganancia total para calcular el average.
+        BigDecimal averageTicket = totalOrders == 0
+                ? BigDecimal.ZERO
+                : totalRevenue.divide(
+                BigDecimal.valueOf(totalOrders),
+                2,
+                RoundingMode.HALF_UP
+        ); // Reutilizamos la ganancia total para calcular el average.
 
         // Promedio de ganancia por dia.
         long days = ChronoUnit.DAYS.between(start, end); // conseguimos la cantidad de dias que se busca
@@ -238,6 +294,11 @@ public class StatisticsService {
 
     public WaiterInsightDTO getWaiterInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
+
         // Ranking de facturacion de mozos ordenados de mayor a menor.
         List<WaiterMetricDTO> facturationRanking = orderRepository.getWaiterFacturationRanking(branchId, start, end);
 
@@ -258,6 +319,11 @@ public class StatisticsService {
 
     public WaiterInsightDTO getGlobalWaiterInsights(LocalDateTime start, LocalDateTime end) {
 
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
+
         // Ranking de facturacion de mozos ordenados de mayor a menor.
         List<WaiterMetricDTO> facturationRanking = orderRepository.getGlobalWaiterFacturationRanking(start, end);
 
@@ -277,6 +343,11 @@ public class StatisticsService {
     }
 
     public OverviewInsightDTO getOverviewInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
+
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
 
         // Total facturacion
         BigDecimal totalRevenue = orderRepository.getTotalRevenue(branchId, start, end);
@@ -319,6 +390,11 @@ public class StatisticsService {
     }
 
     public OverviewInsightDTO getGlobalOverviewInsights(LocalDateTime start, LocalDateTime end) {
+
+        // Validamos coherencia de fechas
+        Map<String, LocalDateTime> dates = dateValidator(start, end);
+        start = dates.get("resolvedStart");
+        end = dates.get("resolvedEnd");
 
         // Total facturacion
         BigDecimal totalRevenue = orderRepository.getGlobalTotalRevenue(start, end);
