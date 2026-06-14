@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,6 +30,12 @@ public interface TableRepository extends JpaRepository<TableEntity, Long> {
 
     boolean existsByBranchIdAndNumber(Long branchId, Integer number);
 
-
     Page<TableEntity> findAll(Specification<TableEntity> spec, Pageable pageable);
+
+    @Query("""
+    SELECT COUNT(t) > 0
+    FROM TableEntity t
+    WHERE t.branch.id = :branchId
+    """)
+    Boolean hasActiveTables(@Param("branchId") Long branchId);
 }
