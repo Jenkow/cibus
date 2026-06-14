@@ -30,6 +30,8 @@ import com.jll.cibus.user.repository.UserRepository;
 import com.jll.cibus.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -82,7 +84,7 @@ public class OrderService {
     }
 
 
-    public List<OrderResponseDTO> getAll(Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
+    public Page<OrderResponseDTO> getAll(Pageable pageable, Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
         authenticateUserBelongsInBranch(branchId);
         if (from != null && to != null && from.isAfter(to)) {
             throw new BusinessException("The start date cannot be after the end date");
@@ -100,11 +102,13 @@ public class OrderService {
                 OrderSpecification.totalGreaterThanOrEqual(minTotal),
                 OrderSpecification.totalLessThanOrEqual(maxTotal)
         );
-        return orderRepository.findAll(spec).stream()
-                .map(orderMapper::toDTO)
-                .peek(this::setResponseItems)
-                .peek(this::setRemainingAmount)
-                .toList();
+        return orderRepository.findBy(spec, query -> query.page(pageable))
+                .map(order -> {
+                    OrderResponseDTO dto = orderMapper.toDTO(order);
+                    setResponseItems(dto);
+                    setRemainingAmount(dto);
+                    return dto;
+                });
     }
 
     private OrderEntity getEntity(Long orderId) {

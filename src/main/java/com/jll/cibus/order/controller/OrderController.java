@@ -12,7 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,15 +27,16 @@ public class OrderController {
 
 
     @GetMapping
-    public ResponseEntity<List<OrderResponseDTO>> getAll(@PathVariable Long branchId,
+    public ResponseEntity<Page<OrderResponseDTO>> getAll(@PathVariable Long branchId,
                                                          @RequestParam(required = false) Long tableNumber,
                                                          @RequestParam(required = false) Long waiterId,
                                                          @RequestParam(required = false) String statusName,
                                                          @RequestParam(required = false) LocalDateTime from,
                                                          @RequestParam(required = false) LocalDateTime to,
                                                          @RequestParam(required = false) BigDecimal minTotal,
-                                                         @RequestParam(required = false) BigDecimal maxTotal){
-        return ResponseEntity.ok(orderService.getAll(branchId, tableNumber, waiterId, statusName, from, to, minTotal, maxTotal));
+                                                         @RequestParam(required = false) BigDecimal maxTotal,
+                                                         Pageable pageable){
+        return ResponseEntity.ok(orderService.getAll(pageable, branchId, tableNumber, waiterId, statusName, from, to, minTotal, maxTotal));
     }
 
     @GetMapping("/{orderId}")
