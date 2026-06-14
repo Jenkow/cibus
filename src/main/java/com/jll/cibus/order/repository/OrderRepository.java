@@ -27,7 +27,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
         FROM OrderEntity o
         JOIN o.table t
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY t.id, t.number
         ORDER BY COUNT(o) DESC
     """)
@@ -40,7 +40,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
         FROM OrderEntity o
         JOIN o.table t
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY t.id, t.number
         ORDER BY COUNT(o) ASC
     """)
@@ -52,7 +52,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT COUNT(DISTINCT o.table.id)
         FROM OrderEntity o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
     """)
     Long countOccupiedTables(@Param("branchId") Long branchId,
                              @Param("start") LocalDateTime start,
@@ -61,7 +61,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("""
     SELECT COUNT(DISTINCT o.table.id)
         FROM OrderEntity o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
     """)
     Long countGlobalOccupiedTables(@Param("start") LocalDateTime start,
                                    @Param("end") LocalDateTime end);
@@ -71,7 +71,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT SUM (o.finalTotal)
         FROM OrderEntity o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
     """)
     BigDecimal getTotalRevenue(@Param("branchId") Long branchId,
                                @Param("start") LocalDateTime start,
@@ -81,7 +81,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT COUNT(o)
         FROM OrderEntity o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
     """)
     Long getTotalOrdersBetweenTime(@Param("branchId") Long branchId,
                                    @Param("start") LocalDateTime start,
@@ -91,7 +91,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT new com.jll.cibus.statistics.dto.order.OrderMetricDTO(o.id, o.branch.id, o.table.id, CONCAT(o.waiter.lastName, ", ", o.waiter.firstName), o.finalTotal, o.closedAt)
         FROM OrderEntity o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         ORDER BY o.finalTotal DESC
     """)
     List<OrderMetricDTO> getMostValuatedOrders(@Param("branchId") Long branchId,
@@ -102,7 +102,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT new com.jll.cibus.statistics.dto.order.OrderMetricDTO(o.id, o.branch.id, o.table.id, CONCAT(o.waiter.lastName, ", ", o.waiter.firstName), o.finalTotal, o.closedAt)
         FROM OrderEntity o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         ORDER BY o.finalTotal ASC
     """)
     List<OrderMetricDTO> getLeastValuatedOrders(@Param("branchId") Long branchId,
@@ -112,7 +112,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("""
     SELECT SUM (o.finalTotal)
         FROM OrderEntity o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
     """)
     BigDecimal getGlobalTotalRevenue(@Param("start") LocalDateTime start,
                                      @Param("end") LocalDateTime end);
@@ -121,7 +121,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("""
     SELECT COUNT(o)
         FROM OrderEntity o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
     """)
     Long getGlobalTotalOrdersBetweenTime(@Param("start") LocalDateTime start,
                                          @Param("end") LocalDateTime end);
@@ -130,7 +130,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.order.OrderMetricDTO(o.id, o.branch.id, o.table.id, CONCAT(o.waiter.lastName, ", ", o.waiter.firstName), o.finalTotal, o.closedAt)
         FROM OrderEntity o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         ORDER BY o.finalTotal DESC
     """)
     List<OrderMetricDTO> getGlobalMostValuatedOrders(@Param("start") LocalDateTime start,
@@ -139,7 +139,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.order.OrderMetricDTO(o.id, o.branch.id, o.table.id, CONCAT(o.waiter.lastName, ", ", o.waiter.firstName), o.finalTotal, o.closedAt)
         FROM OrderEntity o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         ORDER BY o.finalTotal ASC
     """)
     List<OrderMetricDTO> getGlobalLeastValuatedOrders(@Param("start") LocalDateTime start,
@@ -150,7 +150,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT new com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO(o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name, SUM(o.finalTotal), COUNT(o))
         FROM OrderEntity o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name
         ORDER BY SUM(o.finalTotal) DESC
     """)
@@ -162,7 +162,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     SELECT new com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO(o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name, SUM(o.finalTotal), COUNT(o))
         FROM OrderEntity o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name
         ORDER BY COUNT(o) DESC
     """)
@@ -173,7 +173,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO(o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name, SUM(o.finalTotal), COUNT(o))
         FROM OrderEntity o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name
         ORDER BY SUM(o.finalTotal) DESC
     """)
@@ -183,7 +183,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO(o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name, SUM(o.finalTotal), COUNT(o))
         FROM OrderEntity o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY o.waiter.dni, o.waiter.firstName, o.waiter.lastName, o.branch.name
         ORDER BY COUNT(o) DESC
     """)

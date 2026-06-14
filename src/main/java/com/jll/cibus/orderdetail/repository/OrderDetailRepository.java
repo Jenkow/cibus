@@ -23,7 +23,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         FROM OrderDetailEntity od
         JOIN od.order o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) DESC
     """)
@@ -36,7 +36,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         FROM OrderDetailEntity od
         JOIN od.order o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) ASC
     """)
@@ -49,7 +49,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         FROM OrderDetailEntity od
         JOIN od.order o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice DESC
     """)
@@ -62,7 +62,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         FROM OrderDetailEntity od
         JOIN od.order o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice ASC
     """)
@@ -75,7 +75,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         FROM OrderDetailEntity od
         JOIN od.order o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) DESC
     """)
@@ -88,7 +88,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
         FROM OrderDetailEntity od
         JOIN od.order o
         WHERE o.branch.id = :branchId
-        AND o.closedAt BETWEEN :start AND :end
+        AND o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) ASC
     """)
@@ -102,7 +102,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
         FROM OrderDetailEntity od
         JOIN od.order o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) DESC
     """)
@@ -113,7 +113,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
         FROM OrderDetailEntity od
         JOIN od.order o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY SUM(od.quantity) ASC
     """)
@@ -125,7 +125,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
         FROM OrderDetailEntity od
         JOIN od.order o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice DESC
     """)
@@ -136,7 +136,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
     SELECT new com.jll.cibus.statistics.dto.product.ProductMetricDTO(od.product.id, od.product.name, od.unitPrice, SUM(od.quantity))
         FROM OrderDetailEntity od
         JOIN od.order o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.id, od.product.name, od.unitPrice
         ORDER BY od.unitPrice ASC
     """)
@@ -147,7 +147,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
     SELECT new com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO(od.product.category.name, SUM(od.quantity))
         FROM OrderDetailEntity od
         JOIN od.order o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) DESC
     """)
@@ -158,7 +158,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetailEntity, 
     SELECT new com.jll.cibus.statistics.dto.product.ProductCategoryMetricDTO(od.product.category.name, SUM(od.quantity))
         FROM OrderDetailEntity od
         JOIN od.order o
-        WHERE o.closedAt BETWEEN :start AND :end
+        WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY od.product.category.name
         ORDER BY SUM(od.quantity) ASC
     """)
