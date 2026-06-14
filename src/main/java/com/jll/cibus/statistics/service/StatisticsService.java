@@ -3,7 +3,6 @@ package com.jll.cibus.statistics.service;
 import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.role.enums.Roles;
-import com.jll.cibus.role.repository.RoleRepository;
 import com.jll.cibus.statistics.dto.order.OrderInsightDTO;
 import com.jll.cibus.statistics.dto.order.OrderMetricDTO;
 import com.jll.cibus.statistics.dto.overview.OverviewInsightDTO;
@@ -34,7 +33,6 @@ public class StatisticsService {
     private final TableRepository tableRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
 
 
@@ -331,7 +329,7 @@ public class StatisticsService {
         List<WaiterMetricDTO> ordersQuantityRanking = orderRepository.getGlobalOrdersQuantityRanking(start, end);
 
         // Promedio de órdenes por mozo
-        Long totalWaiters = roleRepository.countByRole(Roles.WAITER);
+        Long totalWaiters = userRepository.countByUserRole(Roles.WAITER);
         Long totalOrders = orderRepository.getGlobalTotalOrdersBetweenTime(start, end);
         Double averageOrdersPerWaiter = totalWaiters == 0 ? 0.0 : totalOrders.doubleValue() / totalWaiters;
 
