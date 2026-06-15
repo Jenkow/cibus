@@ -214,8 +214,8 @@ Acceso a la Documentación de la API (Swagger / OpenAPI) Una vez que el servidor
 
 # Equipo de Desarrollo
 El diseño de sistemas, análisis de requisitos, modelado de base de datos e implementación del Proyecto Cibus fue llevado a cabo por el siguiente equipo técnico:
-#### C. Oliver, Luisina — Desarrolladora.
-#### P. Auriti, Jeronimo — Desarrollador.
+#### Auriti Primavera, Jerónimo — Desarrollador.
+#### Oliver Cáceres, Luisina — Desarrolladora.
 #### Sosa, Luciano — Desarrollador.   
 
 ### Cibus.
