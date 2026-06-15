@@ -106,4 +106,12 @@ public class GlobalExceptionHandler {
         ErrorDetails errorDetails= new ErrorDetails("InternalServerError", "There was an unexpected mistake. Try again later", HttpStatus.INTERNAL_SERVER_ERROR.value());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDetails);
     }
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<ErrorDetails>
+    forbiddenOperationExceptionHandler (ForbiddenOperationException ex){
+        ErrorDetails errorDetails = new
+                ErrorDetails("ForbiddenOperationException", ex.getMessage(),
+                HttpStatus.FORBIDDEN.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorDetails);
+    }
 }
