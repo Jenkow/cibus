@@ -1,6 +1,8 @@
 package com.jll.cibus.statistics.service;
 
+import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
+import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.role.enums.Roles;
@@ -34,8 +36,7 @@ public class StatisticsService {
     private final TableRepository tableRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
-
-
+    private final BranchRepository branchRepository;
 
     /* Metodo que valida la coherencia de las fechas de inicio y fin.
      En el hipotético caso que se llegase a dar que existe fecha de fin, pero no fecha de inicio,
@@ -57,7 +58,16 @@ public class StatisticsService {
                 "resolvedStart", resolvedStart);
     }
 
+    // Metodo que valida la existencia de la sucursal solicitada
+    private boolean branchValidator(Long branchId){
+
+        return branchRepository.existsById(branchId);
+    }
+
     public TableInsightDTO getTableInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
+
+        // Validamos existencia de la sucursal
+        if (!branchValidator(branchId)) throw new ResourceNotFoundException("Branch isn't valid or is no longer available.");
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
@@ -96,6 +106,9 @@ public class StatisticsService {
     }
 
     public ProductInsightDTO getProductInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
+
+        // Validamos existencia de la sucursal
+        if (!branchValidator(branchId)) throw new ResourceNotFoundException("Branch isn't valid or is no longer available.");
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
@@ -204,6 +217,9 @@ public class StatisticsService {
 
     public OrderInsightDTO getOrderInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
+        // Validamos existencia de la sucursal
+        if (!branchValidator(branchId)) throw new ResourceNotFoundException("Branch isn't valid or is no longer available.");
+
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
         start = dates.get("resolvedStart");
@@ -296,6 +312,9 @@ public class StatisticsService {
 
     public WaiterInsightDTO getWaiterInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
+        // Validamos existencia de la sucursal
+        if (!branchValidator(branchId)) throw new ResourceNotFoundException("Branch isn't valid or is no longer available.");
+
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
         start = dates.get("resolvedStart");
@@ -345,6 +364,9 @@ public class StatisticsService {
     }
 
     public OverviewInsightDTO getOverviewInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
+
+        // Validamos existencia de la sucursal
+        if (!branchValidator(branchId)) throw new ResourceNotFoundException("Branch isn't valid or is no longer available.");
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);

@@ -59,6 +59,34 @@ public class DataLoader {
 
         return args -> {
 
+            if (branchRepository.count() == 0) {
+
+                List<BranchEntity> branches = List.of(
+
+                        BranchEntity.builder()
+                                .name("Sucursal Centro")
+                                .street("San Martín")
+                                .number(1234)
+                                .build(),
+
+                        BranchEntity.builder()
+                                .name("Sucursal Norte")
+                                .street("Independencia")
+                                .number(567)
+                                .build(),
+
+                        BranchEntity.builder()
+                                .name("Sucursal Sur")
+                                .street("Belgrano")
+                                .number(890)
+                                .build()
+                );
+
+                branchRepository.saveAll(branches);
+
+                System.out.println("Sucursales cargadas correctamente.");
+            }
+
             if (categoryRepository.count() == 0) {
 
                 ProductCategoryEntity catPlatos = ProductCategoryEntity.builder().name("Platos Principales").build();
@@ -189,7 +217,9 @@ public class DataLoader {
             }
 
             if (!credentialsRepository.existsByUsername("admin") && !userRepository.existsByDni(0L)){
+
                 RoleEntity adminRole = roleRepository.findByRole(Roles.ADMIN)
+
                         .orElseThrow(() -> new ResourceNotFoundException("Error: create admin user failed"));
                 UserEntity admin = UserEntity.builder()
                         .dni(0L)
@@ -200,6 +230,7 @@ public class DataLoader {
                         .email("admin@gmail.com")
                         .build();
                 userRepository.save(admin);
+
                 CredentialsEntity credentials = CredentialsEntity.builder()
                         .username("admin")
                         .password(passwordEncoder.encode("1234"))
@@ -208,9 +239,133 @@ public class DataLoader {
                         .roles(Set.of(adminRole))
                         .build();
                 credentialsRepository.save(credentials);
+
                 System.out.println("Admin cargado correctamente");
             }
 
+            if (!credentialsRepository.existsByUsername("manager") && !userRepository.existsByDni(1L)){
+
+                BranchEntity branch = branchRepository.findById(1L)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: branch not found"));
+
+                RoleEntity managerRole = roleRepository.findByRole(Roles.MANAGER)
+
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: create manager user failed"));
+                UserEntity manager = UserEntity.builder()
+                        .branch(branch)
+                        .dni(1L)
+                        .role(managerRole)
+                        .firstName("manager")
+                        .lastName("master")
+                        .phoneNumber("2222222222")
+                        .email("manager@gmail.com")
+                        .build();
+                userRepository.save(manager);
+
+                CredentialsEntity credentials = CredentialsEntity.builder()
+                        .username("manager")
+                        .password(passwordEncoder.encode("1234"))
+                        .enabled(Boolean.TRUE)
+                        .user(manager)
+                        .roles(Set.of(managerRole))
+                        .build();
+                credentialsRepository.save(credentials);
+
+                System.out.println("Manager cargado correctamente");
+            }
+
+            if (!credentialsRepository.existsByUsername("waiter") && !userRepository.existsByDni(2L)){
+
+                BranchEntity branch = branchRepository.findById(1L)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: branch not found"));
+
+                RoleEntity waiterRole = roleRepository.findByRole(Roles.WAITER)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: create waiter user failed"));
+
+                UserEntity waiter = UserEntity.builder()
+                        .branch(branch)
+                        .dni(2L)
+                        .role(waiterRole)
+                        .firstName("waiter")
+                        .lastName("master")
+                        .phoneNumber("3333333333")
+                        .email("waiter@gmail.com")
+                        .build();
+                userRepository.save(waiter);
+
+                CredentialsEntity credentials = CredentialsEntity.builder()
+                        .username("waiter")
+                        .password(passwordEncoder.encode("1234"))
+                        .enabled(Boolean.TRUE)
+                        .user(waiter)
+                        .roles(Set.of(waiterRole))
+                        .build();
+                credentialsRepository.save(credentials);
+
+                System.out.println("Waiter cargado correctamente");
+            }
+
+            if (!credentialsRepository.existsByUsername("host") && !userRepository.existsByDni(3L)){
+
+                BranchEntity branch = branchRepository.findById(1L)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: branch not found"));
+
+                RoleEntity hostRole = roleRepository.findByRole(Roles.HOST)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: create host user failed"));
+
+                UserEntity host = UserEntity.builder()
+                        .branch(branch)
+                        .dni(3L)
+                        .role(hostRole)
+                        .firstName("host")
+                        .lastName("master")
+                        .phoneNumber("4444444444")
+                        .email("host@gmail.com")
+                        .build();
+                userRepository.save(host);
+
+                CredentialsEntity credentials = CredentialsEntity.builder()
+                        .username("host")
+                        .password(passwordEncoder.encode("1234"))
+                        .enabled(Boolean.TRUE)
+                        .user(host)
+                        .roles(Set.of(hostRole))
+                        .build();
+                credentialsRepository.save(credentials);
+
+                System.out.println("Host cargado correctamente");
+            }
+
+            if (!credentialsRepository.existsByUsername("kitchen") && !userRepository.existsByDni(4L)){
+
+                BranchEntity branch = branchRepository.findById(1L)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: branch not found"));
+
+                RoleEntity kitchenRole = roleRepository.findByRole(Roles.KITCHEN)
+                        .orElseThrow(() -> new ResourceNotFoundException("Error: create kitchen user failed"));
+
+                UserEntity kitchen = UserEntity.builder()
+                        .branch(branch)
+                        .dni(4L)
+                        .role(kitchenRole)
+                        .firstName("kitchen")
+                        .lastName("master")
+                        .phoneNumber("5555555555")
+                        .email("kitchen@gmail.com")
+                        .build();
+                userRepository.save(kitchen);
+
+                CredentialsEntity credentials = CredentialsEntity.builder()
+                        .username("kitchen")
+                        .password(passwordEncoder.encode("1234"))
+                        .enabled(Boolean.TRUE)
+                        .user(kitchen)
+                        .roles(Set.of(kitchenRole))
+                        .build();
+                credentialsRepository.save(credentials);
+
+                System.out.println("kitchen cargado correctamente");
+            }
 
             if (paymentMethodRepository.count() == 0) {
 
@@ -263,33 +418,6 @@ public class DataLoader {
                 orderStatusRepository.saveAll(orderStatus);
 
                 System.out.println("Estados de orden cargados correctamente.");
-            }
-            if (branchRepository.count() == 0) {
-
-                List<BranchEntity> branches = List.of(
-
-                        BranchEntity.builder()
-                                .name("Sucursal Centro")
-                                .street("San Martín")
-                                .number(1234)
-                                .build(),
-
-                        BranchEntity.builder()
-                                .name("Sucursal Norte")
-                                .street("Independencia")
-                                .number(567)
-                                .build(),
-
-                        BranchEntity.builder()
-                                .name("Sucursal Sur")
-                                .street("Belgrano")
-                                .number(890)
-                                .build()
-                );
-
-                branchRepository.saveAll(branches);
-
-                System.out.println("Sucursales cargadas correctamente.");
             }
 
             if (tableRepository.count() == 0) {
