@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,7 +23,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDetails> methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException ex){
-        ErrorDetails errorDetails = new ErrorDetails("MethodArgumentNotValidException", ex.getMessage(), HttpStatus.BAD_REQUEST.value());
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            fieldErrors.merge(
+                    fieldError.getField(),
+                    fieldError.getDefaultMessage(),
+                    (existing, current) -> existing + "; " + current);
+        }
+        ErrorDetails errorDetails = new ErrorDetails(
+                "ValidationError",
+                "One or more fields are invalid",
+                HttpStatus.BAD_REQUEST.value(),
+                fieldErrors);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
     }
