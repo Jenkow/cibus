@@ -19,23 +19,22 @@ El proyecto está diseñado de forma modular e independiente a través de una ar
 El backend de la aplicación ha sido desarrollado utilizando un stack tecnológico moderno de alta fidelidad:
 
 - **Lenguaje principal:** Java 25
-- **Framework base:** Spring Boot (Modular y listo para producción)
-- **Capa de persistencia:** Spring Data JPA con Hibernate (Mapeo de entidades de dominio y relaciones relacionales)
+- **Framework base:** Spring Boot
+- **Capa de persistencia:** Spring Data JPA con Hibernate
 - **Motor de Base de Datos:** MySQL
-- **Seguridad y Autorización:** Spring Security + JSON Web Tokens (JWT) para control de accesos sin estado
+- **Seguridad y Autorización:** Spring Security + JSON Web Tokens (JWT)
 - **Documentación de API:** Swagger / OpenAPI
 - **Gestión de dependencias:** Maven
-- **IDE recomendado:** IntelliJ IDEA
 - **Control de Versiones:** Git & GitHub
 
 ---
 
 ## Roles del Sistema y Requisitos Funcionales (RF)
 
-El sistema implementa un control de acceso basado en roles (RBAC) con lógica de negocio diferenciada:
+El sistema implementa un control de acceso basado en jerarquia de roles:
 
 ### 1. Administrador (Admin)
-- **RF01:** Ingreso al sistema mediante usuario y clave global.
+- **RF01:** Ingreso al sistema mediante usuario y clave personal.
 - **RF02 / RF03:** Consulta de listados y Gestión Completa (ABM) de sucursales.
 - **RF04 / RF05:** Consulta de listados y Gestión Completa (ABM) de empleados globales.
 - **RF06 / RF07:** Consulta de listados y Gestión Completa (ABM) de los productos del menú general.
@@ -168,11 +167,55 @@ Toda la interacción con el backend se realiza a través de las siguientes rutas
 
 ## Configuración e Instalación
 
-### Requisitos Previos
-- **Java Development Kit (JDK):** Versión 25 instalada y configurada en las variables de entorno.
-- **Apache Maven:** Versión 3.9 o superior.
-- **MySQL Server:** Versión 8.0 o superior en ejecución.
+Esta sección describe los pasos necesarios para inicializar el entorno de desarrollo local para el backend del **Proyecto Cibus**. El sistema está construido como una API REST autónoma que utiliza la arquitectura de Spring Boot para la lógica de negocio y MySQL para la persistencia de datos.
 
-### Pasos para iniciar el servicio
+### Prerrequisitos
 
-1. **Clonar el repositorio:**
+Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas en tu máquina local:
+
+* **Java Development Kit (JDK):** Versión 17 o superior.
+* **Apache Maven:** Versión 3.8 o superior (o utilizar el Maven Wrapper `mvnw` incluido).
+* **MySQL Server:** Versión 8.0 o superior.
+* **Un IDE compatible:** IntelliJ IDEA (recomendado), Eclipse o VS Code con extensiones de Spring.
+
+## Pasos para la Instalación
+
+### 1. Clonar el repositorio
+
+Descarga el código fuente del proyecto a tu máquina local mediante Git:
+git clone [https://github.com/Jenkow/cibus]
+
+### 2. Configurar la Base de Datos
+
+Abre tu gestor de bases de datos MySQL (MySQL Workbench, phpMyAdmin, DBeaver, etc.).
+Crea una nueva base de datos para el proyecto:
+CREATE DATABASE cibus_db
+
+### 4. Configurar las Variables de Entorno
+
+Dirígete a la ruta src/main/resources/application.yaml. Asegúrate de ajustar las credenciales de conexión según tu entorno local:
+spring.datasource.url = <TU_URL_MYSQL>
+spring.datasource.username= <TU_USUARIO_MYSQL>
+spring.datasource.password= <TU_CONTRASENA_MYSQL>
+
+### Configuración de Hibernate / JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+
+1. Compilar y Construir la Aplicación.
+2. Utiliza Maven para descargar las dependencias necesarias y compilar el proyecto.
+3. Ejecutar la Aplicación.
+4. Una vez compilado correctamente, puedes iniciar el servidor.
+
+La API comenzará a correr por defecto en el puerto 8080 (ej. http://localhost:8080).
+Acceso a la Documentación de la API (Swagger / OpenAPI) Una vez que el servidor esté en ejecución, puedes explorar, interactuar y probar todos los endpoints disponibles
+(sucursales, usuarios, productos, pedidos, etc.) desde la interfaz de Swagger UI accediendo a:URL: http://localhost:8080/swagger-ui/index.html
+
+# Equipo de Desarrollo
+El diseño de sistemas, análisis de requisitos, modelado de base de datos e implementación del Proyecto Cibus fue llevado a cabo por el siguiente equipo técnico:
+#### C. Oliver, Luisina — Desarrolladora.
+#### P. Auriti, Jeronimo — Desarrollador.
+#### Sosa, Luciano — Desarrollador.   
+
+### Cibus.

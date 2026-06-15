@@ -17,10 +17,18 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSpecificationExecutor<OrderEntity> {
 
-    List<OrderEntity> findByBranchId(Long branchId);
-    List<OrderEntity> findByBranchIdAndTableId (Long branchId, Long tableId);
-    List<OrderEntity> findByBranchIdAndWaiterId (Long branchId, Long waiterId);
-    List<OrderEntity> findByBranch_IdAndStatus_Name(Long branchId, String statusName);
+    @Query("""
+    SELECT COUNT(o) > 0
+        FROM OrderEntity o
+        WHERE o.waiter.id = :userId
+        AND (
+            o.status.name = 'PENDING'
+            OR o.status.name = 'PREPARING'
+            OR o.status.name = 'READY'
+            OR o.status.name = 'SERVED'
+        )
+   """)
+    Boolean userHasOrdersActive(@Param("userId") Long userId);
 
     @Query("""
     SELECT new com.jll.cibus.statistics.dto.table.TableMetricDTO(t.number, COUNT(o))
