@@ -1,5 +1,6 @@
 # Cibus - Sistema de Gestión Gastronómica Multisucursal
 
+![Header](src/main/java/com/jll/cibus/common/assets/CIBUS%20Header.png)
 ![Java](https://img.shields.io/badge/Java-25-orange?logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen?logo=spring-boot)
 ![MySQL](https://img.shields.io/badge/MySQL-8.x-blue?logo=mysql)
