@@ -86,6 +86,16 @@ public class OrderService {
         }
     }
 
+    public void assertOrderInBranch (Long branchId, Long orderId)
+    {
+        authenticateUserBelongsInBranch(branchId);
+        OrderEntity order = getEntity(orderId);
+        if (!order.getBranch().getId().equals(branchId))
+        {
+            throw new ResourceNotFoundException("order", orderId);
+        }
+    }
+
 
     public Page<OrderResponseDTO> getAll(Pageable pageable, Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
         authenticateUserBelongsInBranch(branchId);
@@ -119,7 +129,8 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
     }
 
-    public OrderResponseDTO findById(Long id) {
+    public OrderResponseDTO findById(Long branchId, Long id) {
+        assertOrderInBranch(branchId, id);
         OrderEntity order = getEntity(id);
         OrderResponseDTO response = orderMapper.toDTO(order);
         setResponseItems(response);
@@ -259,14 +270,16 @@ public class OrderService {
     }
 
     @Transactional
-    public PaymentDTO addPayment(Long orderId, PaymentDTO payment) {
+    public PaymentDTO addPayment(Long branchId, Long orderId, PaymentDTO payment) {
+        assertOrderInBranch(branchId, orderId);
         OrderEntity order = getEntity(orderId);
         checkIfOrderIsPaidOrCancelled(order);
         return paymentService.addPayment(order, payment);
     }
 
     @Transactional
-    public OrderResponseDTO applyDiscount(Long orderId, DiscountRequestDTO discount) {
+    public OrderResponseDTO applyDiscount(Long branchId, Long orderId, DiscountRequestDTO discount) {
+        assertOrderInBranch(branchId, orderId);
         OrderEntity order = getEntity(orderId);
         checkIfOrderIsPaidOrCancelled(order);
         OrderEntity saved = paymentService.applyDiscount(order, discount);
@@ -274,6 +287,10 @@ public class OrderService {
         setRemainingAmount(response);
         setResponseItems(response);
         return response;
+    }
+    public OrderResponseDTO changeStatusInBranch(Long branchId, Long orderId, String newStatus) {
+        assertOrderInBranch(branchId, orderId);
+        return changeStatus(orderId, newStatus);
     }
 
     @Transactional
