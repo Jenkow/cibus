@@ -258,7 +258,13 @@ public class OrderService {
     }
 
     // ------------------------------------------------------------- PAYMENT MANAGMENT --------------------------------------------------------
-
+    private void checkOrderCanReceivePayment(OrderEntity order) {
+        if (!order.getStatus().getName().equalsIgnoreCase("SERVED")) {
+            throw new BusinessException(
+                    "Payments can only be added to orders that have been served. Current status: "
+                            + order.getStatus().getName());
+        }
+    }
     private void checkIfOrderIsPaidOrCancelled(OrderEntity order) {
         if (isCancelled(order)) {
             throw new BusinessException("The order " + order.getId() + " is cancelled");
@@ -272,7 +278,7 @@ public class OrderService {
     public PaymentDTO addPayment(Long branchId, Long orderId, PaymentDTO payment) {
         assertOrderInBranch(branchId, orderId);
         OrderEntity order = getEntity(orderId);
-        checkIfOrderIsPaidOrCancelled(order);
+        checkOrderCanReceivePayment(order);
         return paymentService.addPayment(order, payment);
     }
 
