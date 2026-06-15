@@ -48,7 +48,8 @@ public class OrderDetailService {
                 .toList();
     }
 
-    public List<OrderDetailResponseDTO> getByOrderId (Long orderId){
+    public List<OrderDetailResponseDTO> getByOrderId (Long branchId,Long orderId){
+        orderService.assertOrderInBranch(branchId, orderId);
         orderRepository.findById(orderId)
                 .orElseThrow(()-> new ResourceNotFoundException("order",orderId));
         List<OrderDetailEntity> entities = orderDetailRepository.findByOrderId(orderId);
@@ -57,7 +58,8 @@ public class OrderDetailService {
                 .toList();
     }
 
-    private OrderDetailEntity getEntityByOrderIdAndProductId(Long orderId, Long productId){
+    private OrderDetailEntity getEntityByOrderIdAndProductId(Long branchId, Long orderId, Long productId){
+        orderService.assertOrderInBranch(branchId,orderId);
         if(!orderService.existsById(orderId)){
             throw new ResourceNotFoundException("order ID", orderId);
         }
@@ -68,19 +70,20 @@ public class OrderDetailService {
                 .orElseThrow(() -> new ResourceNotFoundException("detail of product", productId));
     }
 
-    public OrderDetailResponseDTO getByOrderIdAndProductId (Long orderId, Long productId){
-        return orderDetailMapper.toDTO(getEntityByOrderIdAndProductId(orderId, productId));
+    public OrderDetailResponseDTO getByOrderIdAndProductId (Long branchId,Long orderId, Long productId){
+        return orderDetailMapper.toDTO(getEntityByOrderIdAndProductId(branchId,orderId, productId));
     }
 
     @Transactional
-    public OrderDetailResponseDTO create(Long orderId, OrderDetailRequestDTO dto) {
+    public OrderDetailResponseDTO create(Long branchId,Long orderId, OrderDetailRequestDTO dto) {
+        orderService.assertOrderInBranch(branchId,orderId);
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(()-> new ResourceNotFoundException("order",orderId));
         if(orderService.productExistsInDetails(orderId, dto.getProductId())){
             if(order.getStatus().getName().equalsIgnoreCase("CANCELLED") || order.getStatus().getName().equalsIgnoreCase("PAID")){
                 throw new BusinessException("The order "+orderId+" is already closed");
             }
-            OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, dto.getProductId());
+            OrderDetailEntity entity = getEntityByOrderIdAndProductId(branchId,orderId, dto.getProductId());
             entity.setQuantity(entity.getQuantity()+dto.getQuantity());
             OrderDetailEntity saved = orderDetailRepository.save(entity);
             orderService.recalculateTotals(orderId);
@@ -106,8 +109,9 @@ public class OrderDetailService {
     }
 
     @Transactional
-    public OrderDetailResponseDTO update (Long orderId, Long productId, OrderDetailUpdateDTO dto){
-        OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, productId);
+    public OrderDetailResponseDTO update (Long branchId, Long orderId, Long productId, OrderDetailUpdateDTO dto){
+        orderService.assertOrderInBranch(branchId,orderId);
+        OrderDetailEntity entity = getEntityByOrderIdAndProductId(branchId, orderId, productId);
         OrderEntity order = orderRepository.findById(orderId)
                         .orElseThrow(()->new ResourceNotFoundException("order", orderId));
         entity.setOrder(order);
@@ -134,8 +138,9 @@ public class OrderDetailService {
     }
 
     @Transactional
-    public void delete(Long orderId, Long productId){
-        OrderDetailEntity entity = getEntityByOrderIdAndProductId(orderId, productId);
+    public void delete(Long branchId,Long orderId, Long productId){
+        orderService.assertOrderInBranch(branchId,orderId);
+        OrderDetailEntity entity = getEntityByOrderIdAndProductId(branchId,orderId, productId);
         orderDetailRepository.delete(entity);
         orderService.recalculateTotals(entity.getOrder().getId());
     }
