@@ -116,7 +116,7 @@ public class SecurityConfig {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write(String.format(
-                    "{\"error\":\"No tiene permisos para realizar esta operación\", \"status\": %d, \"path\": \"%s\"}",
+                    "{\"error\":\"You do not have permission to perform this operation\", \"status\": %d, \"path\": \"%s\"}",
                     HttpServletResponse.SC_FORBIDDEN,
                     request.getRequestURI()));
             response.getWriter().flush();
