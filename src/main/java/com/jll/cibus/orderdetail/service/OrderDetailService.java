@@ -74,9 +74,16 @@ public class OrderDetailService {
         return orderDetailMapper.toDTO(getEntityByOrderIdAndProductId(branchId,orderId, productId));
     }
 
+    private void validateOrderCanBeModified(Long branchId, Long orderId){
+        orderService.assertOrderInBranch(branchId,orderId);
+        if(orderService.hasPaymentsOrDiscounts(orderId)){
+            throw new BusinessException("You can't modify an order with payments or discounts");
+        }
+    }
+
     @Transactional
     public OrderDetailResponseDTO create(Long branchId,Long orderId, OrderDetailRequestDTO dto) {
-        orderService.assertOrderInBranch(branchId,orderId);
+        validateOrderCanBeModified(branchId, orderId);
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(()-> new ResourceNotFoundException("order",orderId));
         if(orderService.productExistsInDetails(orderId, dto.getProductId())){
@@ -110,22 +117,11 @@ public class OrderDetailService {
 
     @Transactional
     public OrderDetailResponseDTO update (Long branchId, Long orderId, Long productId, OrderDetailUpdateDTO dto){
-        orderService.assertOrderInBranch(branchId,orderId);
+        validateOrderCanBeModified(branchId, orderId);
         OrderDetailEntity entity = getEntityByOrderIdAndProductId(branchId, orderId, productId);
         OrderEntity order = orderRepository.findById(orderId)
                         .orElseThrow(()->new ResourceNotFoundException("order", orderId));
         entity.setOrder(order);
-        /*
-        if(dto.getProductId() != null){
-            ProductEntity product = productService.getEntity(dto.getProductId());
-            BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(              Yo creo que no se deberia poder cambiar el producto del detalle.
-                            entity.getOrder().getBranch().getId(),                                               Un detalle en una orden es decir que producto hay en esa orden, si quiere cambiar el producto que cree otro detalle.
-                            product.getId());
-            validateAvailability(productInBranch);
-            entity.setProduct(product);
-            entity.setUnitPrice(productInBranch.getPrice());
-        }
-         */
         if(dto.getObservation() != null){
             entity.setObservation(dto.getObservation());
         }
@@ -139,7 +135,7 @@ public class OrderDetailService {
 
     @Transactional
     public void delete(Long branchId,Long orderId, Long productId){
-        orderService.assertOrderInBranch(branchId,orderId);
+        validateOrderCanBeModified(branchId, orderId);
         OrderDetailEntity entity = getEntityByOrderIdAndProductId(branchId,orderId, productId);
         orderDetailRepository.delete(entity);
         orderService.recalculateTotals(entity.getOrder().getId());

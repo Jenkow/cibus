@@ -86,12 +86,10 @@ public class OrderService {
         }
     }
 
-    public void assertOrderInBranch (Long branchId, Long orderId)
-    {
+    public void assertOrderInBranch (Long branchId, Long orderId) {
         authenticateUserBelongsInBranch(branchId);
         OrderEntity order = getEntity(orderId);
-        if (!order.getBranch().getId().equals(branchId))
-        {
+        if (!order.getBranch().getId().equals(branchId)) {
             throw new ResourceNotFoundException("order", orderId);
         }
     }
@@ -142,7 +140,7 @@ public class OrderService {
         return orderDetailRepository.findByOrderId(id);
     }
 
-    private void setResponseItems(OrderResponseDTO order) {                         //Metodo para agregarle al ResponseDTO los deatlles de la orden
+    private void setResponseItems(OrderResponseDTO order) {                         //Metodo para agregarle al ResponseDTO los detalles de la orden
         List<OrderDetailEntity> items = getItems(order.getId());
         order.setItems(items.stream()
                 .map(orderDetailMapper::toDTO)
@@ -300,6 +298,9 @@ public class OrderService {
                 .map(detail -> detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setSubtotal(subtotal);
+        if (order.getDiscount().compareTo(subtotal) > 0) {
+            order.setDiscount(subtotal);
+        }
         order.setFinalTotal(subtotal.subtract(order.getDiscount()));
         orderRepository.save(order);
     }
@@ -307,6 +308,11 @@ public class OrderService {
     public void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
         BigDecimal totalPaid = paymentService.getTotalPaid(dto.getId());
         dto.setRemainingAmount(dto.getFinalTotal().subtract(totalPaid));
+    }
+
+    public Boolean hasPaymentsOrDiscounts(Long orderId){
+        OrderEntity order = getEntity(orderId);
+        return (!order.getDiscount().equals(BigDecimal.ZERO) || !paymentService.getPayments(orderId).isEmpty());
     }
 
 }

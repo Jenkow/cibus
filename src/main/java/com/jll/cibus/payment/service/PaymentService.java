@@ -78,8 +78,8 @@ public class PaymentService {
             throw new BusinessException("Discount cannot exceed final total");
         }
         BigDecimal totalPaid = getTotalPaid(order.getId());
-        BigDecimal maxDiscount = order.getFinalTotal().subtract(totalPaid);
-        if (discount.getAmount().compareTo(maxDiscount) > 0) {
+        BigDecimal remainingAmount = order.getFinalTotal().subtract(totalPaid);
+        if (discount.getAmount().compareTo(remainingAmount) > 0) {
             throw new BusinessException("Discount cannot exceed remaining balance");
         }
         order.setDiscount(order.getDiscount().add(discount.getAmount()));
