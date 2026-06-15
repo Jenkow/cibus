@@ -55,15 +55,6 @@ public class UserService {
         return user;
     }
 
-    private void authenticateUserBelongsInBranch(Long branchId) {
-        UserEntity user = getAuthenticatedUser();
-        if (user.getRole().getRole() != Roles.ADMIN) {
-            if (!user.getBranch().getId().equals(branchId)) {
-                throw new BusinessException("Waiter assigned to a different branch");
-            }
-        }
-    }
-
     public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
         UserEntity user = getAuthenticatedUser();
         if (user.getRole().getRole() == Roles.MANAGER) {

@@ -202,7 +202,7 @@ public class DataLoader {
                 userRepository.save(admin);
                 CredentialsEntity credentials = CredentialsEntity.builder()
                         .username("admin")
-                        .password(passwordEncoder.encode("111111"))
+                        .password(passwordEncoder.encode("1234"))
                         .enabled(Boolean.TRUE)
                         .user(admin)
                         .roles(Set.of(adminRole))
