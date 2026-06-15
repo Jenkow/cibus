@@ -145,8 +145,9 @@ public class UserService {
             credentials.setUsername(pin);
         }
         credentials.setPassword(passwordEncoder.encode(pin));
-        credentialsRepository.save(credentials);
         UserEntity created = userRepository.save(user);
+        credentials.setUser(created);
+        credentialsRepository.save(credentials);
         return userMapper.toDTO(created);
     }
 
@@ -162,6 +163,7 @@ public class UserService {
     @Transactional
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
         UserEntity user = getEntityById(id);
+        CredentialsEntity credentials = getCredentials(id);
         UserEntity authenticatedUser = getAuthenticatedUser();
         if (authenticatedUser.getRole().getRole() == Roles.MANAGER) {
             validateManagerCanModifyUser(authenticatedUser, user);
@@ -185,18 +187,18 @@ public class UserService {
             if (userRepository.existsByEmail(updateDTO.getEmail())) {
                 throw new ResourceAlreadyExistsException("Email", updateDTO.getEmail());
             }
-            CredentialsEntity credentials = getCredentials(id);
             if (user.getRole().getRole() == Roles.ADMIN || user.getRole().getRole() == Roles.MANAGER) {
                 credentials.setUsername(updateDTO.getEmail());
             }
             user.setEmail(updateDTO.getEmail());
-            credentialsRepository.save(credentials);
         }
         if (updateDTO.getBranchId() != null) {
             BranchEntity branch = getBranch(updateDTO.getBranchId());
             user.setBranch(branch);
         }
         UserEntity updated = userRepository.save(user);
+        credentials.setUser(updated);
+        credentialsRepository.save(credentials);
         return userMapper.toDTO(updated);
     }
 
@@ -218,7 +220,7 @@ public class UserService {
             if (newUsesEmailCredentials) {
                 credentials.setUsername(user.getEmail());
             } else {
-                if(updateDTO.getNewPin() == null){
+                if (updateDTO.getNewPin() == null) {
                     throw new BusinessException("New pin is mandatory for this role transition");
                 }
                 credentials.setUsername(updateDTO.getNewPin());
@@ -229,6 +231,7 @@ public class UserService {
         credentials.getRoles().clear();
         credentials.getRoles().add(newRole);
         UserEntity updated = userRepository.save(user);
+        credentials.setUser(updated);
         credentialsRepository.save(credentials);
         return userMapper.toDTO(updated);
     }
@@ -283,21 +286,20 @@ public class UserService {
 
     public void delete(Long id) {
         UserEntity user = getEntityById(id);
-        CredentialsEntity credentials = credentialsRepository.findByUser_Id(id)
-                        .orElseThrow(() -> new ResourceNotFoundException("There are no credentials for user "+id));
-
-        if(user.getRole().getRole() == Roles.WAITER
+        CredentialsEntity credentials = getCredentials(id);
+        if (user.getRole().getRole() == Roles.WAITER
                 || user.getRole().getRole() == Roles.MANAGER
-                || user.getRole().getRole() == Roles.HOST){
+                || user.getRole().getRole() == Roles.HOST) {
 
-            if(orderRepository.userHasOrdersActive(user.getId())){
+            if (orderRepository.userHasOrdersActive(user.getId())) {
                 throw new BusinessException("Cannot delete user that has active orders.");
             }
         }
         credentials.disable();
         user.setBranch(null);
+        UserEntity deleted = userRepository.save(user);
+        credentials.setUser(deleted);
         credentialsRepository.save(credentials);
-        userRepository.save(user);
     }
 
     public List<String> getUserRoles() {
