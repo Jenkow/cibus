@@ -5,6 +5,7 @@ import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.*;
 import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.credential.repository.CredentialsRepository;
+import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.role.entity.RoleEntity;
 import com.jll.cibus.role.enums.Roles;
 import com.jll.cibus.role.repository.RoleRepository;
@@ -35,9 +36,10 @@ import java.util.Set;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
-    private final BranchRepository branchRepository;
     private final RoleRepository roleRepository;
+    private final BranchRepository branchRepository;
+    private final OrderRepository orderRepository;
+    private final UserMapper userMapper;
     private final CredentialsRepository credentialsRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -91,7 +93,7 @@ public class UserService {
 
     private UserEntity getEntityById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ID", id));
+                .orElseThrow(() -> new ResourceNotFoundException("User ID", id));
     }
 
     private UserEntity getEntityByDni(Long dni) {
@@ -248,10 +250,21 @@ public class UserService {
         return userMapper.toDTO(updated);
     }
 
+    @Transactional
     public void delete(Long id) {
         UserEntity user = getEntityById(id);
         CredentialsEntity credentials = credentialsRepository.findByUser_Id(id)
                         .orElseThrow(() -> new ResourceNotFoundException("There are no credentials for user "+id));
+
+        if(user.getRole().getRole() == Roles.WAITER
+                || user.getRole().getRole() == Roles.MANAGER
+                || user.getRole().getRole() == Roles.HOST){
+
+            if(orderRepository.userHasOrdersActive(user.getId())){
+                throw new BusinessException("Cannot delete user that has active orders.");
+            }
+        }
+
         credentials.disable();
         user.setBranch(null);
         credentialsRepository.save(credentials);
