@@ -87,6 +87,11 @@ public class SecurityConfig {
                         // Statistics
                         .requestMatchers("/api/statistics/global/**").hasRole("ADMIN")
                         .requestMatchers("/api/statistics/branch/**").hasAnyRole("ADMIN", "MANAGER")
+                        // Swagger OpenAPI Specification
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+
 
                         .anyRequest().authenticated()
                 )
