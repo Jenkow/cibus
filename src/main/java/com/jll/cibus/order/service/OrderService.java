@@ -313,7 +313,7 @@ public class OrderService {
 
     public Boolean hasPaymentsOrDiscounts(Long orderId){
         OrderEntity order = getEntity(orderId);
-        return (!order.getDiscount().equals(BigDecimal.ZERO) || !paymentService.getPayments(orderId).isEmpty());
+        return (order.getDiscount().compareTo(BigDecimal.ZERO) != 0 || !paymentService.getPayments(orderId).isEmpty());
     }
 
 }
