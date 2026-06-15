@@ -36,6 +36,4 @@ public class UserUpdateDTO {
     @Positive
     private Long branchId;
 
-    private String role;
-
 }

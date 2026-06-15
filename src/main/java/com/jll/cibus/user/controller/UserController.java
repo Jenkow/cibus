@@ -46,10 +46,15 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> changePassword(@PathVariable Long userId, @Valid @RequestBody ChangePasswordRequestDTO request){
         return ResponseEntity.ok(userService.changePassword(userId, request));
     }
+
     @PatchMapping ("/{userId}/reset-pin")
-    public ResponseEntity<UserResponseDTO> resetPin (@PathVariable Long userId, @Valid @RequestBody ResetPinRequestDTO request)
-    {
+    public ResponseEntity<UserResponseDTO> resetPin (@PathVariable Long userId, @Valid @RequestBody ResetPinRequestDTO request) {
         return ResponseEntity.ok(userService.resetPin(userId,request.getNewPin()));
+    }
+
+    @PutMapping("/{userId}/change-role")
+    public ResponseEntity<UserResponseDTO> changeRole(@PathVariable Long userId, @Valid @RequestBody ChangeRoleDTO request){
+        return ResponseEntity.ok(userService.changeRole(userId, request));
     }
 
     @PutMapping ("/{userId}")
