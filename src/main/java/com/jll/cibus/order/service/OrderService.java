@@ -3,6 +3,7 @@ package com.jll.cibus.order.service;
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
+import com.jll.cibus.common.exception.ForbiddenOperationException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
 import com.jll.cibus.common.exception.UnauthorizedOperationException;
 import com.jll.cibus.order.dto.OrderStatusDTO;
@@ -78,10 +79,10 @@ public class OrderService {
         UserEntity user = getAuthenticatedUser();
         if(user.getRole().getRole() != Roles.ADMIN){
             if(user.getBranch() == null){
-                throw new BusinessException("User has no branch assigned");
+                throw new ForbiddenOperationException("User has no branch assigned");
             }
             if(!user.getBranch().getId().equals(branchId)){
-                throw new BusinessException("User assigned to a different branch");
+                throw new ForbiddenOperationException("User assigned to a different branch");
             }
         }
     }

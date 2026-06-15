@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.jll.cibus.common.exception.ForbiddenOperationException;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -156,7 +157,7 @@ public class UserService {
             throw new BusinessException("User must be assigned to a branch.");
         }
         if (!authenticatedUser.getBranch().getId().equals(userToModify.getBranch().getId())) {
-            throw new BusinessException("You can't modify users belonging to a different branch.");
+            throw new ForbiddenOperationException("You can't modify users belonging to a different branch.");
         }
     }
 
