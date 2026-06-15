@@ -81,37 +81,50 @@ public class OrderDetailService {
         }
     }
 
+    private void assertOrderIsEditable(OrderEntity order) {
+        if (orderService.isPaid(order) || orderService.isCancelled(order)) {
+            throw new BusinessException("No se puede modificar la orden " + order.getId()
+                    + " porque está " + order.getStatus().getName());
+        }
+    }
+
     @Transactional
-    public OrderDetailResponseDTO create(Long branchId,Long orderId, OrderDetailRequestDTO dto) {
-        validateOrderCanBeModified(branchId, orderId);
+    public OrderDetailResponseDTO create(Long branchId, Long orderId, OrderDetailRequestDTO dto) {
+        orderService.assertOrderInBranch(branchId, orderId);
         OrderEntity order = orderRepository.findById(orderId)
-                .orElseThrow(()-> new ResourceNotFoundException("order",orderId));
-        if(orderService.productExistsInDetails(orderId, dto.getProductId())){
-            if(order.getStatus().getName().equalsIgnoreCase("CANCELLED") || order.getStatus().getName().equalsIgnoreCase("PAID")){
-                throw new BusinessException("The order "+orderId+" is already closed");
-            }
-            OrderDetailEntity entity = getEntityByOrderIdAndProductId(branchId,orderId, dto.getProductId());
-            entity.setQuantity(entity.getQuantity()+dto.getQuantity());
-            OrderDetailEntity saved = orderDetailRepository.save(entity);
-            orderService.recalculateTotals(orderId);
-            return orderDetailMapper.toDTO(saved);
-        }
-        OrderDetailEntity entity = orderDetailMapper.toEntity(dto);
+                .orElseThrow(() -> new ResourceNotFoundException("order", orderId));
+        assertOrderIsEditable(order);
+
         ProductEntity product = productRepository.findById(dto.getProductId())
-                        .orElseThrow(()->new ResourceNotFoundException("product",dto.getProductId()));
-        BranchProductEntity productInBranch = branchProductService.getEntityByBranchAndProduct(order.getBranch().getId(), product.getId());
+                .orElseThrow(() -> new ResourceNotFoundException("product", dto.getProductId()));
+        BranchProductEntity productInBranch =
+                branchProductService.getEntityByBranchAndProduct(order.getBranch().getId(), product.getId());
         validateAvailability(productInBranch);
-        entity.setUnitPrice(productInBranch.getPrice());
-        entity.setProduct(product);
-        entity.setOrder(order);
-        if(dto.getObservation() == null){
-            entity.setObservation("");                                        //Me parece mejor cadena vacia a que quede un null.
+
+        OrderDetailEntity existing = orderDetailRepository
+                .findByOrderIdAndProductId(orderId, product.getId())
+                .orElse(null);
+
+        OrderDetailEntity detail;
+        if (existing != null) {                                   // ya existe → sumo cantidad
+            existing.setQuantity(existing.getQuantity() + dto.getQuantity());
+            detail = existing;
+        } else {                                                  // nuevo
+            detail = OrderDetailEntity.builder()
+                    .order(order)
+                    .product(product)
+                    .quantity(dto.getQuantity())
+                    .unitPrice(productInBranch.getPrice())
+                    .observation(dto.getObservation() == null ? "" : dto.getObservation())
+                    .build();
         }
+
+        OrderDetailEntity saved = orderDetailRepository.save(detail);
+
         if (!order.getStatus().getName().equalsIgnoreCase("PREPARING")) {
             orderService.changeStatus(orderId, "PREPARING");
         }
-        OrderDetailEntity saved = orderDetailRepository.save(entity);
-        orderService.recalculateTotals(entity.getOrder().getId());
+        orderService.recalculateTotals(orderId);
         return orderDetailMapper.toDTO(saved);
     }
 
