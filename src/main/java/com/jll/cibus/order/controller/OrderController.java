@@ -40,8 +40,8 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponseDTO> getById(@PathVariable Long orderId){
-        return ResponseEntity.ok(orderService.findById(orderId));
+    public ResponseEntity<OrderResponseDTO> getById(@PathVariable Long branchId,@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.findById(branchId,orderId));
     }
 
     @PostMapping()
@@ -56,13 +56,13 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/payments")
-    public ResponseEntity<PaymentDTO> addPayment(@PathVariable Long orderId, @RequestBody PaymentDTO payment){
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addPayment(orderId, payment));
+    public ResponseEntity<PaymentDTO> addPayment(@PathVariable Long branchId,@PathVariable Long orderId, @RequestBody PaymentDTO payment){
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addPayment(branchId,orderId, payment));
     }
 
     @PatchMapping("/{orderId}/discount")
-    public ResponseEntity<OrderResponseDTO> addDiscount(@PathVariable Long orderId, @Valid @RequestBody DiscountRequestDTO discount){
-        return ResponseEntity.ok(orderService.applyDiscount(orderId, discount));
+    public ResponseEntity<OrderResponseDTO> addDiscount(@PathVariable Long branchId,@PathVariable Long orderId, @Valid @RequestBody DiscountRequestDTO discount){
+        return ResponseEntity.ok(orderService.applyDiscount(branchId,orderId, discount));
     }
 
     @GetMapping("/statuses")
@@ -71,18 +71,18 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<OrderResponseDTO> setCancelStatus(@PathVariable Long orderId){
-        return ResponseEntity.ok(orderService.changeStatus(orderId, "CANCELLED"));
+    public ResponseEntity<OrderResponseDTO> setCancelStatus(@PathVariable Long branchId,@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.changeStatusInBranch(branchId,orderId, "CANCELLED"));
     }
 
     @PostMapping("/{orderId}/ready")
-    public ResponseEntity<OrderResponseDTO> setReadyStatus(@PathVariable Long orderId){
-        return ResponseEntity.ok(orderService.changeStatus(orderId, "READY"));
+    public ResponseEntity<OrderResponseDTO> setReadyStatus(@PathVariable Long branchId,@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.changeStatusInBranch(branchId,orderId, "READY"));
     }
 
     @PostMapping("/{orderId}/serve")
-    public ResponseEntity<OrderResponseDTO> setServedStatus(@PathVariable Long orderId){
-        return ResponseEntity.ok(orderService.changeStatus(orderId, "SERVED"));
+    public ResponseEntity<OrderResponseDTO> setServedStatus(@PathVariable Long branchId,@PathVariable Long orderId){
+        return ResponseEntity.ok(orderService.changeStatusInBranch(branchId,orderId, "SERVED"));
     }
 
 }
