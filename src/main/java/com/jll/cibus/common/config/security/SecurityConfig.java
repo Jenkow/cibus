@@ -1,6 +1,7 @@
 package com.jll.cibus.common.config.security;
 
 import com.jll.cibus.auth.RestAuthenticationEntryPoint;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -104,8 +106,21 @@ public class SecurityConfig {
                         manager.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e ->
-                        e.authenticationEntryPoint(restAuthenticationEntryPoint));
+                        e.authenticationEntryPoint(restAuthenticationEntryPoint)
+                                .accessDeniedHandler(accessDeniedHandler()));
         return http.build();
+    }
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, ex) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.getWriter().write(String.format(
+                    "{\"error\":\"No tiene permisos para realizar esta operación\", \"status\": %d, \"path\": \"%s\"}",
+                    HttpServletResponse.SC_FORBIDDEN,
+                    request.getRequestURI()));
+            response.getWriter().flush();
+        };
     }
 
 
