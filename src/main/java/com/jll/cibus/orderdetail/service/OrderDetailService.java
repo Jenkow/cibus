@@ -75,25 +75,23 @@ public class OrderDetailService {
     }
 
     private void validateOrderCanBeModified(Long branchId, Long orderId){
-        orderService.assertOrderInBranch(branchId,orderId);
-        if(orderService.hasPaymentsOrDiscounts(orderId)){
-            throw new BusinessException("You can't modify an order with payments or discounts");
-        }
-    }
-
-    private void assertOrderIsEditable(OrderEntity order) {
+        orderService.assertOrderInBranch(branchId, orderId);
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("order", orderId));
         if (orderService.isPaid(order) || orderService.isCancelled(order)) {
-            throw new BusinessException("No se puede modificar la orden " + order.getId()
-                    + " porque está " + order.getStatus().getName());
+            throw new BusinessException("This order can not be modified " + orderId
+                    + " because it is " + order.getStatus().getName());
+        }
+        if (orderService.hasPaymentsOrDiscounts(orderId)) {
+            throw new BusinessException("You can't modify an order with payments or discounts");
         }
     }
 
     @Transactional
     public OrderDetailResponseDTO create(Long branchId, Long orderId, OrderDetailRequestDTO dto) {
-        orderService.assertOrderInBranch(branchId, orderId);
+        validateOrderCanBeModified(branchId, orderId);
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("order", orderId));
-        assertOrderIsEditable(order);
 
         ProductEntity product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("product", dto.getProductId()));
