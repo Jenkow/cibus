@@ -1,5 +1,6 @@
 package com.jll.cibus.statistics.service;
 
+import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
 import com.jll.cibus.role.enums.Roles;
@@ -49,6 +50,9 @@ public class StatisticsService {
         LocalDateTime resolvedStart = start;
         if (start == null) resolvedStart = resolvedEnd.minusYears(1);
 
+        if (resolvedStart.isAfter(resolvedEnd)) {
+            throw new BusinessException("The start date cannot be after the end date");
+        }
         return Map.of("resolvedEnd", resolvedEnd,
                 "resolvedStart", resolvedStart);
     }
@@ -220,7 +224,7 @@ public class StatisticsService {
         ); // Reutilizamos la ganancia total para calcular el average.
 
         // Promedio de ganancia por dia.
-        long days = ChronoUnit.DAYS.between(start, end); // conseguimos la cantidad de dias que se busca
+        long days = Math.max(1,ChronoUnit.DAYS.between(start, end)); // conseguimos la cantidad de dias que se busca
         BigDecimal averageRevenuePerDay = totalRevenue.divide(new BigDecimal(days), 2, RoundingMode.HALF_UP); // Reutilizamos la ganancia total para calcular el average.
 
         // Orden de mayor monto.
@@ -266,7 +270,7 @@ public class StatisticsService {
         ); // Reutilizamos la ganancia total para calcular el average.
 
         // Promedio de ganancia por dia.
-        long days = ChronoUnit.DAYS.between(start, end); // conseguimos la cantidad de dias que se busca
+        long days = Math.max(1, ChronoUnit.DAYS.between(start, end));// conseguimos la cantidad de dias que se busca
         BigDecimal averageRevenuePerDay = totalRevenue.divide(new BigDecimal(days), 2, RoundingMode.HALF_UP); // Reutilizamos la ganancia total para calcular el average.
 
         // Orden de mayor monto.
