@@ -121,6 +121,10 @@ public class UserService {
 
     @Transactional
     public UserResponseDTO create(UserRequestDTO requestDTO) {
+        RoleEntity roleEntity = getRole(requestDTO.getRole());
+        if (roleEntity.getRole() != Roles.ADMIN && requestDTO.getBranchId() == null) {
+            throw new BusinessException("Branch ID is mandatory");
+        }
         if (existsByDni(requestDTO.getDni())) throw new ResourceAlreadyExistsException("User", requestDTO.getDni());
         if (userRepository.existsByEmail(requestDTO.getEmail()))
             throw new ResourceAlreadyExistsException("Email", requestDTO.getEmail());
@@ -129,7 +133,6 @@ public class UserService {
             BranchEntity branch = getBranch(requestDTO.getBranchId());
             user.setBranch(branch);
         }
-        RoleEntity roleEntity = getRole(requestDTO.getRole());
         user.setRole(roleEntity);
         String pin = requestDTO.getPin();
         CredentialsEntity credentials = CredentialsEntity.builder()
