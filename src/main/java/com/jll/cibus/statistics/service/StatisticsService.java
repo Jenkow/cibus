@@ -1,8 +1,8 @@
 package com.jll.cibus.statistics.service;
 
+import com.jll.cibus.auth.AuthService;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.*;
-import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.credential.repository.CredentialsRepository;
 import com.jll.cibus.order.repository.OrderRepository;
 import com.jll.cibus.orderdetail.repository.OrderDetailRepository;
@@ -18,11 +18,8 @@ import com.jll.cibus.statistics.dto.table.TableMetricDTO;
 import com.jll.cibus.statistics.dto.waiter.WaiterInsightDTO;
 import com.jll.cibus.statistics.dto.waiter.WaiterMetricDTO;
 import com.jll.cibus.table.repository.TableRepository;
-import com.jll.cibus.user.entity.UserEntity;
 import com.jll.cibus.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -39,8 +36,7 @@ public class StatisticsService {
     private final TableRepository tableRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
-    private final BranchRepository branchRepository;
-    private final CredentialsRepository credentialsRepository;
+    private final AuthService authService;
 
 
     /* Metodo que valida la coherencia de las fechas de inicio y fin.
@@ -63,48 +59,10 @@ public class StatisticsService {
                 "resolvedStart", resolvedStart);
     }
 
-    // Metodo que obtiene el usuario solicitante mediante el contexto de seguridad de Spring
-    private UserEntity getAuthenticatedUser(){
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated())
-            throw new UnauthorizedOperationException("User not authenticated");
-
-        String username = (String) authentication.getPrincipal();
-        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
-
-        UserEntity user = credentials.getUser();
-        if(user == null)
-            throw new ResourceNotFoundException("There is no user related to credentials");
-
-        return user;
-    }
-
-    // Metodo que valida la existencia de la sucursal solicitada, el rol del solicitante
-    // y la coherencia de la sucursal solicitada con la perteneciente al usuario.
-    private void authenticateUserBelongsInBranch(Long branchId){
-        UserEntity user = getAuthenticatedUser();
-
-        if(!branchRepository.existsById(branchId)) throw new ResourceNotFoundException("Branch not found or is no longer available");
-
-        if(user.getRole().getRole() != Roles.ADMIN && user.getRole().getRole() != Roles.MANAGER){
-
-            if(user.getBranch() == null)
-                throw new ForbiddenOperationException("User has no branch assigned");
-
-            if(!user.getBranch().getId().equals(branchId))
-                throw new ForbiddenOperationException("User assigned to a different branch");
-        }else{
-
-            throw new BusinessException("Requester must be administrator or manager.");
-        }
-    }
-
     public TableInsightDTO getTableInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
         // Validamos rol de usuario, existencia de sucursal y coherencia del request.
-        authenticateUserBelongsInBranch(branchId);
+        authService.authenticateUserBelongsInBranch(branchId);
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
@@ -145,7 +103,7 @@ public class StatisticsService {
     public ProductInsightDTO getProductInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
         // Validamos rol de usuario, existencia de sucursal y coherencia del request.
-        authenticateUserBelongsInBranch(branchId);
+        authService.authenticateUserBelongsInBranch(branchId);
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
@@ -255,7 +213,7 @@ public class StatisticsService {
     public OrderInsightDTO getOrderInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
         // Validamos rol de usuario, existencia de sucursal y coherencia del request.
-        authenticateUserBelongsInBranch(branchId);
+        authService.authenticateUserBelongsInBranch(branchId);
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
@@ -350,7 +308,7 @@ public class StatisticsService {
     public WaiterInsightDTO getWaiterInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
         // Validamos rol de usuario, existencia de sucursal y coherencia del request.
-        authenticateUserBelongsInBranch(branchId);
+        authService.authenticateUserBelongsInBranch(branchId);
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
@@ -403,7 +361,7 @@ public class StatisticsService {
     public OverviewInsightDTO getOverviewInsights(Long branchId, LocalDateTime start, LocalDateTime end) {
 
         // Validamos rol de usuario, existencia de sucursal y coherencia del request.
-        authenticateUserBelongsInBranch(branchId);
+        authService.authenticateUserBelongsInBranch(branchId);
 
         // Validamos coherencia de fechas
         Map<String, LocalDateTime> dates = dateValidator(start, end);
