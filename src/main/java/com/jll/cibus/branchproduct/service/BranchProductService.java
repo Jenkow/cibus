@@ -1,5 +1,6 @@
 package com.jll.cibus.branchproduct.service;
 
+import com.jll.cibus.auth.AuthService;
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.branchproduct.dto.BranchProductRequestDTO;
@@ -9,14 +10,21 @@ import com.jll.cibus.branchproduct.entity.BranchProductEntity;
 import com.jll.cibus.branchproduct.mapper.BranchProductMapper;
 import com.jll.cibus.branchproduct.repository.BranchProductRepository;
 import com.jll.cibus.branchproduct.specification.BranchProductSpecification;
+import com.jll.cibus.common.exception.ForbiddenOperationException;
 import com.jll.cibus.common.exception.ResourceAlreadyExistsException;
 import com.jll.cibus.common.exception.ResourceNotFoundException;
+import com.jll.cibus.common.exception.UnauthorizedOperationException;
+import com.jll.cibus.credential.entity.CredentialsEntity;
 import com.jll.cibus.product.entity.ProductEntity;
 import com.jll.cibus.product.repository.ProductRepository;
+import com.jll.cibus.role.enums.Roles;
+import com.jll.cibus.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -31,9 +39,18 @@ public class BranchProductService {
     private final BranchProductMapper branchProductMapper;
     private final BranchRepository branchRepository;
     private final ProductRepository productRepository;
+    private final AuthService authService;
 
+
+    private void authenticateUserBelongsInBranch(Long branchId){
+        if(!branchRepository.existsById(branchId)){
+            throw new ResourceNotFoundException("branch ID", branchId);
+        }
+        authService.authenticateUserBelongsInBranch(branchId);
+    }
 
     public Page<BranchProductResponseDTO> findAll(Pageable pageable, Long branchId, Long productId, String productName, Long categoryId, Boolean available, BigDecimal minPrice, BigDecimal maxPrice){
+        authenticateUserBelongsInBranch(branchId);
         Specification<BranchProductEntity> spec = Specification.allOf(
                 BranchProductSpecification.equalsBranchId(branchId),
                 BranchProductSpecification.equalsProductId(productId),
@@ -63,11 +80,13 @@ public class BranchProductService {
     }
 
     public BranchProductResponseDTO getByBranchAndProduct(Long branchId, Long productId){
+        authenticateUserBelongsInBranch(branchId);
         BranchProductEntity product = getEntityByBranchAndProduct(branchId, productId);
         return branchProductMapper.toDTO(product);
     }
 
     public BranchProductResponseDTO create (Long branchId, BranchProductRequestDTO dto){
+        authenticateUserBelongsInBranch(branchId);
         BranchEntity branch = branchRepository.findById(branchId)
                 .orElseThrow(()-> new ResourceNotFoundException("branch", branchId));
         ProductEntity product =productRepository.findById(dto.getProductId())
@@ -84,6 +103,7 @@ public class BranchProductService {
     }
 
     public BranchProductResponseDTO update(Long branchId, Long productId, BranchProductUpdateDTO dto){
+        authenticateUserBelongsInBranch(branchId);
         BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         if(dto.getPrice() != null){
             entity.setPrice(dto.getPrice());
@@ -110,6 +130,7 @@ public class BranchProductService {
     }
 
     public void delete(Long branchId, Long productId){
+        authenticateUserBelongsInBranch(branchId);
         BranchProductEntity entity = getEntityByBranchAndProduct(branchId, productId);
         branchProductRepository.delete(entity);
     }

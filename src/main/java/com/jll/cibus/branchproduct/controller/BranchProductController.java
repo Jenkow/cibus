@@ -54,22 +54,4 @@ public class BranchProductController {
         return ResponseEntity.noContent().build();
     }
 
-    /* ------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @GetMapping("/{id}")
-    public ResponseEntity<BranchProductResponseDTO> getById(@PathVariable Long id){                       por como es el endpoint me parece mucho mas legible que se busque por
-        return ResponseEntity.ok(branchProductService.getById(id));                                       el branchId y productId antes que el id de la relacion.
-    }
-
-    @GetMapping("name/{branchName}")
-    public ResponseEntity<List<BranchProductResponseDTO>> getMenuByBranchName(                             La dejo comentada porque el branchId ya llega siempre por el endpoint,
-            @PathVariable String branchName,                                                               entonces la vamos a querer buscar por el nombre en algun momento?
-            @RequestParam(required = false) Boolean available) {
-        if (Boolean.TRUE.equals(available)) {
-            return ResponseEntity.ok(branchProductService.findAvailableByBranchName(branchName));
-        }
-        return ResponseEntity.ok(branchProductService.getByBranchName(branchName));
-    }
-     */
-
 }
