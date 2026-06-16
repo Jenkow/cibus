@@ -55,6 +55,9 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Invalid credentials
+        '404':
+          description: User not found
+
 
   /auth/refresh:
     post:
@@ -78,6 +81,8 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Invalid or expired refresh token
+        '404':
+          description: User not found
 
   # ── BRANCHES ──────────────────────────────────────────────────────────────
 
