@@ -135,7 +135,7 @@ public class OrderService {
     }
 
     private void validateOrderRequest(Long branchId, OrderRequestDTO dto) {
-        if (!userService.existsById(dto.getWaiterId()))
+        if (!userRepository.existsById(dto.getWaiterId()))
             throw new ResourceNotFoundException("User ID" + dto.getWaiterId());
 
         CredentialsEntity waiterCredentials = credentialsRepository
@@ -148,7 +148,7 @@ public class OrderService {
         if (!isWaiter)
             throw new BusinessException("The user with id " + dto.getWaiterId() + " is not a waiter");
 
-        if (!tableService.existsByBranchIdAndNumber(branchId, dto.getTableNumber()))
+        if (!tableRepository.existsByBranchIdAndNumber(branchId, dto.getTableNumber()))
             throw new ResourceNotFoundException("Table number ", dto.getTableNumber());
     }
 
