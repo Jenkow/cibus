@@ -26,7 +26,7 @@ public class OrderDetailController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<OrderDetailResponseDTO> getById(@PathVariable Long branchId,@PathVariable Long orderId, @PathVariable Long productId){
+    public ResponseEntity<OrderDetailResponseDTO> getByProductId(@PathVariable Long branchId,@PathVariable Long orderId, @PathVariable Long productId){
         return ResponseEntity.ok(orderDetailService.getByOrderIdAndProductId(branchId, orderId, productId));
     }
 
