@@ -263,7 +263,7 @@ public class DataLoader {
                 userRepository.save(manager);
 
                 CredentialsEntity credentials = CredentialsEntity.builder()
-                        .username("manager")
+                        .username("manager@gmail.com")
                         .password(passwordEncoder.encode("1234"))
                         .enabled(Boolean.TRUE)
                         .user(manager)
@@ -294,8 +294,8 @@ public class DataLoader {
                 userRepository.save(waiter);
 
                 CredentialsEntity credentials = CredentialsEntity.builder()
-                        .username("waiter")
-                        .password(passwordEncoder.encode("1234"))
+                        .username("1111")
+                        .password(passwordEncoder.encode("1111"))
                         .enabled(Boolean.TRUE)
                         .user(waiter)
                         .roles(Set.of(waiterRole))
@@ -325,8 +325,8 @@ public class DataLoader {
                 userRepository.save(host);
 
                 CredentialsEntity credentials = CredentialsEntity.builder()
-                        .username("host")
-                        .password(passwordEncoder.encode("1234"))
+                        .username("2222")
+                        .password(passwordEncoder.encode("2222"))
                         .enabled(Boolean.TRUE)
                         .user(host)
                         .roles(Set.of(hostRole))
@@ -356,8 +356,8 @@ public class DataLoader {
                 userRepository.save(kitchen);
 
                 CredentialsEntity credentials = CredentialsEntity.builder()
-                        .username("kitchen")
-                        .password(passwordEncoder.encode("1234"))
+                        .username("3333")
+                        .password(passwordEncoder.encode("3333"))
                         .enabled(Boolean.TRUE)
                         .user(kitchen)
                         .roles(Set.of(kitchenRole))
