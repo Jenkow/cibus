@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/branches/*/orders/**").hasAuthority("ORDER_READ")
                         .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/**").hasAuthority("ORDER_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/branches/*/orders/**").hasAuthority("ORDER_UPDATE")
+                        .requestMatchers(HttpMethod.PATCH, "/api/branches/*/orders/**").hasAuthority("ORDER_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/branches/*/orders/**").hasAuthority("ORDER_CANCEL")
                         // Order items
                         .requestMatchers(HttpMethod.GET, "/api/orders/*/items/**").hasAuthority("ORDER_READ")
