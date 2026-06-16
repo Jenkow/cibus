@@ -14,6 +14,10 @@ public enum Roles {
             Permits.USER_READ,
             Permits.USER_UPDATE,
             Permits.PRODUCT_READ,
+            Permits.BRANCH_PRODUCT_READ,
+            Permits.BRANCH_PRODUCT_CREATE,
+            Permits.BRANCH_PRODUCT_UPDATE,
+            Permits.BRANCH_PRODUCT_DELETE,
             Permits.CATEGORY_READ,
             Permits.TABLE_CREATE,
             Permits.TABLE_UPDATE,
@@ -36,6 +40,7 @@ public enum Roles {
             Permits.TABLE_UPDATE,
             Permits.TABLE_OPEN,
             Permits.TABLE_CLOSE,
+            Permits.BRANCH_PRODUCT_READ,
             Permits.ORDER_READ,
             Permits.ORDER_CREATE,
             Permits.ORDER_UPDATE,
@@ -46,6 +51,7 @@ public enum Roles {
     ),
     WAITER(
             Permits.TABLE_READ,
+            Permits.BRANCH_PRODUCT_READ,
             Permits.ORDER_READ,
             Permits.ORDER_CREATE,
             Permits.ORDER_UPDATE,
@@ -57,6 +63,7 @@ public enum Roles {
             Permits.PAYMENT_READ
     ),
     KITCHEN(
+            Permits.BRANCH_PRODUCT_READ,
             Permits.ORDER_READ,
             Permits.ORDER_CHANGE_STATUS,
             Permits.ORDER_STATUS_READ,

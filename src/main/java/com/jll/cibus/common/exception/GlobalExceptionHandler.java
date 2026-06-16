@@ -1,5 +1,6 @@
 package com.jll.cibus.common.exception;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.jll.cibus.common.errordetails.ErrorDetails;
 import io.jsonwebtoken.JwtException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -114,13 +115,7 @@ public class GlobalExceptionHandler {
         ErrorDetails errorDetails = new ErrorDetails("AuthenticationException", "Invalid Credentials", HttpStatus.UNAUTHORIZED.value());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDetails);
     }
-    @ExceptionHandler (Exception.class)
-    public ResponseEntity<ErrorDetails> genericExceptionHandler (Exception ex)
-    {
-        log.error("Unhandled error", ex);
-        ErrorDetails errorDetails= new ErrorDetails("InternalServerError", "There was an unexpected mistake. Try again later", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDetails);
-    }
+
     @ExceptionHandler(ForbiddenOperationException.class)
     public ResponseEntity<ErrorDetails>
     forbiddenOperationExceptionHandler (ForbiddenOperationException ex){
@@ -128,5 +123,12 @@ public class GlobalExceptionHandler {
                 ErrorDetails("ForbiddenOperationException", ex.getMessage(),
                 HttpStatus.FORBIDDEN.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorDetails);
+    }
+
+    @ExceptionHandler(JsonParseException.class)
+    public ResponseEntity<ErrorDetails> jsonParseExceptionHandler (JsonParseException ex){
+        ErrorDetails errorDetails = new ErrorDetails("JsonParseException", ex.getMessage(), HttpStatus.CONFLICT.value());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDetails);
     }
 }

@@ -56,7 +56,7 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/payments")
-    public ResponseEntity<PaymentDTO> addPayment(@PathVariable Long branchId,@PathVariable Long orderId, @RequestBody PaymentDTO payment){
+    public ResponseEntity<PaymentDTO> addPayment(@PathVariable Long branchId,@PathVariable Long orderId, @Valid @RequestBody PaymentDTO payment){
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addPayment(branchId,orderId, payment));
     }
 
