@@ -65,9 +65,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/orders/*/items/**").hasAuthority("ORDER_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/orders/*/items/**").hasAuthority("ORDER_CANCEL")
                         // Products por branch
-                        .requestMatchers(HttpMethod.GET, "/api/branches/*/products/**").hasAuthority("PRODUCT_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/branches/*/products/**").hasAuthority("PRODUCT_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/products/**").hasAuthority("PRODUCT_UPDATE")
+                        .requestMatchers(HttpMethod.GET, "/api/branches/*/products/**").hasAuthority("BRANCH_PRODUCT_READ")
+                        .requestMatchers(HttpMethod.POST, "/api/branches/*/products/**").hasAuthority("BRANCH_PRODUCT_CREATE")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/*/products/**").hasAuthority("BRANCH_PRODUCT_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/branches/*/products/**").hasAnyRole("ADMIN", "MANAGER")
                         // Branches
                         .requestMatchers(HttpMethod.GET, "/api/branches/**").hasAuthority("BRANCH_READ")
