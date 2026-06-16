@@ -45,7 +45,7 @@ public interface UserRepository extends JpaRepository<UserEntity,Long>, JpaSpeci
     SELECT COUNT (u)
         FROM UserEntity u
         WHERE u.branch.id = :branchId
-        AND u.role = :role
+        AND u.role.role = :role
     """)
     Long countByUserRoleAndBranchId (@Param("role") Roles role,
                                      @Param("branchId") Long branchId);
