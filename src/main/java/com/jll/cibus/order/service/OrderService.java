@@ -196,7 +196,7 @@ public class OrderService {
                         .orElseThrow(()->new ResourceNotFoundException("user", order.getWaiter().getId()));
         if (dto.getTableNumber() != null) {
             TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, dto.getTableNumber())
-                    .orElseThrow(() -> new ResourceNotFoundException("There is no table number "+dto.getTableNumber()+"in this branch"));
+                    .orElseThrow(() -> new ResourceNotFoundException("There is no table number "+dto.getTableNumber()+" in this branch"));
             if (!table.isAvailable()) {
                 throw new BusinessException("The table " + table.getNumber() + " is occupied");
             }

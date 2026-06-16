@@ -451,7 +451,11 @@ public class DataLoader {
 
                 for (int i = 1; i <= 10; i++) {
                     TableEntity mesaAleatoria = mesas.get(random.nextInt(mesas.size()));
-                    OrderStatusEntity estadoAleatorio = estados.get(random.nextInt(estados.size()));
+                    List<OrderStatusEntity> estadosSinPendingNiPaid = estados.stream()
+                            .filter(e -> !e.getName().equalsIgnoreCase("pending"))
+                            .filter(e -> !e.getName().equalsIgnoreCase("paid"))
+                            .toList();
+                    OrderStatusEntity estadoAleatorio = estadosSinPendingNiPaid.get(random.nextInt(estadosSinPendingNiPaid.size()));
 
                     ProductEntity producto1 = productos.get(random.nextInt(productos.size() / 2));
                     ProductEntity producto2 = productos.get(productos.size() / 2 + random.nextInt(productos.size() / 2));
