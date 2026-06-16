@@ -215,6 +215,7 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 La API comenzará a correr por defecto en el puerto 8080 (ej. http://localhost:8080).
 Acceso a la Documentación de la API (Swagger / OpenAPI) Una vez que el servidor esté en ejecución, puedes explorar, interactuar y probar todos los endpoints disponibles
 (sucursales, usuarios, productos, pedidos, etc.) desde la interfaz de Swagger UI accediendo a:URL: http://localhost:8080/swagger-ui/index.html
+Tambien puedes probar los endpoints mediante la plantilla de prueba de PostMan: src/main/resources/static/postman/cibus.postman_collection.json
 
 # Equipo de Desarrollo
 El diseño de sistemas, análisis de requisitos, modelado de base de datos e implementación del Proyecto Cibus fue llevado a cabo por el siguiente equipo técnico:
