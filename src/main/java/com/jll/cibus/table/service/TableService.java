@@ -136,22 +136,40 @@ public class TableService {
 
     @Transactional
     public TableResponseDTO update(Long branchId, Integer tableNumber, TableUpdateDTO newTable) {
+
         authenticateUserBelongsInBranch(branchId);
+
         TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         if(newTable.getNumber() != null){
             table.setNumber(newTable.getNumber());
         }
+
         if (newTable.getCapacity() != null) {
             if (newTable.getCapacity() < 1) {
                 throw new BusinessException("The capacity can not be less than 1");
             }
+
             table.setCapacity(newTable.getCapacity());
         }
+
         if (newTable.getWaiterId() != null) {
-            UserEntity waiter = userRepository.findById(newTable.getWaiterId())
+            UserEntity newWaiter = userRepository.findById(newTable.getWaiterId())
                             .orElseThrow(()-> new ResourceNotFoundException("user",newTable.getWaiterId()));
-            validateWaiterRole(waiter.getId());
-            table.setWaiter(waiter);
+
+            CredentialsEntity waiterCredentials = credentialsRepository
+                    .findByUser_Id(newWaiter.getId())
+                    .orElseThrow(() -> new BusinessException("The user with id " + newWaiter.getId() + " has no credentials"));
+
+            Roles role = waiterCredentials.getUser().getRole().getRole();
+
+            if (role != Roles.WAITER
+                    && role != Roles.HOST
+                    && role != Roles.MANAGER) {
+                throw new BusinessException(
+                        "The user must have role WAITER, HOST or MANAGER");
+            }
+
+            table.setWaiter(newWaiter);
         }
 
         TableEntity updatedTable = tableRepository.save(table);
