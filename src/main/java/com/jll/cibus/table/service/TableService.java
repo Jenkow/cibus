@@ -94,27 +94,34 @@ public class TableService {
                 .findByUser_Id(waiterId)
                 .orElseThrow(() -> new BusinessException("The user with id " + waiterId + " has no credentials"));
 
-        boolean isWaiter = waiterCredentials.getUser() != null
-                && waiterCredentials.getUser().getRole().getRole() == Roles.WAITER;
-        if (!isWaiter)
-            throw new BusinessException("The user is not a waiter");
+        Roles role = waiterCredentials.getUser().getRole().getRole();
+
+        if (role != Roles.WAITER
+                && role != Roles.HOST
+                && role != Roles.MANAGER) {
+            throw new BusinessException(
+                    "The user must have role WAITER, HOST or MANAGER");
+            }
     }
 
     @Transactional
     public TableResponseDTO occupy(Long branchId, Integer tableNumber, Long waiterId) {
+
         authenticateUserBelongsInBranch(branchId);
+
         TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         if (waiterId == null)
             throw new BusinessException("Waiter ID is required to occupy a table");
 
         if (!table.getAvailable())
             throw new BusinessException("The table is already occupied");
+
         UserEntity waiter = userRepository.findById(waiterId)
                 .orElseThrow(()->new ResourceNotFoundException("waiter", waiterId));
         validateWaiterRole(waiterId);
+
         table.setAvailable(false);
         table.setWaiter(waiter);
-
         TableEntity updatedTable = tableRepository.save(table);
 
         return tableMapper.toDTO(updatedTable);
@@ -122,15 +129,18 @@ public class TableService {
 
     @Transactional
     public TableResponseDTO free(Long branchId, Integer tableNumber) {
+
         authenticateUserBelongsInBranch(branchId);
+
         TableEntity table = getTableByBranchIdAndNumber(branchId, tableNumber);
         if (table.getAvailable()) {
             throw new BusinessException("The table is already free");
         }
+
         table.setAvailable(true);
         table.setWaiter(null);
-
         TableEntity updatedTable = tableRepository.save(table);
+
         return tableMapper.toDTO(updatedTable);
     }
 
@@ -144,6 +154,8 @@ public class TableService {
             table.setNumber(newTable.getNumber());
         }
 
+        if(existsByBranchIdAndNumber(branchId, newTable.getNumber())) throw new BusinessException("There is another table with the same number.");
+
         if (newTable.getCapacity() != null) {
             if (newTable.getCapacity() < 1) {
                 throw new BusinessException("The capacity can not be less than 1");
@@ -155,19 +167,7 @@ public class TableService {
         if (newTable.getWaiterId() != null) {
             UserEntity newWaiter = userRepository.findById(newTable.getWaiterId())
                             .orElseThrow(()-> new ResourceNotFoundException("user",newTable.getWaiterId()));
-
-            CredentialsEntity waiterCredentials = credentialsRepository
-                    .findByUser_Id(newWaiter.getId())
-                    .orElseThrow(() -> new BusinessException("The user with id " + newWaiter.getId() + " has no credentials"));
-
-            Roles role = waiterCredentials.getUser().getRole().getRole();
-
-            if (role != Roles.WAITER
-                    && role != Roles.HOST
-                    && role != Roles.MANAGER) {
-                throw new BusinessException(
-                        "The user must have role WAITER, HOST or MANAGER");
-            }
+            validateWaiterRole(newWaiter.getId());
 
             table.setWaiter(newWaiter);
         }
