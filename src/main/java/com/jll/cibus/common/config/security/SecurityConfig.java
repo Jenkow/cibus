@@ -50,8 +50,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/branches/*/tables/**").hasAuthority("TABLE_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/branches/*/tables/**").hasAuthority("TABLE_UPDATE")
                         .requestMatchers(HttpMethod.PATCH, "/api/branches/*/tables/**").hasAnyAuthority("TABLE_OPEN", "TABLE_CLOSE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/tables/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/tables/**").hasAuthority("TABLE_DELETE")
                         // Orders
+                        .requestMatchers(HttpMethod.DELETE, "/api/branches/*/orders/*/items/**").hasAuthority("ORDER_CANCEL")
                         .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/*/ready",
                                                                     "/api/branches/*/orders/*/serve") .hasAuthority("ORDER_CHANGE_STATUS")
                         .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/*/cancel").hasAuthority("ORDER_CANCEL")
@@ -59,11 +60,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/branches/*/orders/**").hasAuthority("ORDER_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/branches/*/orders/**").hasAuthority("ORDER_UPDATE")
                         .requestMatchers(HttpMethod.PATCH, "/api/branches/*/orders/**").hasAuthority("ORDER_UPDATE")
-                        // Order items
-                        .requestMatchers(HttpMethod.GET, "/api/orders/*/items/**").hasAuthority("ORDER_READ")
-                        .requestMatchers(HttpMethod.POST, "/api/orders/*/items/**").hasAuthority("ORDER_CREATE")
-                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/items/**").hasAuthority("ORDER_UPDATE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/orders/*/items/**").hasAuthority("ORDER_CANCEL")
                         // Products por branch
                         .requestMatchers(HttpMethod.GET, "/api/branches/*/products/**").hasAuthority("BRANCH_PRODUCT_READ")
                         .requestMatchers(HttpMethod.POST, "/api/branches/*/products/**").hasAuthority("BRANCH_PRODUCT_CREATE")

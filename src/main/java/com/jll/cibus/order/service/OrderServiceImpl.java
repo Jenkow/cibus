@@ -64,6 +64,7 @@ public class OrderServiceImpl implements OrderService {
         }
         authService.authenticateUserBelongsInBranch(branchId);
     }
+
     @Override
     public void assertOrderInBranch (Long branchId, Long orderId) {
         authenticateUserBelongsInBranch(branchId);
@@ -72,6 +73,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ResourceNotFoundException("order", orderId);
         }
     }
+
 
     @Override
     public Page<OrderResponseDTO> getAll(Pageable pageable, Long branchId, Long tableNumber, Long waiterId, String statusName, LocalDateTime from, LocalDateTime to, BigDecimal minTotal, BigDecimal maxTotal) {
@@ -105,6 +107,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("ID", orderId));
     }
+
     @Override
     public OrderResponseDTO findById(Long branchId, Long id) {
         assertOrderInBranch(branchId, id);
@@ -125,6 +128,7 @@ public class OrderServiceImpl implements OrderService {
                 .map(orderDetailMapper::toDTO)
                 .toList());
     }
+
     @Override
     public boolean existsById(Long orderId) {
         return orderRepository.existsById(orderId);
@@ -147,11 +151,13 @@ public class OrderServiceImpl implements OrderService {
         if (!tableRepository.existsByBranchIdAndNumber(branchId, dto.getTableNumber()))
             throw new ResourceNotFoundException("Table number ", dto.getTableNumber());
     }
+
     @Override
     public Boolean productExistsInDetails(Long orderId, Long productId) {
         return getItems(orderId).stream()
                 .anyMatch(item -> item.getProduct().getId().equals(productId));
     }
+
     @Override
     @Transactional
     public OrderResponseDTO create(Long branchId, OrderRequestDTO dto) {
@@ -162,7 +168,7 @@ public class OrderServiceImpl implements OrderService {
         TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, dto.getTableNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("There is no table number "+dto.getTableNumber()+"in this branch"));
         UserEntity waiter = userRepository.findById(dto.getWaiterId())
-                        .orElseThrow(()->new ResourceNotFoundException("user",dto.getWaiterId()));
+                .orElseThrow(()->new ResourceNotFoundException("user",dto.getWaiterId()));
         //VERIFICO QUE SEA WAITER
         //VERIFICAR QUE EN ESE MOMENTO LA MESA TENGA ASIGNADO A ESE WAITER
         if (table.getWaiter() == null || !table.getWaiter().getId().equals(waiter.getId())) {
@@ -183,16 +189,17 @@ public class OrderServiceImpl implements OrderService {
         setRemainingAmount(response);
         return response;
     }
+
     @Override
     @Transactional
     public OrderResponseDTO update(Long branchId, Long orderId, OrderUpdateDTO dto) {
         authenticateUserBelongsInBranch(branchId);
         OrderEntity order = getEntity(orderId);
         UserEntity waiter = userRepository.findById(order.getWaiter().getId())
-                        .orElseThrow(()->new ResourceNotFoundException("user", order.getWaiter().getId()));
+                .orElseThrow(()->new ResourceNotFoundException("user", order.getWaiter().getId()));
         if (dto.getTableNumber() != null) {
             TableEntity table = tableRepository.findByBranch_IdAndNumber(branchId, dto.getTableNumber())
-                    .orElseThrow(() -> new ResourceNotFoundException("There is no table number "+dto.getTableNumber()+"in this branch"));
+                    .orElseThrow(() -> new ResourceNotFoundException("There is no table number "+dto.getTableNumber()+" in this branch"));
             if (!table.isAvailable()) {
                 throw new BusinessException("The table " + table.getNumber() + " is occupied");
             }
@@ -206,6 +213,7 @@ public class OrderServiceImpl implements OrderService {
         setRemainingAmount(response);
         return response;
     }
+
     @Override
     @Transactional
     public void delete(Long orderId) {
@@ -213,10 +221,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // ------------------------------------------------------------- STATUS MANAGMENT --------------------------------------------------------
+
     @Override
     public List<OrderStatusDTO> getStatuses() {
         return orderStatusService.findAll();
     }
+
     @Override
     public OrderResponseDTO changeStatus(Long orderId, String newStatus) {
         OrderEntity order = getEntity(orderId);
@@ -226,10 +236,12 @@ public class OrderServiceImpl implements OrderService {
         setRemainingAmount(response);
         return response;
     }
+
     @Override
     public Boolean isCancelled(OrderEntity order) {
         return order.getStatus().getName().equalsIgnoreCase("CANCELLED");
     }
+
     @Override
     public Boolean isPaid(OrderEntity order) {
         return order.getStatus().getName().equalsIgnoreCase("PAID");
@@ -243,6 +255,7 @@ public class OrderServiceImpl implements OrderService {
                             + order.getStatus().getName());
         }
     }
+
     private void checkIfOrderIsPaidOrCancelled(OrderEntity order) {
         if (isCancelled(order)) {
             throw new BusinessException("The order " + order.getId() + " is cancelled");
@@ -251,6 +264,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException("The order " + order.getId() + " is already paid");
         }
     }
+
     @Override
     @Transactional
     public PaymentDTO addPayment(Long branchId, Long orderId, PaymentDTO payment) {
@@ -259,6 +273,7 @@ public class OrderServiceImpl implements OrderService {
         checkOrderCanReceivePayment(order);
         return paymentService.addPayment(order, payment);
     }
+
     @Override
     @Transactional
     public OrderResponseDTO applyDiscount(Long branchId, Long orderId, DiscountRequestDTO discount) {
@@ -271,11 +286,11 @@ public class OrderServiceImpl implements OrderService {
         setResponseItems(response);
         return response;
     }
-    @Override
     public OrderResponseDTO changeStatusInBranch(Long branchId, Long orderId, String newStatus) {
         assertOrderInBranch(branchId, orderId);
         return changeStatus(orderId, newStatus);
     }
+
     @Override
     @Transactional
     public void recalculateTotals(Long id) {
@@ -290,7 +305,7 @@ public class OrderServiceImpl implements OrderService {
         order.setFinalTotal(subtotal.subtract(order.getDiscount()));
         orderRepository.save(order);
     }
-    @Override
+
     public void setRemainingAmount(OrderResponseDTO dto) {                             //metodo para calcular y asignar al responseDTO lo que falta pagar de la orden.
         BigDecimal totalPaid = paymentService.getTotalPaid(dto.getId());
         dto.setRemainingAmount(dto.getFinalTotal().subtract(totalPaid));
@@ -300,5 +315,4 @@ public class OrderServiceImpl implements OrderService {
         OrderEntity order = getEntity(orderId);
         return (order.getDiscount().compareTo(BigDecimal.ZERO) != 0 || !paymentService.getPayments(orderId).isEmpty());
     }
-
 }

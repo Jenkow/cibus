@@ -38,8 +38,8 @@ El sistema implementa un control de acceso basado en jerarquia de roles:
 - **RF01:** Ingreso al sistema mediante usuario y clave personal.
 - **RF02 / RF03:** Consulta de listados y Gestión Completa (ABM) de sucursales.
 - **RF04 / RF05:** Consulta de listados y Gestión Completa (ABM) de empleados globales.
-- **RF06 / RF07:** Consulta de listados y Gestión Completa (ABM) de los productos del menú general.
-- **RF08:** Visualización avanzada de estadísticas consolidadas de todas las sucursales.
+- **RF06 / RF07:** Consulta de listados y Gestión Completa (ABM) de los productos del menú global.
+- **RF08:** Visualización avanzada de estadísticas consolidadas de todas las sucursales y de cada sucursal específica.
 
 ### 2. Encargado de Sucursal (Manager)
 - **RF09:** Ingreso mediante ID de sucursal específica y clave personal de usuario.
@@ -49,22 +49,25 @@ El sistema implementa un control de acceso basado en jerarquia de roles:
 - **RF16:** Acceso a las estadísticas y métricas analíticas de su sucursal asignada.
 
 ### 3. Cocinero (Chef)
-- **RF17:** Ingreso mediante ID de sucursal y clave de cocina.
+- **RF17:** Ingreso mediante ID de sucursal y pin personal interno.
 - **RF18:** Consulta en tiempo real del listado de pedidos entrantes.
-- **RF19:** Modificación del estado del pedido (p. ej., de *En preparación* a *Listo*).
+- **RF19:** Modificación del estado del pedido (por ejemplo: de 'En preparación' a 'Listo').
 
 ### 4. Mozo (Waiter)
-- **RF20:** Ingreso mediante ID de sucursal y clave personal de usuario.
-- **RF21:** Visualización del listado de mesas bajo su responsabilidad directa.
-- **RF22:** Apertura de nuevos pedidos vinculados a una mesa específica.
-- **RF23:** Navegación por el menú de productos disponibles y selección para el pedido activo.
-- **RF24:** Modificación o edición de un pedido existente.
+- **RF20:** Ingreso mediante ID de sucursal y pin personal interno.
+- **RF21:** Visualización del listado de mesas de su sucursal asignada.
+- **RF22:** Apertura de nuevos pedidos vinculados a una mesa específica asignada al mozo.
+- **RF23:** Navegación por el menú de productos disponibles en la sucursal asignada y selección de los mismos para el pedido activo.
+- **RF24:** Modificación o edición de un pedido existente en una mesa asociada al mozo.
 
 ### 5. Recepcionista (Host)
-- **RF25:** Ingreso mediante ID de sucursal y clave personal de usuario.
+- **RF25:** Ingreso mediante ID de sucursal y pin personal interno.
 - **RF26:** Consulta general del mapa/listado de mesas de la sucursal.
 - **RF27:** Modificación del estado de ocupación de una mesa existente.
-- **RF28:** Asignación dinámica de un mozo a una mesa específica.
+- **RF28:** Asignación dinámica de un mozo a una mesa libre específica.
+- **RF29:** Apertura de nuevos pedidos vinculados a una mesa específica autoasignada.
+- **RF30:** Navegación por el menú de productos disponibles en la sucursal asignada y selección de los mismos para el pedido activo.
+- **RF31:** Modificación o edición de un pedido existente en una mesa autoasignada.
 
 ---
 
@@ -76,7 +79,7 @@ El sistema implementa un control de acceso basado en jerarquia de roles:
 - **RNF04 (Sesiones):** Gestión de sesiones mediante tokens JWT firmados digitalmente con un tiempo de expiración definido.
 - **RNF05 (Autorización):** Restricción estricta de endpoints según el rol asignado al usuario autenticado.
 - **RNF06 (Extensibilidad):** Soporte nativo para la incorporación de nuevas sucursales sin requerir cambios de código en la arquitectura base.
-- **RNF07 (Estandarización):** API completamente autodocumentada bajo la especificación OpenAPI.
+- **RNF07 (Estandarización):** API completamente documentada bajo la especificación OpenAPI.
 
 ---
 
