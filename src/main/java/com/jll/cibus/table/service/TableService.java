@@ -1,6 +1,7 @@
 package com.jll.cibus.table.service;
 
 
+import com.jll.cibus.auth.AuthService;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
 import com.jll.cibus.common.exception.ForbiddenOperationException;
@@ -36,6 +37,7 @@ public class TableService {
     private final BranchRepository branchRepository;
     private final CredentialsRepository credentialsRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
 
     private TableEntity getTableByBranchIdAndNumber(Long branchId, Integer number) {
@@ -43,31 +45,11 @@ public class TableService {
                 .orElseThrow(() -> new ResourceNotFoundException("table number", number));
     }
 
-    private UserEntity getAuthenticatedUser(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedOperationException("User not authenticated");
-        }
-        String username = (String) authentication.getPrincipal();
-        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
-        UserEntity user = credentials.getUser();
-        if(user == null){
-            throw new ResourceNotFoundException("There is no user related to credentials");
-        }
-        return user;
-    }
-
     private void authenticateUserBelongsInBranch(Long branchId){
-        UserEntity user = getAuthenticatedUser();
-        if(user.getRole().getRole() != Roles.ADMIN){
-            if(user.getBranch() == null){
-                throw new ForbiddenOperationException("User has no branch assigned");
-            }
-            if(!user.getBranch().getId().equals(branchId)){
-                throw new ForbiddenOperationException("User assigned to a different branch");
-            }
+        if(!branchRepository.existsById(branchId)){
+            throw new ResourceNotFoundException("branch ID", branchId);
         }
+        authService.authenticateUserBelongsInBranch(branchId);
     }
 
     public Page<TableResponseDTO> findAll( Pageable pageable,Long branchId, Integer tableNumber, Integer capacity, Boolean available, Long waiterId){

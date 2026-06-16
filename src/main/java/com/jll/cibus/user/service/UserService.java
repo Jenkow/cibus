@@ -1,5 +1,6 @@
 package com.jll.cibus.user.service;
 
+import com.jll.cibus.auth.AuthService;
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.*;
@@ -41,25 +42,11 @@ public class UserService {
     private final UserMapper userMapper;
     private final CredentialsRepository credentialsRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-
-    private UserEntity getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedOperationException("User not authenticated");
-        }
-        String username = (String) authentication.getPrincipal();
-        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
-        UserEntity user = credentials.getUser();
-        if (user == null) {
-            throw new ResourceNotFoundException("There is no user related to credentials");
-        }
-        return user;
-    }
 
     public Page<UserResponseDTO> findAll(Pageable pageable, Long dni, String name, String email, String phoneNumber, Long branchId, Long userRoleId) {
-        UserEntity user = getAuthenticatedUser();
+        UserEntity user = authService.getAuthenticatedUser();
         if (user.getRole().getRole() == Roles.MANAGER) {
             branchId = user.getBranch().getId();
         }
@@ -168,7 +155,7 @@ public class UserService {
     public UserResponseDTO update(Long id, UserUpdateDTO updateDTO) {
         UserEntity user = getEntityById(id);
         CredentialsEntity credentials = getCredentials(id);
-        UserEntity authenticatedUser = getAuthenticatedUser();
+        UserEntity authenticatedUser = authService.getAuthenticatedUser();
         if (authenticatedUser.getRole().getRole() == Roles.MANAGER) {
             validateManagerCanModifyUser(authenticatedUser, user);
         }
@@ -209,7 +196,7 @@ public class UserService {
     @Transactional
     public UserResponseDTO changeRole(Long userId, ChangeRoleDTO updateDTO) {
         UserEntity user = getEntityById(userId);
-        UserEntity authenticatedUser = getAuthenticatedUser();
+        UserEntity authenticatedUser = authService.getAuthenticatedUser();
         if (authenticatedUser.getRole().getRole() == Roles.MANAGER) {
             validateManagerCanModifyUser(authenticatedUser, user);
         }
@@ -243,7 +230,7 @@ public class UserService {
     @Transactional
     public UserResponseDTO changePassword(Long userId, ChangePasswordRequestDTO request) {
         UserEntity user = getEntityById(userId);
-        UserEntity authenticatedUser = getAuthenticatedUser();
+        UserEntity authenticatedUser = authService.getAuthenticatedUser();
         if (authenticatedUser.getRole().getRole() == Roles.MANAGER) {
             validateManagerCanModifyUser(authenticatedUser, user);
         }
@@ -272,7 +259,7 @@ public class UserService {
         if (user == null) {
             throw new ResourceNotFoundException("There is no user related to credentials");
         }
-        UserEntity authenticatedUser = getAuthenticatedUser();
+        UserEntity authenticatedUser = authService.getAuthenticatedUser();
         if (authenticatedUser.getRole().getRole() == Roles.MANAGER) {
             validateManagerCanModifyUser(authenticatedUser, user);
         }

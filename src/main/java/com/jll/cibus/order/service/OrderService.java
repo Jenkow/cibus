@@ -1,5 +1,6 @@
 package com.jll.cibus.order.service;
 
+import com.jll.cibus.auth.AuthService;
 import com.jll.cibus.branch.entity.BranchEntity;
 import com.jll.cibus.branch.repository.BranchRepository;
 import com.jll.cibus.common.exception.BusinessException;
@@ -58,33 +59,14 @@ public class OrderService {
     private final PaymentService paymentService;
     private final UserRepository userRepository;
     private final CredentialsRepository credentialsRepository;
+    private final AuthService authService;
 
-
-    private UserEntity getAuthenticatedUser(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedOperationException("User not authenticated");
-        }
-        String username = (String) authentication.getPrincipal();
-        CredentialsEntity credentials = credentialsRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Credentials not found"));
-        UserEntity user = credentials.getUser();
-        if(user == null){
-            throw new ResourceNotFoundException("There is no user related to credentials");
-        }
-        return user;
-    }
 
     private void authenticateUserBelongsInBranch(Long branchId){
-        UserEntity user = getAuthenticatedUser();
-        if(user.getRole().getRole() != Roles.ADMIN){
-            if(user.getBranch() == null){
-                throw new ForbiddenOperationException("User has no branch assigned");
-            }
-            if(!user.getBranch().getId().equals(branchId)){
-                throw new ForbiddenOperationException("User assigned to a different branch");
-            }
+        if(!branchRepository.existsById(branchId)){
+            throw new ResourceNotFoundException("branch ID", branchId);
         }
+        authService.authenticateUserBelongsInBranch(branchId);
     }
 
     public void assertOrderInBranch (Long branchId, Long orderId) {
